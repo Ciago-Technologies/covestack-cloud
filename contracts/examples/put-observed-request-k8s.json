@@ -1,0 +1,10 @@
+{
+  "observedGeneration": 2,
+  "state": "active",
+  "detail": {
+    "clusterId": "k3d-web-cluster",
+    "nodeCount": 3,
+    "kubeApiPort": 6443
+  },
+  "error": null
+}

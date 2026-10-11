@@ -1,0 +1,18 @@
+[
+  {
+    "id": "01J8ZK9XCLUSTER1",
+    "kind": "k8s.cluster",
+    "generation": 2,
+    "desiredState": "active",
+    "deleting": false,
+    "spec": {
+      "clusterName": "web-cluster",
+      "k3dVersion": "5.6.0",
+      "nodes": 3,
+      "image": "rancher/k3s:v1.28.8-k3s1"
+    },
+    "labels": {
+      "kan.io/account": "000000000001"
+    }
+  }
+]

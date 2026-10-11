@@ -1,0 +1,12 @@
+{
+  "algorithm": "KAN1-HMAC-SHA256",
+  "dateHeader": "X-Kan-Date",
+  "accessKeyHeader": "X-Kan-Access-Key",
+  "signatureHeader": "X-Kan-Signature",
+  "nonceHeader": "X-Kan-Nonce",
+  "alwaysSignedHeaders": ["host", "x-kan-date"],
+  "signBodyContentTypeHeader": true,
+  "maxClockSkewSeconds": 300,
+  "nonceReplayWindowSeconds": 600,
+  "dateFormat": "yyyyMMdd'T'HHmmss'Z'"
+}
