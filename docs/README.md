@@ -1,4 +1,4 @@
-# Covestack Cloud — Documentation
+# CoveStack Cloud — Documentation
 
 | Item | Details |
 |---|---|

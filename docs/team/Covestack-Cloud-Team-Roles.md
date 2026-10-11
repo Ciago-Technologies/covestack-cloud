@@ -1,4 +1,4 @@
-# Covestack Cloud — Team Roles and Acceptance Ownership
+# CoveStack Cloud — Team Roles and Acceptance Ownership
 
 | Item | Details |
 |---|---|

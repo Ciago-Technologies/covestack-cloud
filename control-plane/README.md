@@ -1,4 +1,4 @@
-# Covestack Cloud — Control-plane placeholder
+# CoveStack Cloud — Control-plane placeholder
 
 | Item | Details |
 |---|---|

@@ -1,10 +1,10 @@
-# Covestack Cloud — Start Here
+# CoveStack Cloud — Start Here
 
 | Current status | Meaning |
 |---|---|
 | Security baseline | Commit `349a2f4` exists. Live authentication/authorization acceptance remains pending. |
 | Branding baseline | Commit `7ac2719` exists on `fix/security-baseline`. |
-| Lifecycle 1.1.0 | Applied to the working tree, not committed at inspection. Do not reapply previous patches. |
+| Lifecycle 1.1.0 | Committed in `189df4f` with documentation improvements. Do not reapply previous patches. |
 | Submission | Tuesday, 15 December 2026. |
 
 ## Send this package to the team
@@ -48,4 +48,4 @@
 | Historical ZIPs | Optional archival evidence; never treat old instructions as current setup. |
 | Claude prepared copy and patch ZIPs | Local delivery artifacts; do not copy the entire Claude directory into the project. |
 | Credentials | Never commit/share actual `.env`, secrets, master keys or private tokens. |
-| Current product spelling | CloveStack. Folder renaming is a separate coordinated change; paths remain `kan-agent`, `kan-server`, `kan-cloud` until updated together. |
+| Current product spelling | CoveStack. The repository folder and origin URL use `covestack-cloud`; compatibility folders `kan-agent` and `kan-server` remain unchanged. |

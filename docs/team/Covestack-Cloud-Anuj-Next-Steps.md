@@ -2,9 +2,11 @@
 
 | Item | Details |
 |---|---|
-| 1 | Checked original `/run/media/anujtiwari/DevMount/Project-CDAC/kan-cloud` without printing or sourcing secrets. This is the current state, superseding the earlier handoff's historical statement that the patch had not been applied. |
+| 1 | Checked original `/run/media/anujtiwari/DevMount/Project-CDAC/kan-cloud` without printing or sourcing secrets. This records the 11 October inspection, superseding the earlier handoff's historical statement that the patch had not been applied. |
 
-## Verified findings
+## Findings from the 11 October inspection
+
+The checkout is now `Project-CDAC/covestack-cloud`. The deployment environment and secret files exist as of 12 October; their contents and running services have not been revalidated. The older missing-file findings below are historical.
 
 | Item | Current result |
 |---|---|

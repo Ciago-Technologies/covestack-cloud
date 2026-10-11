@@ -1,4 +1,4 @@
-# Covestack Cloud — contracts/
+# CoveStack Cloud — contracts/
 
 | Item | Details |
 |---|---|

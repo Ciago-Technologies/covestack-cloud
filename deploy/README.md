@@ -1,4 +1,4 @@
-# Covestack Cloud — Local Infrastructure
+# CoveStack Cloud — Local Infrastructure
 
 | Item | Details |
 |---|---|

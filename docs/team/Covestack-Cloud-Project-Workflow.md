@@ -1,4 +1,4 @@
-# Covestack Cloud — Delivery Workflow to 15 December 2026
+# CoveStack Cloud — Delivery Workflow to 15 December 2026
 
 | Item | Details |
 |---|---|
@@ -10,7 +10,7 @@
 | Item | Details |
 |---|---|
 | 1 | The security/build baseline is committed as `349a2f4` (Fixed security issues) on published branch `fix/security-baseline`, which tracks `origin/fix/security-baseline`. The lifecycle changes are currently applied but uncommitted. Remote main/PR merge status has not been verified; review and merge through the shared PR. Three signature vectors, negative tests, registered agent/Bearer filters, Valkey replay plumbing, CI, secret templates and auth-smoke exist. The config.go file currently contains only `package config`; it is a placeholder, not a working loader. Real credential/token lookup, application main, migrations/controllers, full agent and live deployment tests remain pending. |
-| 2 | Product name: **Covestack Cloud**; intended repository slug: `covestack-cloud`. The actual checkout and GitHub remote are still named `kan-cloud` until the repository owner renames them. Use the real paths in commands. Existing module folders, Go import paths, Java packages, signing headers/algorithm, KAN_* environment names, API paths, labels, database identity and Valkey key prefixes remain compatibility identifiers. A future technical rename needs a separate coordinated migration. |
+| 2 | Product name: **CoveStack Cloud**; repository slug: `covestack-cloud`. The local checkout and origin URL now use `covestack-cloud`. Use that repository folder in commands. Existing module folders, Go import paths, Java packages, signing headers/algorithm, KAN_* environment names, API paths, labels, database identity and Valkey key prefixes remain compatibility identifiers. A future technical rename needs a separate coordinated migration. |
 | 3 | One Java application, one host agent and one integration VM. Avoid microservices, module relocations, a new frontend, new cloud providers and new frameworks. Keep maintained Java 25-compatible dependencies and update the actual contracts with Java/Go together. |
 | 4 | Security gates are not optional feature cuts: auth, replay/body limits, ownership, workload/backend separation, persistence and truthful action completion must work before release. Planned feature depth is intentionally small so the required application stack can finish. |
 | 5 | A task is done only when its acceptance check passes on the integration VM, CI is green and the relevant guide describes actual behavior. Stubs/fakes are explicitly labeled. Never merge a bypass so a demo turns green. |
