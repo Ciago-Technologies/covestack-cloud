@@ -1,0 +1,42 @@
+[
+  {
+    "kind": "compute.instance",
+    "observedAt": "2026-10-11T12:00:00Z",
+    "observedGeneration": 2,
+    "state": "active",
+    "detail": {},
+    "error": null
+  },
+  {
+    "kind": "db.instance",
+    "observedAt": "2026-10-11T12:00:00Z",
+    "observedGeneration": 2,
+    "state": "online",
+    "detail": {},
+    "error": null
+  },
+  {
+    "kind": "k8s.cluster",
+    "observedAt": "2026-10-11T12:00:00Z",
+    "observedGeneration": 2,
+    "state": "running",
+    "detail": {},
+    "error": null
+  },
+  {
+    "kind": "compute.snapshot",
+    "observedAt": "2026-10-11T12:00:00Z",
+    "observedGeneration": 2,
+    "state": "available",
+    "detail": {},
+    "error": null
+  },
+  {
+    "kind": "network.load-balancer",
+    "observedAt": "2026-10-11T12:00:00Z",
+    "observedGeneration": 2,
+    "state": "active",
+    "detail": {},
+    "error": null
+  }
+]

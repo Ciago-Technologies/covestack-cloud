@@ -1,55 +1,51 @@
-# Covestack Cloud — Team Start Guide
+# Covestack Cloud — Start Here
 
-Updated 11 October 2026. Product: Covestack Cloud. Intended slug: covestack-cloud.
+| Current status | Meaning |
+|---|---|
+| Security baseline | Commit `349a2f4` exists. Live authentication/authorization acceptance remains pending. |
+| Branding baseline | Commit `7ac2719` exists on `fix/security-baseline`. |
+| Lifecycle 1.1.0 | Applied to the working tree, not committed at inspection. Do not reapply previous patches. |
+| Submission | Tuesday, 15 December 2026. |
 
-The security/build baseline is committed as `349a2f4` (Fixed security issues)
-on published branch `fix/security-baseline`, which tracks `origin/fix/security-baseline`.
-The working tree was clean when inspected. Remote main/PR merge status has not been
-verified; review and merge through the shared PR. Three signature vectors, negative
-tests, registered agent/Bearer filters, Valkey replay plumbing, CI, secret templates
-and auth-smoke exist. The config.go file currently contains only `package config`;
-it is a placeholder, not a working loader. Real credential/token lookup, application
-main, migrations/controllers, full agent and live deployment tests remain pending.
+## Send this package to the team
 
-Product name: **Covestack Cloud**; intended repository slug: `covestack-cloud`.
-The actual checkout and GitHub remote are still named `kan-cloud` until the repository
-owner renames them. Use the real paths in commands. Existing module folders,
-Go import paths, Java packages, signing headers/algorithm, KAN_* environment names,
-API paths, labels, database identity and Valkey key prefixes remain compatibility
-identifiers. A future technical rename needs a separate coordinated migration.
-
-## Read first
-
-1. [Roles](Covestack-Cloud-Team-Roles.md): responsibilities and acceptance.
-2. [Workflow](Covestack-Cloud-Project-Workflow.md): deadlines through 15 December 2026.
-3. [Technical design](Covestack-Cloud-Technical-Design.md): target architecture.
-4. [Code changes](Covestack-Cloud-Code-Changes.md): committed baseline/remains.
-5. Repository contracts/: executable wire agreement, coordinated review required.
-
-## Start by owner
-
-| Owner | Additional reading | First deliverable |
+| Reader | Files to read | Next action |
 |---|---|---|
-| Anuj/A | Tools, Working Setup, Anuj Next Steps, repo handoff | Implement empty config.go, typed signed client, heartbeat/work polling; CI/VM baseline |
-| B | Current Setup Fixes, API/state contracts, handoff | Application/migrations/config, scoped agent controllers/report ordering |
-| C | Code Changes, Current Setup Fixes, historical Audit, signing rules/vectors, handoff | Real key/token lookup, encryption/hashing/revocation, permissions and live auth tests |
-| D | Design, Current Setup Fixes, examples | Provider schemas and first compute API through B services |
-| E | Design, Working Setup, Tools | Secure local bootstrap with C, CLI configuration/doctor and management API |
+| Everyone | Team-Roles, Project-Workflow, Technical-Design, Current-Setup-Fixes | Agree ownership, gate dates and acceptance evidence. |
+| Everyone | `contracts/FROZEN-STATES.md`, `CANONICAL-REQUEST.md`, `internal-api.yaml` | Use the same states, request shapes and signing rules. |
+| Anuj (A) | Anuj-Next-Steps, Complete-Working-Setup, `docs/ANUJ-PERSON-C-HANDOFF.md` | Implement Go config/client/polling and integrate C's auth. |
+| B | Technical-Design, contracts, Current-Setup-Fixes | Implement main/migrations/scoped services and call Java lifecycle validation. |
+| C | Handoff, canonical request, Current-Setup-Fixes | Implement real key/token stores, permissions, revocation and live negative tests. |
+| D | Technical-Design, frozen states, API examples | Map internal states into provider DTOs and test actual clients. |
+| E | Complete-Working-Setup, Technical-Design, Current-Setup-Fixes | Implement secure bootstrap/CLI and remote doctor. |
 
-Use the shared PR for fix/security-baseline. After merge everyone updates main and
-creates an owned feature branch. Before merge explicitly base on the published
-baseline branch. Do not remove protection or force-push main. This guide does not
-assert the PR has merged or remote CI is green.
+## Active guides
 
-The documentation bundle contains no credentials. Obtain actual code and JSON/YAML
-contracts from the reviewed repository. Do not distribute deploy/.env, deploy/secrets,
-passwords/signing secrets or credential-bearing logs. Audit and previous-doc backup
-are historical references; active guides describe current work and target design.
+| Guide | Purpose |
+|---|---|
+| [Covestack-Cloud-Team-Roles.md](Covestack-Cloud-Team-Roles.md) | Team Roles |
+| [Covestack-Cloud-Project-Workflow.md](Covestack-Cloud-Project-Workflow.md) | Project Workflow |
+| [Covestack-Cloud-Technical-Design.md](Covestack-Cloud-Technical-Design.md) | Technical Design |
+| [Covestack-Cloud-Complete-Working-Setup.md](Covestack-Cloud-Complete-Working-Setup.md) | Complete Working Setup |
+| [Covestack-Cloud-Current-Setup-Fixes.md](Covestack-Cloud-Current-Setup-Fixes.md) | Current Setup Fixes |
+| [Covestack-Cloud-Anuj-Next-Steps.md](Covestack-Cloud-Anuj-Next-Steps.md) | Anuj Next Steps |
+| [Covestack-Cloud-Renaming.md](Covestack-Cloud-Renaming.md) | Renaming |
+| [Covestack-Cloud-Documentation-Cleanup.md](Covestack-Cloud-Documentation-Cleanup.md) | Documentation Cleanup |
 
-## Repository rename coordination
+## Sharing precautions
 
-The repository owner can rename the GitHub repository to covestack-cloud. Only after
-that succeeds, update remotes and clone paths in team instructions. The new URL is
-not asserted to exist. This local branding patch does not rename the hosted repo.
-GitHub repository rename, local folder rename and technical protocol migration are
-separate operations; coordinate them before updating all team commands.
+| Send | Keep private |
+|---|---|
+| Team ZIP, reviewed Git branch/PR, contracts and sanitized test results | `.env`, actual access/secret keys, master keys, tokens, database passwords, private SSH keys and credential-bearing kubeconfigs |
+| Current active guides | Historical ZIP is reference only; do not follow old setup instructions. |
+
+## Where documentation belongs
+
+| Material | Git / sharing policy |
+|---|---|
+| Active `docs/`, root README and `contracts/` | Commit and push on the feature branch; review through a PR. Git is the authoritative team source. |
+| Team ZIP | Share as a convenience; it can become stale, so point everyone to the branch/PR too. |
+| Historical ZIPs | Optional archival evidence; never treat old instructions as current setup. |
+| Claude prepared copy and patch ZIPs | Local delivery artifacts; do not copy the entire Claude directory into the project. |
+| Credentials | Never commit/share actual `.env`, secrets, master keys or private tokens. |
+| Current product spelling | CloveStack. Folder renaming is a separate coordinated change; paths remain `kan-agent`, `kan-server`, `kan-cloud` until updated together. |

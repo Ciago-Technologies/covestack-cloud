@@ -1,0 +1,503 @@
+{
+  "vectors": [
+    {
+      "name": "compute.instance-intent",
+      "type": "resource",
+      "kind": "compute.instance",
+      "desiredState": "active",
+      "deleting": false,
+      "agentWork": true,
+      "result": "valid"
+    },
+    {
+      "name": "compute.instance-delete-intent",
+      "type": "resource",
+      "kind": "compute.instance",
+      "desiredState": "archive",
+      "deleting": true,
+      "agentWork": true,
+      "result": "valid"
+    },
+    {
+      "name": "compute.instance-converged",
+      "type": "observation",
+      "kind": "compute.instance",
+      "desiredState": "active",
+      "previousState": "new",
+      "state": "active",
+      "targetGeneration": 2,
+      "observedGeneration": 2,
+      "result": "applied"
+    },
+    {
+      "name": "compute.instance-no-resurrection",
+      "type": "transition",
+      "kind": "compute.instance",
+      "previousState": "archive",
+      "state": "new",
+      "result": "denied"
+    },
+    {
+      "name": "db.instance-intent",
+      "type": "resource",
+      "kind": "db.instance",
+      "desiredState": "online",
+      "deleting": false,
+      "agentWork": true,
+      "result": "valid"
+    },
+    {
+      "name": "db.instance-delete-intent",
+      "type": "resource",
+      "kind": "db.instance",
+      "desiredState": "deleted",
+      "deleting": true,
+      "agentWork": true,
+      "result": "valid"
+    },
+    {
+      "name": "db.instance-converged",
+      "type": "observation",
+      "kind": "db.instance",
+      "desiredState": "online",
+      "previousState": "creating",
+      "state": "online",
+      "targetGeneration": 2,
+      "observedGeneration": 2,
+      "result": "applied"
+    },
+    {
+      "name": "db.instance-no-resurrection",
+      "type": "transition",
+      "kind": "db.instance",
+      "previousState": "deleted",
+      "state": "creating",
+      "result": "denied"
+    },
+    {
+      "name": "k8s.cluster-intent",
+      "type": "resource",
+      "kind": "k8s.cluster",
+      "desiredState": "active",
+      "deleting": false,
+      "agentWork": true,
+      "result": "valid"
+    },
+    {
+      "name": "k8s.cluster-delete-intent",
+      "type": "resource",
+      "kind": "k8s.cluster",
+      "desiredState": "deleted",
+      "deleting": true,
+      "agentWork": true,
+      "result": "valid"
+    },
+    {
+      "name": "k8s.cluster-converged",
+      "type": "observation",
+      "kind": "k8s.cluster",
+      "desiredState": "active",
+      "previousState": "provisioning",
+      "state": "running",
+      "targetGeneration": 2,
+      "observedGeneration": 2,
+      "result": "applied"
+    },
+    {
+      "name": "k8s.cluster-no-resurrection",
+      "type": "transition",
+      "kind": "k8s.cluster",
+      "previousState": "deleted",
+      "state": "provisioning",
+      "result": "denied"
+    },
+    {
+      "name": "compute.group-intent",
+      "type": "resource",
+      "kind": "compute.group",
+      "desiredState": "active",
+      "deleting": false,
+      "agentWork": false,
+      "result": "valid"
+    },
+    {
+      "name": "compute.group-delete-intent",
+      "type": "resource",
+      "kind": "compute.group",
+      "desiredState": "deleted",
+      "deleting": true,
+      "agentWork": false,
+      "result": "valid"
+    },
+    {
+      "name": "compute.snapshot-intent",
+      "type": "resource",
+      "kind": "compute.snapshot",
+      "desiredState": "available",
+      "deleting": false,
+      "agentWork": true,
+      "result": "valid"
+    },
+    {
+      "name": "compute.snapshot-delete-intent",
+      "type": "resource",
+      "kind": "compute.snapshot",
+      "desiredState": "deleted",
+      "deleting": true,
+      "agentWork": true,
+      "result": "valid"
+    },
+    {
+      "name": "compute.snapshot-converged",
+      "type": "observation",
+      "kind": "compute.snapshot",
+      "desiredState": "available",
+      "previousState": "creating",
+      "state": "available",
+      "targetGeneration": 2,
+      "observedGeneration": 2,
+      "result": "applied"
+    },
+    {
+      "name": "compute.snapshot-no-resurrection",
+      "type": "transition",
+      "kind": "compute.snapshot",
+      "previousState": "deleted",
+      "state": "creating",
+      "result": "denied"
+    },
+    {
+      "name": "network.load-balancer-intent",
+      "type": "resource",
+      "kind": "network.load-balancer",
+      "desiredState": "active",
+      "deleting": false,
+      "agentWork": true,
+      "result": "valid"
+    },
+    {
+      "name": "network.load-balancer-delete-intent",
+      "type": "resource",
+      "kind": "network.load-balancer",
+      "desiredState": "deleted",
+      "deleting": true,
+      "agentWork": true,
+      "result": "valid"
+    },
+    {
+      "name": "network.load-balancer-converged",
+      "type": "observation",
+      "kind": "network.load-balancer",
+      "desiredState": "active",
+      "previousState": "new",
+      "state": "active",
+      "targetGeneration": 2,
+      "observedGeneration": 2,
+      "result": "applied"
+    },
+    {
+      "name": "network.load-balancer-no-resurrection",
+      "type": "transition",
+      "kind": "network.load-balancer",
+      "previousState": "deleted",
+      "state": "new",
+      "result": "denied"
+    },
+    {
+      "name": "storage.bucket-intent",
+      "type": "resource",
+      "kind": "storage.bucket",
+      "desiredState": "available",
+      "deleting": false,
+      "agentWork": false,
+      "result": "valid"
+    },
+    {
+      "name": "storage.bucket-delete-intent",
+      "type": "resource",
+      "kind": "storage.bucket",
+      "desiredState": "deleted",
+      "deleting": true,
+      "agentWork": false,
+      "result": "valid"
+    },
+    {
+      "name": "unknown-kind",
+      "type": "resource",
+      "kind": "compute.typo",
+      "desiredState": "active",
+      "deleting": false,
+      "agentWork": true,
+      "result": "invalid"
+    },
+    {
+      "name": "server-group-not-work",
+      "type": "resource",
+      "kind": "compute.group",
+      "desiredState": "active",
+      "deleting": false,
+      "agentWork": true,
+      "result": "invalid"
+    },
+    {
+      "name": "cross-kind-intent",
+      "type": "resource",
+      "kind": "db.instance",
+      "desiredState": "active",
+      "deleting": false,
+      "agentWork": true,
+      "result": "invalid"
+    },
+    {
+      "name": "false-delete-flag",
+      "type": "resource",
+      "kind": "storage.bucket",
+      "desiredState": "deleted",
+      "deleting": false,
+      "agentWork": true,
+      "result": "invalid"
+    },
+    {
+      "name": "true-delete-flag-live",
+      "type": "resource",
+      "kind": "compute.instance",
+      "desiredState": "active",
+      "deleting": true,
+      "agentWork": true,
+      "result": "invalid"
+    },
+    {
+      "name": "k8s-compute-style-state",
+      "type": "observation",
+      "kind": "k8s.cluster",
+      "desiredState": "active",
+      "previousState": "provisioning",
+      "state": "active",
+      "targetGeneration": 2,
+      "observedGeneration": 2,
+      "result": "invalid"
+    },
+    {
+      "name": "degraded-not-converged",
+      "type": "observation",
+      "kind": "k8s.cluster",
+      "desiredState": "active",
+      "previousState": "running",
+      "state": "degraded",
+      "targetGeneration": 2,
+      "observedGeneration": 2,
+      "result": "invalid"
+    },
+    {
+      "name": "progress-not-converged",
+      "type": "observation",
+      "kind": "compute.instance",
+      "desiredState": "active",
+      "previousState": "new",
+      "state": "provisioning",
+      "targetGeneration": 2,
+      "observedGeneration": 2,
+      "result": "invalid"
+    },
+    {
+      "name": "failed-ensure-not-acked",
+      "type": "observation",
+      "kind": "compute.instance",
+      "desiredState": "active",
+      "previousState": "provisioning",
+      "state": "error",
+      "targetGeneration": 2,
+      "observedGeneration": 2,
+      "result": "invalid"
+    },
+    {
+      "name": "health-does-not-ack",
+      "type": "observation",
+      "kind": "k8s.cluster",
+      "desiredState": "active",
+      "previousState": "running",
+      "state": "degraded",
+      "targetGeneration": 2,
+      "observedGeneration": null,
+      "result": "applied"
+    },
+    {
+      "name": "stale-report",
+      "type": "observation",
+      "kind": "compute.instance",
+      "desiredState": "off",
+      "previousState": "off",
+      "state": "active",
+      "targetGeneration": 3,
+      "observedGeneration": 2,
+      "result": "ignored"
+    },
+    {
+      "name": "future-report",
+      "type": "observation",
+      "kind": "compute.instance",
+      "desiredState": "active",
+      "previousState": "new",
+      "state": "active",
+      "targetGeneration": 2,
+      "observedGeneration": 3,
+      "result": "invalid"
+    },
+    {
+      "name": "zero-report",
+      "type": "observation",
+      "kind": "compute.instance",
+      "desiredState": "active",
+      "previousState": "new",
+      "state": "active",
+      "targetGeneration": 2,
+      "observedGeneration": 0,
+      "result": "invalid"
+    },
+    {
+      "name": "reserved-db-operation",
+      "type": "observation",
+      "kind": "db.instance",
+      "desiredState": "online",
+      "previousState": "online",
+      "state": "resizing",
+      "targetGeneration": 2,
+      "observedGeneration": null,
+      "result": "invalid"
+    },
+    {
+      "name": "group-not-agent-report",
+      "type": "observation",
+      "kind": "compute.group",
+      "desiredState": "active",
+      "previousState": "new",
+      "state": "active",
+      "targetGeneration": 2,
+      "observedGeneration": 2,
+      "result": "invalid"
+    },
+    {
+      "name": "terminal-without-delete-intent",
+      "type": "observation",
+      "kind": "compute.instance",
+      "desiredState": "active",
+      "previousState": "active",
+      "state": "archive",
+      "targetGeneration": 2,
+      "observedGeneration": null,
+      "result": "invalid"
+    },
+    {
+      "name": "operation-finish",
+      "type": "entity",
+      "entity": "operation",
+      "previousState": "running",
+      "state": "completed",
+      "result": "allowed"
+    },
+    {
+      "name": "operation-cancel-queued",
+      "type": "entity",
+      "entity": "operation",
+      "previousState": "queued",
+      "state": "cancelled",
+      "result": "allowed"
+    },
+    {
+      "name": "operation-cannot-cancel-running",
+      "type": "entity",
+      "entity": "operation",
+      "previousState": "running",
+      "state": "cancelled",
+      "result": "denied"
+    },
+    {
+      "name": "operation-no-resurrection",
+      "type": "entity",
+      "entity": "operation",
+      "previousState": "failed",
+      "state": "running",
+      "result": "denied"
+    },
+    {
+      "name": "notification-retry",
+      "type": "entity",
+      "entity": "notification",
+      "previousState": "failed",
+      "state": "queued",
+      "result": "allowed"
+    },
+    {
+      "name": "delivered-no-retry",
+      "type": "entity",
+      "entity": "notification",
+      "previousState": "delivered",
+      "state": "queued",
+      "result": "denied"
+    },
+    {
+      "name": "bucket-not-agent-work",
+      "type": "resource",
+      "kind": "storage.bucket",
+      "desiredState": "available",
+      "deleting": false,
+      "agentWork": true,
+      "result": "invalid"
+    },
+    {
+      "name": "group-server-converged",
+      "type": "server-observation",
+      "kind": "compute.group",
+      "desiredState": "active",
+      "previousState": "new",
+      "state": "active",
+      "targetGeneration": 2,
+      "observedGeneration": 2,
+      "result": "applied"
+    },
+    {
+      "name": "bucket-server-converged",
+      "type": "server-observation",
+      "kind": "storage.bucket",
+      "desiredState": "available",
+      "previousState": "creating",
+      "state": "available",
+      "targetGeneration": 2,
+      "observedGeneration": 2,
+      "result": "applied"
+    },
+    {
+      "name": "bucket-server-no-resurrection",
+      "type": "server-observation",
+      "kind": "storage.bucket",
+      "desiredState": "available",
+      "previousState": "deleted",
+      "state": "available",
+      "targetGeneration": 2,
+      "observedGeneration": 2,
+      "result": "invalid"
+    },
+    {
+      "name": "agent-kind-not-server-report",
+      "type": "server-observation",
+      "kind": "compute.instance",
+      "desiredState": "active",
+      "previousState": "new",
+      "state": "active",
+      "targetGeneration": 2,
+      "observedGeneration": 2,
+      "result": "invalid"
+    },
+    {
+      "name": "bucket-not-agent-report",
+      "type": "observation",
+      "kind": "storage.bucket",
+      "desiredState": "available",
+      "previousState": "creating",
+      "state": "available",
+      "targetGeneration": 2,
+      "observedGeneration": 2,
+      "result": "invalid"
+    }
+  ]
+}

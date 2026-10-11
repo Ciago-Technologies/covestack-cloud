@@ -28,9 +28,9 @@
         "Content-Type": "application/json",
         "X-Kan-Nonce": "vector-nonce-0000000000000002"
       },
-      "body": "{\"observedGeneration\":2,\"state\":\"running\",\"detail\":{\"clusterId\":\"k3d-web-cluster\",\"nodeCount\":3},\"error\":null,\"observedAt\":\"2026-09-26T12:00:05Z\"}",
+      "body": "{\"observedGeneration\":2,\"state\":\"running\",\"detail\":{\"clusterId\":\"k3d-web-cluster\",\"nodeCount\":3},\"error\":null,\"observedAt\":\"2026-09-26T12:00:05Z\",\"kind\":\"k8s.cluster\"}",
       "secretKey": "test-secret-do-not-use-in-prod",
-      "expectedSignature": "f0c1c271c64d25dbf1daaabc579fd5758582f601cb33fbe6423931d37a72c102"
+      "expectedSignature": "24fc2c36e16ec4df9a15b45fa23f7f9e67418e4f501884fc193cdebfb5570a81"
     },
     {
       "name": "raw-query-utf8",

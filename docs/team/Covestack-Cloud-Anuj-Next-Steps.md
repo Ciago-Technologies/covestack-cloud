@@ -1,8 +1,8 @@
 # Anuj: verified setup and next work — 11 October 2026
 
-Checked original `/run/media/anujtiwari/DevMount/Project-CDAC/kan-cloud` without
-printing or sourcing secrets. This is the current state, superseding the earlier
-handoff's historical statement that the patch had not been applied.
+| Item | Details |
+|---|---|
+| 1 | Checked original `/run/media/anujtiwari/DevMount/Project-CDAC/kan-cloud` without printing or sourcing secrets. This is the current state, superseding the earlier handoff's historical statement that the patch had not been applied. |
 
 ## Verified findings
 
@@ -24,77 +24,56 @@ handoff's historical statement that the patch had not been applied.
 | Credential/token persistence | Interfaces exist; concrete implementations absent |
 | Actual Docker/server status | Not verified; sandbox denied Docker API and socket inspection |
 
-The earlier configuration check did not modify the project. Current branding changes are prepared separately in Claude/covestack-cloud. A permission error in this
-assistant sandbox does NOT establish your Fedora terminal lacks Docker permissions.
-The Compose config check fails immediately because deploy/.env does not exist.
+| Item | Details |
+|---|---|
+| 1 | The earlier configuration check did not modify the project. Current branding changes are prepared separately in Claude/covestack-cloud. A permission error in this assistant sandbox does NOT establish your Fedora terminal lacks Docker permissions. The Compose config check fails immediately because deploy/.env does not exist. |
 
 ## Work order for Anuj
 
-1. Your baseline is committed/published on fix/security-baseline. Review/merge its PR; do not reapply the
-   patch. Check git status and staged changes. Explicitly stage code/contracts and
-   documentation; never force-add ignored credentials. Run normal pinned-toolchain
-   tests in your Fedora terminal/network or CI. Local fallback tests on1.27.1 are
-   supporting evidence, not verification of1.27.2.
-2. Build config loading in kan-agent/internal/config/config.go. Read server URL,
-   access key, secret and rules path. Fail on missing credentials. Validate origin,
-   require HTTPS outside localhost, and never print secrets. The executable reads
-   process environment; it does not automatically source agent.env.
-3. Build typed HTTP client in kan-agent/internal/client/client.go and types.go.
-   Reuse sigv1.NewSignedRequest, disable redirects, use finite HTTP timeouts and
-   bounded response reads. Follow contracts/internal-api.yaml for heartbeat, work,
-   observed, events and known-ids. Generate a fresh signed request for each retry.
-   Do not blindly retry mutating operations until B confirms idempotency semantics.
-4. Test the client without Java using an injected HTTP transport or httptest on your
-   local machine. Verify non-2xx handling, timeout/cancellation, malformed JSON,
-   response body bounds and fresh nonces. A mocked successful response is not a
-   real Java/Docker integration pass. Do not implement a production auth bypass.
-5. Add kan-agent/cmd/kan-agent/main.go. Load config, use signal cancellation, send
-   signed heartbeat, then poll work with bounded backoff and jitter. No inbound
-   agent port is required. Initially observe/log IDs without changing Docker.
-6. Pair with C/B for live Java integration. Provision active account-bound service
-   credentials, run auth-smoke, validate public user-token separation and revoked
-   keys. Confirm lease/agent fencing before concurrent Docker execution.
-7. Define the first compute spec with B and D before implementing the Docker driver:
-   trusted image, ports, reserved ownership labels, desired states and readiness.
-   Add internal/driver/compute/instance.go and internal/reconcile/worker.go only for
-   one resource type first. Ensure by inspect/update instead of creating a new
-   container on every poll. Avoid simultaneous work for the same resource.
-8. Report observedAt on observations. Acknowledge observedGeneration only after
-   successful convergence. On Ensure failure, keep generation unacknowledged and
-   report error according to the contract. Never delete on failed/empty work poll.
-9. Acceptance demo: create one resource -> ready -> stop/start -> agent restart
-   without duplication -> intentional deletion of that owned resource. Include
-   server/Valkey outage and wrong-account tests before expanding drivers.
+| Item | Details |
+|---|---|
+| 1 | Your baseline is committed/published on fix/security-baseline. Review/merge its PR; do not reapply the |
+| 2 | patch. Check git status and staged changes. Explicitly stage code/contracts and documentation; never force-add ignored credentials. Run normal pinned-toolchain tests in your Fedora terminal/network or CI. Local fallback tests on1.27.1 are supporting evidence, not verification of1.27.2. |
+| 3 | Build config loading in kan-agent/internal/config/config.go. Read server URL, |
+| 4 | access key, secret and rules path. Fail on missing credentials. Validate origin, require HTTPS outside localhost, and never print secrets. The executable reads process environment; it does not automatically source agent.env. |
+| 5 | Build typed HTTP client in kan-agent/internal/client/client.go and types.go. |
+| 6 | Reuse sigv1.NewSignedRequest, disable redirects, use finite HTTP timeouts and bounded response reads. Follow contracts/internal-api.yaml for heartbeat, work, observed, events and known-ids. Generate a fresh signed request for each retry. Do not blindly retry mutating operations until B confirms idempotency semantics. |
+| 7 | Test the client without Java using an injected HTTP transport or httptest on your |
+| 8 | local machine. Verify non-2xx handling, timeout/cancellation, malformed JSON, response body bounds and fresh nonces. A mocked successful response is not a real Java/Docker integration pass. Do not implement a production auth bypass. |
+| 9 | Add kan-agent/cmd/kan-agent/main.go. Load config, use signal cancellation, send |
+| 10 | signed heartbeat, then poll work with bounded backoff and jitter. No inbound agent port is required. Initially observe/log IDs without changing Docker. |
+| 11 | Pair with C/B for live Java integration. Provision active account-bound service |
+| 12 | credentials, run auth-smoke, validate public user-token separation and revoked keys. Confirm lease/agent fencing before concurrent Docker execution. |
+| 13 | Define the first compute spec with B and D before implementing the Docker driver: |
+| 14 | trusted image, ports, reserved ownership labels, desired states and readiness. Add internal/driver/compute/instance.go and internal/reconcile/worker.go only for one resource type first. Ensure by inspect/update instead of creating a new container on every poll. Avoid simultaneous work for the same resource. |
+| 15 | Report observedAt on observations. Acknowledge observedGeneration only after |
+| 16 | successful convergence. On Ensure failure, keep generation unacknowledged and report error according to the contract. Never delete on failed/empty work poll. |
+| 17 | Acceptance demo: create one resource -> ready -> stop/start -> agent restart |
+| 18 | without duplication -> intentional deletion of that owned resource. Include server/Valkey outage and wrong-account tests before expanding drivers. |
 
 ## Infrastructure to finish alongside the client
 
-From repository root, create deploy/.env from deploy/.env.example if absent.
-Populate POSTGRES_IMAGE, VALKEY_IMAGE and MAILPIT_IMAGE with verified/tested exact
-image references (prefer digest pins). Do not leave them blank or use latest.
-Create random local postgres_password and Valkey config from the provided template;
-replace its password. Set secret file modes600 and directory700. These credentials
-are different from the agent signing secret.
-
-Validate with:
+| Item | Details |
+|---|---|
+| 1 | From repository root, create deploy/.env from deploy/.env.example if absent. Populate POSTGRES_IMAGE, VALKEY_IMAGE and MAILPIT_IMAGE with verified/tested exact image references (prefer digest pins). Do not leave them blank or use latest. Create random local postgres_password and Valkey config from the provided template; replace its password. Set secret file modes600 and directory700. These credentials are different from the agent signing secret. |
+| 2 | Validate with: |
 
 ```bash
 docker compose --env-file deploy/.env -f deploy/docker-compose.yml config --quiet
 ```
 
-After validation and image review, start the infrastructure:
+| Item | Details |
+|---|---|
+| 1 | After validation and image review, start the infrastructure: |
 
 ```bash
 docker compose --env-file deploy/.env -f deploy/docker-compose.yml up -d
 docker compose --env-file deploy/.env -f deploy/docker-compose.yml ps
 ```
 
-Starting Compose does not start Java or the Go agent. Java must be configured with
-Postgres and Valkey passwords separately. Host addresses are Postgres127.0.0.1:5432
-and Valkey127.0.0.1:6390; containers on backend use postgres:5432 and valkey:6379.
-The current network publishes to localhost only. Do not expose these ports to the
-LAN to make a remote test work. A VM's localhost and Fedora's localhost differ.
-Existing Postgres volumes retain their original initialized password; rotate via
-Postgres rather than deleting volumes. Avoid docker compose down -v.
+| Item | Details |
+|---|---|
+| 1 | Starting Compose does not start Java or the Go agent. Java must be configured with Postgres and Valkey passwords separately. Host addresses are Postgres127.0.0.1:5432 and Valkey127.0.0.1:6390; containers on backend use postgres:5432 and valkey:6379. The current network publishes to localhost only. Do not expose these ports to the LAN to make a remote test work. A VM's localhost and Fedora's localhost differ. Existing Postgres volumes retain their original initialized password; rotate via Postgres rather than deleting volumes. Avoid docker compose down -v. |
 
 ## Person C / Person B handoff
 
@@ -107,8 +86,9 @@ Postgres rather than deleting volumes. Avoid docker compose down -v.
 | B + Anuj | Agent lease/fencing, retries/idempotency and resource convergence semantics |
 | Anuj | Go client/executable/reconciler, Docker drivers, infrastructure, CI and VM baseline |
 
-After C provisions the credential and B starts Java, fill the two blank fields in
-agent.env. From repo root load your trusted local file and run the smoke command:
+| Item | Details |
+|---|---|
+| 1 | After C provisions the credential and B starts Java, fill the two blank fields in agent.env. From repo root load your trusted local file and run the smoke command: |
 
 ```bash
 set -a
@@ -118,35 +98,33 @@ set +a
 unset KAN_ACCESS_KEY KAN_SECRET_KEY KAN_SERVER_URL
 ```
 
-Expected statuses: valid200, replay401, invalid MAC401, valid request after poisoning
-attempt200, nonce tampering401. Real credentials must exist on Java's side.
+| Item | Details |
+|---|---|
+| 1 | Expected statuses: valid200, replay401, invalid MAC401, valid request after poisoning attempt200, nonce tampering401. Real credentials must exist on Java's side. |
 
 ## Precautions while building
 
-- Keep frontend/public user tokens separate from agent service keys; auth filters
-  do not replace account predicates and resource-level authorization.
-- Never print env dumps, credential structs, decrypted secrets or full kubeconfigs.
-- Keep raw body bytes and escaped path/raw query identical after signing; proxies
-  must preserve signed Host. Keep system clock synchronized.
-- Never pass unchecked user input into shell commands; prefer Docker SDK methods.
-- An agent with Docker socket access can control its host. Use the project VM for
-  workload experiments; do not bind the host socket into user workload containers.
-- Operate only on resources whose reserved ownership labels match the authenticated
-  account/agent. Do not trust user-supplied labels to establish ownership.
-- Preserve volumes; deletion must be explicit and scoped. Network/server failures
-  must pause work, not trigger orphan cleanup or destructive recovery.
-- Do not disable SELinux/firewalls or authentication just to unblock development.
-- Record host and VM versions separately. Recheck CI and real VM behavior before
-  claiming a feature complete.
+| Item | Details |
+|---|---|
+| 1 | Keep frontend/public user tokens separate from agent service keys; auth filters |
+| 2 | do not replace account predicates and resource-level authorization. |
+| 3 | Never print env dumps, credential structs, decrypted secrets or full kubeconfigs. |
+| 4 | Keep raw body bytes and escaped path/raw query identical after signing; proxies |
+| 5 | must preserve signed Host. Keep system clock synchronized. |
+| 6 | Never pass unchecked user input into shell commands; prefer Docker SDK methods. |
+| 7 | An agent with Docker socket access can control its host. Use the project VM for |
+| 8 | workload experiments; do not bind the host socket into user workload containers. |
+| 9 | Operate only on resources whose reserved ownership labels match the authenticated |
+| 10 | account/agent. Do not trust user-supplied labels to establish ownership. |
+| 11 | Preserve volumes; deletion must be explicit and scoped. Network/server failures |
+| 12 | must pause work, not trigger orphan cleanup or destructive recovery. |
+| 13 | Do not disable SELinux/firewalls or authentication just to unblock development. |
+| 14 | Record host and VM versions separately. Recheck CI and real VM behavior before |
+| 15 | claiming a feature complete. |
 
 ## Near-term milestones
 
-Today: review the baseline PR, implement the empty config.go, then add the typed client.
-Next session: client tests and read-only polling executable.
-With C/B: secure real smoke pass and agreed compute spec.
-By16Oct: auth/CI/VM baseline; by23Oct: first real compute flow.
-Feature freeze1Dec; RC8Dec; rehearsal11Dec; submit15Dec2026.
-
-References: [Compose environment handling](https://docs.docker.com/compose/how-tos/environment-variables/variable-interpolation/),
-[Go HTTP client](https://pkg.go.dev/net/http#Client),
-[Docker daemon security](https://docs.docker.com/engine/security/).
+| Item | Details |
+|---|---|
+| 1 | Today: review the baseline PR, implement the empty config.go, then add the typed client. Next session: client tests and read-only polling executable. With C/B: secure real smoke pass and agreed compute spec. By16Oct: auth/CI/VM baseline; by23Oct: first real compute flow. Feature freeze1Dec; RC8Dec; rehearsal11Dec; submit15Dec2026. |
+| 2 | References: [Compose environment handling](https://docs.docker.com/compose/how-tos/environment-variables/variable-interpolation/), [Go HTTP client](https://pkg.go.dev/net/http#Client), [Docker daemon security](https://docs.docker.com/engine/security/). |

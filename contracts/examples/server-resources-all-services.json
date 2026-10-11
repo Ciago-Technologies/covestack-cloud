@@ -1,0 +1,111 @@
+[
+  {
+    "id": "example-resource-1",
+    "kind": "compute.instance",
+    "generation": 2,
+    "desiredState": "active",
+    "deleting": false,
+    "spec": {
+      "image": "approved-ssh-image:tested",
+      "ports": []
+    },
+    "labels": {
+      "kan.io/account": "000000000001"
+    },
+    "state": "active"
+  },
+  {
+    "id": "example-resource-2",
+    "kind": "db.instance",
+    "generation": 2,
+    "desiredState": "online",
+    "deleting": false,
+    "spec": {
+      "engine": "postgres",
+      "databaseName": "app",
+      "storageGB": 1
+    },
+    "labels": {
+      "kan.io/account": "000000000001"
+    },
+    "state": "online"
+  },
+  {
+    "id": "example-resource-3",
+    "kind": "k8s.cluster",
+    "generation": 2,
+    "desiredState": "active",
+    "deleting": false,
+    "spec": {
+      "clusterName": "web-cluster",
+      "nodes": 3
+    },
+    "labels": {
+      "kan.io/account": "000000000001"
+    },
+    "state": "running"
+  },
+  {
+    "id": "example-resource-4",
+    "kind": "compute.group",
+    "generation": 2,
+    "desiredState": "active",
+    "deleting": false,
+    "spec": {
+      "desiredCapacity": 2,
+      "minSize": 1,
+      "maxSize": 3
+    },
+    "labels": {
+      "kan.io/account": "000000000001"
+    },
+    "state": "active"
+  },
+  {
+    "id": "example-resource-5",
+    "kind": "compute.snapshot",
+    "generation": 2,
+    "desiredState": "available",
+    "deleting": false,
+    "spec": {
+      "sourceResourceId": "01J8ZK9XINSTANCE2",
+      "name": "demo-snapshot"
+    },
+    "labels": {
+      "kan.io/account": "000000000001"
+    },
+    "state": "available"
+  },
+  {
+    "id": "example-resource-6",
+    "kind": "network.load-balancer",
+    "generation": 2,
+    "desiredState": "active",
+    "deleting": false,
+    "spec": {
+      "listenPort": 8080,
+      "memberResourceIds": [
+        "01J8ZK9XINSTANCE2"
+      ]
+    },
+    "labels": {
+      "kan.io/account": "000000000001"
+    },
+    "state": "active"
+  },
+  {
+    "id": "example-resource-7",
+    "kind": "storage.bucket",
+    "generation": 2,
+    "desiredState": "available",
+    "deleting": false,
+    "spec": {
+      "name": "demo-bucket",
+      "purgeObjects": false
+    },
+    "labels": {
+      "kan.io/account": "000000000001"
+    },
+    "state": "available"
+  }
+]

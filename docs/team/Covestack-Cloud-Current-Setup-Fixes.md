@@ -1,37 +1,24 @@
 # Covestack Cloud — Current Setup Fixes and Implementation Checklist
 
-Updated 11 October 2026. This checklist covers **all 38 findings** from the historical [audit](Covestack-Cloud-Audit-2026-10-11.md). Security/build changes are applied and committed. Rows describe remediation/acceptance scope, not an assertion that every fix remains missing or is fully validated.
-
-The security/build baseline is committed as `349a2f4` (Fixed security issues)
-on published branch `fix/security-baseline`, which tracks `origin/fix/security-baseline`.
-The working tree was clean when inspected. Remote main/PR merge status has not been
-verified; review and merge through the shared PR. Three signature vectors, negative
-tests, registered agent/Bearer filters, Valkey replay plumbing, CI, secret templates
-and auth-smoke exist. The config.go file currently contains only `package config`;
-it is a placeholder, not a working loader. Real credential/token lookup, application
-main, migrations/controllers, full agent and live deployment tests remain pending.
-
-Final submission: **Tuesday, 15 December 2026**. Use [the dated workflow](Covestack-Cloud-Project-Workflow.md) and [corrected setup guide](Covestack-Cloud-Complete-Working-Setup.md).
+| Item | Details |
+|---|---|
+| 1 | Updated 11 October 2026. This checklist covers **all 38 findings** from the historical [audit](Covestack-Cloud-Documentation-Cleanup.md). Security/build changes are applied and committed. Rows describe remediation/acceptance scope, not an assertion that every fix remains missing or is fully validated. |
+| 2 | The security/build baseline is committed as `349a2f4` (Fixed security issues) on published branch `fix/security-baseline`, which tracks `origin/fix/security-baseline`. The lifecycle changes are currently applied but uncommitted. Remote main/PR merge status has not been verified; review and merge through the shared PR. Three signature vectors, negative tests, registered agent/Bearer filters, Valkey replay plumbing, CI, secret templates and auth-smoke exist. The config.go file currently contains only `package config`; it is a placeholder, not a working loader. Real credential/token lookup, application main, migrations/controllers, full agent and live deployment tests remain pending. |
+| 3 | Final submission: **Tuesday, 15 December 2026**. Use [the dated workflow](Covestack-Cloud-Project-Workflow.md) and [corrected setup guide](Covestack-Cloud-Complete-Working-Setup.md). |
 
 ## 1. Continue from the committed baseline
 
-Boot 3.5.16, Java 25, Flyway PostgreSQL support and Go 1.27.2 toolchain/CI are configured.
-Run normal builds in CI/on Fedora with dependency access; earlier local Go checks
-used 1.27.1 and Maven downloads were blocked. Filter registration, signed nonce/key,
-1 MiB body bound, principal/service checks and Valkey reservation are implemented;
-real credential lookup, permissions and live integration acceptance remain pending.
-
-Compose now has file secrets, a persistent Valkey volume and a backend network.
-Finish local ignored image references/secrets, validate actual service readiness,
-then add MinIO/workload network isolation when implementing those features. Preserve
-existing volumes and coordinate initialized Postgres password rotation.
-
-Anuj starts config/client/polling; B adds main/migrations/controllers; C implements
-credential/token stores and authorization. Do not expose private backend ports.
+| Item | Details |
+|---|---|
+| 1 | Boot 3.5.16, Java 25, Flyway PostgreSQL support and Go 1.27.2 toolchain/CI are configured. Run normal builds in CI/on Fedora with dependency access; earlier local Go checks used 1.27.1 and Maven downloads were blocked. Filter registration, signed nonce/key, 1 MiB body bound, principal/service checks and Valkey reservation are implemented; real credential lookup, permissions and live integration acceptance remain pending. |
+| 2 | Compose now has file secrets, a persistent Valkey volume and a backend network. Finish local ignored image references/secrets, validate actual service readiness, then add MinIO/workload network isolation when implementing those features. Preserve existing volumes and coordinate initialized Postgres password rotation. |
+| 3 | Anuj starts config/client/polling; B adds main/migrations/controllers; C implements credential/token stores and authorization. Do not expose private backend ports. |
 
 ## 2. Safe baseline commands
 
-From Claude, enter the actual repository:
+| Item | Details |
+|---|---|
+| 1 | From Claude, enter the actual repository: |
 
 ```bash
 cd ../Project-CDAC/kan-cloud
@@ -43,9 +30,10 @@ go version
 docker compose --env-file deploy/.env -f deploy/docker-compose.yml config --quiet
 ```
 
-The last command validates the **current** infrastructure syntax, not its security or app readiness. Preserve current local edits. No data-reset command is necessary.
-
-Current signing baseline:
+| Item | Details |
+|---|---|
+| 1 | The last command validates the **current** infrastructure syntax, not its security or app readiness. Preserve current local edits. No data-reset command is necessary. |
+| 2 | Current signing baseline: |
 
 ```bash
 (cd kan-agent && go test ./...)
@@ -53,20 +41,25 @@ Current signing baseline:
 python3 contracts/sign_example.py
 ```
 
-Run these against the committed baseline, plus live negative/integration acceptance. Maven dependency/cache errors are recorded as failures/blocked verification, never converted into success. The three vector signatures have already been regenerated; later protocol changes must update them together.
-
-Once deploy/.env and local secrets plus corrected Compose exist, use:
+| Item | Details |
+|---|---|
+| 1 | Run these against the committed baseline, plus live negative/integration acceptance. Maven dependency/cache errors are recorded as failures/blocked verification, never converted into success. The three vector signatures have already been regenerated; later protocol changes must update them together. |
+| 2 | Once deploy/.env and local secrets plus corrected Compose exist, use: |
 
 ```bash
 docker compose --env-file deploy/.env -f deploy/docker-compose.yml config --quiet
 docker compose --env-file deploy/.env -f deploy/docker-compose.yml up -d
 ```
 
-The server/agent commands become usable only after their main/config files exist. Confirm actual readiness, not just containers being listed.
+| Item | Details |
+|---|---|
+| 1 | The server/agent commands become usable only after their main/config files exist. Confirm actual readiness, not just containers being listed. |
 
 ## 3. Source-file fixes: authentication and builds
 
-All paths below are relative to kan-cloud. The numbered audit IDs match the unchanged audit report.
+| Item | Details |
+|---|---|
+| 1 | All paths below are relative to kan-cloud. The numbered audit IDs match the unchanged audit report. |
 
 | Audit ID | File/location to change | Problem → required solution | Owner / target | Acceptance |
 |---|---|---|---|---|
@@ -92,10 +85,12 @@ All paths below are relative to kan-cloud. The numbered audit IDs match the unch
 |---|---|---|---|---|
 | 16 | contracts/internal-api.yaml ObservedReport; examples; Java/Go DTOs | Missing timestamp/nonnullable generation → required observedAt, nullable int64 generation, report ordering and applied response | A+B / Oct 16 | Null health reports/schema examples pass; stale report ignored |
 | 17 | contracts/FROZEN-STATES.md; YAML/examples; all fakes/drivers | Conflicting kinds/states → corrected per-kind vocabulary from design section 5; add DB stopped state | A+B+D / Oct 16 | Every accepted state/example valid for its kind |
-| 18 | YAML kind/spec enum and additional agent paths | Planned features outside contract → reviewed compute.snapshot/network.load-balancer kinds and ssh-keys/lb-members APIs; exclude groups | A+B+D / Oct 16 core, Nov 13 extensions | Unsupported kinds reject; extensions validated before drivers merge |
+| 18 | YAML kind/spec enum and additional agent paths | Planned features outside contract → complete seven-kind lifecycle catalog including storage.bucket; groups excluded from agent work; extra ssh-keys/lb-members APIs still require separate schemas | A+B+D / Oct 16 core, Nov 13 extensions | Unsupported kinds reject; extensions validated before drivers merge |
 | 19 | OpenAPI security/headers/specs/errors and known-ID protocol | Auth only prose, unconstrained values → required signing header/security declarations, bounded typed specs, complete scoped snapshots | A+B+C / Oct 16–23 | Examples/negative payloads validated; partial known-ID response never deletes objects |
 
-Do not label corrected contracts frozen until Java/Go/schema tests and the required reviewers accept them. Protocol additions for snapshots/LB/k8s must be versioned, not ad hoc strings in weekly tasks.
+| Item | Details |
+|---|---|
+| 1 | Do not label corrected contracts frozen until Java/Go/schema tests and the required reviewers accept them. Protocol additions for snapshots/LB/k8s must be versioned, not ad hoc strings in weekly tasks. |
 
 ## 5. Source/config fixes: behavior, networking and data
 
@@ -123,7 +118,9 @@ Do not label corrected contracts frozen until Java/Go/schema tests and the requi
 
 ### Report/failure acceptance sketch
 
-This is an algorithm requirement, not drop-in production code:
+| Item | Details |
+|---|---|
+| 1 | This is an algorithm requirement, not drop-in production code: |
 
 ```text
 lock account+agent-scoped resource
@@ -136,11 +133,15 @@ complete action only if its expected result and target generation are confirmed
 commit; emit notifications through post-commit outbox
 ```
 
-The agent retains failed dirty inspections until successfully reported. Work ordering and full periodic scans must be tested with Docker events disconnected. No design assumes a healthy process is observed forever from its first successful report.
+| Item | Details |
+|---|---|
+| 1 | The agent retains failed dirty inspections until successfully reported. Work ordering and full periodic scans must be tested with Docker events disconnected. No design assumes a healthy process is observed forever from its first successful report. |
 
 ## 6. OS and network settings to change on the VM
 
-These are proposed administrative changes; this task did not alter the VM.
+| Item | Details |
+|---|---|
+| 1 | These are proposed administrative changes; this task did not alter the VM. |
 
 | Setting | Current/design issue | Required target |
 |---|---|---|
@@ -156,13 +157,16 @@ These are proposed administrative changes; this task did not alter the VM.
 | SELinux/firewall | Broad trusted-zone workaround | Leave enabled, diagnose/allow narrowly required paths |
 | Certificates | Permanent trust/renewal assumptions | DNS-01 provision before rehearsal, renewal/reload and tested fallback |
 
-Before changing storage or passwords, inventory existing data/volumes and back it up. Do not use destructive reset/prune to avoid solving a configuration bug. Store master-key backup separately and test restore; losing it makes encrypted signing/DB credentials unusable.
+| Item | Details |
+|---|---|
+| 1 | Before changing storage or passwords, inventory existing data/volumes and back it up. Do not use destructive reset/prune to avoid solving a configuration bug. Store master-key backup separately and test restore; losing it makes encrypted signing/DB credentials unusable. |
 
 ## 7. Workload and compatibility budget
 
-For the demonstration, cap total workload counts against measured VM capacity. Suggested starting budget: two ASG Droplets, one independent Droplet, one managed Postgres, one LB and one small k3d cluster. Run Kubernetes separately if simultaneous load exceeds available memory. Budget ports before configuring per-port forwards. Admission quotas prevent requests from exhausting memory/PIDs/disk.
-
-Use one tested image/size catalog, one PostgreSQL version, one HTTP LB rule and one Kubernetes version/node shape. Add snapshots through the correct action API. Advanced features require their own acceptance; no success-shaped placeholder is allowed.
+| Item | Details |
+|---|---|
+| 1 | For the demonstration, cap total workload counts against measured VM capacity. Suggested starting budget: two ASG Droplets, one independent Droplet, one managed Postgres, one LB and one small k3d cluster. Run Kubernetes separately if simultaneous load exceeds available memory. Budget ports before configuring per-port forwards. Admission quotas prevent requests from exhausting memory/PIDs/disk. |
+| 2 | Use one tested image/size catalog, one PostgreSQL version, one HTTP LB rule and one Kubernetes version/node shape. Add snapshots through the correct action API. Advanced features require their own acceptance; no success-shaped placeholder is allowed. |
 
 ## 8. Fix batches and dates
 
@@ -177,29 +181,14 @@ Use one tested image/size catalog, one PostgreSQL version, one HTTP LB rule and 
 | Release verification | Dec 4–8 | All applicable, final 13/35/37 | Scans, clean install, full supported demo and honest limitations |
 | Calendar | Already corrected | 38 | Workflow dates verified |
 
-If a batch fails, the next work slot fixes it before expansion. The deadline cannot make an incomplete security control safe; reduce feature depth and retain required controls. Explicitly track blockers rather than marking docs as implementation.
+| Item | Details |
+|---|---|
+| 1 | If a batch fails, the next work slot fixes it before expansion. The deadline cannot make an incomplete security control safe; reduce feature depth and retain required controls. Explicitly track blockers rather than marking docs as implementation. |
 
 ## 9. Evidence to collect before submission
 
-For each audit ID store owner, PR/commit, acceptance command, sanitized result and status. Use Not started / In progress / Implemented awaiting validation / Accepted. Documentation corrections cover problem descriptions, not proof that code behavior changed.
-
-Collect CI artifacts, negative auth results, cross-account denial, real SDK lifecycle, port rebuild/agent outage, persistence/restore, network reachability by IP, second-device TLS and release checksums. Keep screenshots free of secrets. A limited container-hardening script is labeled by its checked controls, not full CIS compliance.
-
-[Documentation change log](Covestack-Cloud-Documentation-Change-Log.md) gives before/after lines and problems/solutions for every changed guide section. [Workflow](Covestack-Cloud-Project-Workflow.md) puts submission assembly on Dec 14 so Dec 15 is reserved for delivery.
-
-
-## Implementation progress — 11 October 2026
-
-The security/build baseline is committed as `349a2f4` (Fixed security issues)
-on published branch `fix/security-baseline`, which tracks `origin/fix/security-baseline`.
-The working tree was clean when inspected. Remote main/PR merge status has not been
-verified; review and merge through the shared PR. Three signature vectors, negative
-tests, registered agent/Bearer filters, Valkey replay plumbing, CI, secret templates
-and auth-smoke exist. The config.go file currently contains only `package config`;
-it is a placeholder, not a working loader. Real credential/token lookup, application
-main, migrations/controllers, full agent and live deployment tests remain pending.
-
-See [code changes](Covestack-Cloud-Code-Changes.md) and the
-[handoff](../ANUJ-PERSON-C-HANDOFF.md). The original security patch
-has already been applied; do not apply it again. The separate Covestack branding
-patch updates the published baseline and includes these team guides.
+| Item | Details |
+|---|---|
+| 1 | For each audit ID store owner, PR/commit, acceptance command, sanitized result and status. Use Not started / In progress / Implemented awaiting validation / Accepted. Documentation corrections cover problem descriptions, not proof that code behavior changed. |
+| 2 | Collect CI artifacts, negative auth results, cross-account denial, real SDK lifecycle, port rebuild/agent outage, persistence/restore, network reachability by IP, second-device TLS and release checksums. Keep screenshots free of secrets. A limited container-hardening script is labeled by its checked controls, not full CIS compliance. |
+| 3 | [Documentation change log](Covestack-Cloud-Documentation-Cleanup.md) gives before/after lines and problems/solutions for every changed guide section. [Workflow](Covestack-Cloud-Project-Workflow.md) puts submission assembly on Dec 14 so Dec 15 is reserved for delivery. |
