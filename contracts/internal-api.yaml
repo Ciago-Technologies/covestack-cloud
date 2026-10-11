@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Kan Cloud — Internal Agent API
+  title: Covestack Cloud — Internal Agent API
   version: "1.0.0"
   description: >
     This is THE CONTRACT between kan-server (Java, "the brain") and

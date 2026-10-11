@@ -1,4 +1,4 @@
-# Kan sigv1 canonical request
+# Covestack Cloud — kan sigv1 canonical request
 
 Shared contract for Anuj's Go signer and Person C's Java verifier. This revision
 changes signatures: deploy Go, Java, rules and vectors together. Old signatures fail.

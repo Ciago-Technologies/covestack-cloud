@@ -1,8 +1,22 @@
 # Anuj and Person C: integration handoff
 
-Implemented baseline as of 11 October 2026. The original checkout is untouched
-because it is outside this session's writable roots. Work is in `Claude/kan-cloud-fixed`;
-apply `Claude/Kan-Cloud-Code-Fixes.patch` to the original as described in the report.
+The security/build baseline is committed as `349a2f4` (Fixed security issues)
+on published branch `fix/security-baseline`, which tracks `origin/fix/security-baseline`.
+The working tree was clean when inspected. Remote main/PR merge status has not been
+verified; review and merge through the shared PR. Three signature vectors, negative
+tests, registered agent/Bearer filters, Valkey replay plumbing, CI, secret templates
+and auth-smoke exist. The config.go file currently contains only `package config`;
+it is a placeholder, not a working loader. Real credential/token lookup, application
+main, migrations/controllers, full agent and live deployment tests remain pending.
+
+Product name: **Covestack Cloud**; intended repository slug: `covestack-cloud`.
+The actual checkout and GitHub remote are still named `kan-cloud` until the repository
+owner renames them. Use the real paths in commands. Existing module folders,
+Go import paths, Java packages, signing headers/algorithm, KAN_* environment names,
+API paths, labels, database identity and Valkey key prefixes remain compatibility
+identifiers. A future technical rename needs a separate coordinated migration.
+
+Read [team start guide](team/Covestack-Cloud-START-HERE.md).
 
 ## Breaking changes to integrate together
 
@@ -103,5 +117,5 @@ By 16 October finish auth/CI/VM baseline; by 23 October demonstrate one real com
 create/report/delete. Extend the Go driver and provider APIs through November.
 Use 1 December as feature freeze, 8 December as release candidate, 11 December as
 final rehearsal, and 13–14 December as buffer. Track remaining scope in the existing
-`Kan-Cloud-Project-Workflow.md`; this patch is the security/build baseline, not all
+`team/Covestack-Cloud-Project-Workflow.md`; this patch is the security/build baseline, not all
 38 audit findings or a finished emulator.

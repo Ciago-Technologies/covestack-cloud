@@ -1,4 +1,4 @@
-# contracts/
+# Covestack Cloud — contracts/
 
 This folder is the agreement between kan-server (Java) and kan-agent (Go).
 Nobody writes server<->agent connection code before this is frozen.
