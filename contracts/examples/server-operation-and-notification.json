@@ -1,0 +1,8 @@
+{
+  "operation": {
+    "status": "running"
+  },
+  "notification": {
+    "status": "queued"
+  }
+}

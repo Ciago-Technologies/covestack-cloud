@@ -1,0 +1,522 @@
+{
+  "version": "1.1.0",
+  "resources": {
+    "compute.instance": {
+      "service": "Droplets / compute instances",
+      "owner": "agent",
+      "implementation": "planned",
+      "initialState": "new",
+      "desiredStates": [
+        "active",
+        "off",
+        "archive"
+      ],
+      "observedStates": [
+        "new",
+        "provisioning",
+        "starting",
+        "active",
+        "stopping",
+        "off",
+        "deleting",
+        "archive",
+        "error"
+      ],
+      "terminalStates": [
+        "archive"
+      ],
+      "acknowledges": {
+        "active": "active",
+        "off": "off",
+        "archive": "archive"
+      },
+      "transitions": {
+        "new": [
+          "provisioning",
+          "deleting",
+          "error"
+        ],
+        "provisioning": [
+          "active",
+          "off",
+          "deleting",
+          "error"
+        ],
+        "starting": [
+          "active",
+          "deleting",
+          "error"
+        ],
+        "active": [
+          "stopping",
+          "deleting",
+          "error"
+        ],
+        "stopping": [
+          "off",
+          "deleting",
+          "error"
+        ],
+        "off": [
+          "starting",
+          "deleting",
+          "error"
+        ],
+        "deleting": [
+          "archive",
+          "error"
+        ],
+        "archive": [],
+        "error": [
+          "provisioning",
+          "starting",
+          "stopping",
+          "deleting"
+        ]
+      },
+      "readiness": "active only after container and required readiness checks succeed; off after intentional stop; archive after owned workload teardown",
+      "reservedObservedStates": []
+    },
+    "db.instance": {
+      "service": "Managed PostgreSQL",
+      "owner": "agent",
+      "implementation": "planned",
+      "initialState": "creating",
+      "desiredStates": [
+        "online",
+        "stopped",
+        "deleted"
+      ],
+      "observedStates": [
+        "creating",
+        "starting",
+        "online",
+        "stopping",
+        "stopped",
+        "deleting",
+        "deleted",
+        "error"
+      ],
+      "terminalStates": [
+        "deleted"
+      ],
+      "acknowledges": {
+        "online": "online",
+        "stopped": "stopped",
+        "deleted": "deleted"
+      },
+      "transitions": {
+        "creating": [
+          "online",
+          "stopped",
+          "deleting",
+          "error"
+        ],
+        "starting": [
+          "online",
+          "deleting",
+          "error"
+        ],
+        "online": [
+          "stopping",
+          "deleting",
+          "error"
+        ],
+        "stopping": [
+          "stopped",
+          "deleting",
+          "error"
+        ],
+        "stopped": [
+          "starting",
+          "deleting",
+          "error"
+        ],
+        "deleting": [
+          "deleted",
+          "error"
+        ],
+        "deleted": [],
+        "error": [
+          "creating",
+          "starting",
+          "stopping",
+          "deleting"
+        ]
+      },
+      "readiness": "online requires successful database connection/readiness; preserve data volumes through stop/recreate; deletion follows explicit retention policy",
+      "reservedObservedStates": [
+        "resizing",
+        "migrating",
+        "forking"
+      ]
+    },
+    "k8s.cluster": {
+      "service": "Kubernetes / bounded k3d cluster",
+      "owner": "agent",
+      "implementation": "planned",
+      "initialState": "provisioning",
+      "desiredStates": [
+        "active",
+        "deleted"
+      ],
+      "observedStates": [
+        "provisioning",
+        "running",
+        "degraded",
+        "deleting",
+        "deleted",
+        "error"
+      ],
+      "terminalStates": [
+        "deleted"
+      ],
+      "acknowledges": {
+        "active": "running",
+        "deleted": "deleted"
+      },
+      "transitions": {
+        "provisioning": [
+          "running",
+          "degraded",
+          "deleting",
+          "error"
+        ],
+        "running": [
+          "degraded",
+          "deleting",
+          "error"
+        ],
+        "degraded": [
+          "running",
+          "deleting",
+          "error"
+        ],
+        "deleting": [
+          "deleted",
+          "error"
+        ],
+        "deleted": [],
+        "error": [
+          "provisioning",
+          "deleting"
+        ]
+      },
+      "readiness": "running requires reachable Kubernetes API and required nodes ready; degraded is not successful convergence",
+      "reservedObservedStates": []
+    },
+    "compute.group": {
+      "service": "Autoscaling groups",
+      "owner": "server",
+      "implementation": "planned",
+      "initialState": "new",
+      "desiredStates": [
+        "active",
+        "deleted"
+      ],
+      "observedStates": [
+        "new",
+        "active",
+        "scaling",
+        "degraded",
+        "deleting",
+        "deleted",
+        "error"
+      ],
+      "terminalStates": [
+        "deleted"
+      ],
+      "acknowledges": {
+        "active": "active",
+        "deleted": "deleted"
+      },
+      "transitions": {
+        "new": [
+          "scaling",
+          "active",
+          "deleting",
+          "error"
+        ],
+        "active": [
+          "scaling",
+          "degraded",
+          "deleting",
+          "error"
+        ],
+        "scaling": [
+          "active",
+          "degraded",
+          "deleting",
+          "error"
+        ],
+        "degraded": [
+          "scaling",
+          "active",
+          "deleting",
+          "error"
+        ],
+        "deleting": [
+          "deleted",
+          "error"
+        ],
+        "deleted": [],
+        "error": [
+          "scaling",
+          "deleting"
+        ]
+      },
+      "readiness": "active requires desired capacity of healthy children; scaling includes pending reservations; deleted only after scoped child policy completes; never agent work",
+      "reservedObservedStates": []
+    },
+    "compute.snapshot": {
+      "service": "Compute snapshots",
+      "owner": "agent",
+      "implementation": "planned",
+      "initialState": "creating",
+      "desiredStates": [
+        "available",
+        "deleted"
+      ],
+      "observedStates": [
+        "creating",
+        "available",
+        "deleting",
+        "deleted",
+        "error"
+      ],
+      "terminalStates": [
+        "deleted"
+      ],
+      "acknowledges": {
+        "available": "available",
+        "deleted": "deleted"
+      },
+      "transitions": {
+        "creating": [
+          "available",
+          "deleting",
+          "error"
+        ],
+        "available": [
+          "deleting",
+          "error"
+        ],
+        "deleting": [
+          "deleted",
+          "error"
+        ],
+        "deleted": [],
+        "error": [
+          "creating",
+          "deleting"
+        ]
+      },
+      "readiness": "available requires immutable account-scoped image persisted and inspected; container snapshots exclude mounted volumes and VM memory",
+      "reservedObservedStates": []
+    },
+    "network.load-balancer": {
+      "service": "HTTP load balancers",
+      "owner": "agent",
+      "implementation": "planned",
+      "initialState": "new",
+      "desiredStates": [
+        "active",
+        "deleted"
+      ],
+      "observedStates": [
+        "new",
+        "provisioning",
+        "active",
+        "degraded",
+        "deleting",
+        "deleted",
+        "error"
+      ],
+      "terminalStates": [
+        "deleted"
+      ],
+      "acknowledges": {
+        "active": "active",
+        "deleted": "deleted"
+      },
+      "transitions": {
+        "new": [
+          "provisioning",
+          "deleting",
+          "error"
+        ],
+        "provisioning": [
+          "active",
+          "degraded",
+          "deleting",
+          "error"
+        ],
+        "active": [
+          "degraded",
+          "deleting",
+          "error"
+        ],
+        "degraded": [
+          "active",
+          "deleting",
+          "error"
+        ],
+        "deleting": [
+          "deleted",
+          "error"
+        ],
+        "deleted": [],
+        "error": [
+          "provisioning",
+          "deleting"
+        ]
+      },
+      "readiness": "active requires valid configuration, successful reload, reachable listener and healthy required members; empty/unhealthy targets are degraded",
+      "reservedObservedStates": []
+    },
+    "storage.bucket": {
+      "service": "Spaces-compatible buckets",
+      "owner": "server",
+      "implementation": "planned",
+      "initialState": "creating",
+      "desiredStates": [
+        "available",
+        "deleted"
+      ],
+      "observedStates": [
+        "creating",
+        "available",
+        "deleting",
+        "deleted",
+        "error"
+      ],
+      "terminalStates": [
+        "deleted"
+      ],
+      "acknowledges": {
+        "available": "available",
+        "deleted": "deleted"
+      },
+      "transitions": {
+        "creating": [
+          "available",
+          "deleting",
+          "error"
+        ],
+        "available": [
+          "deleting",
+          "error"
+        ],
+        "deleting": [
+          "deleted",
+          "error"
+        ],
+        "deleted": [],
+        "error": [
+          "creating",
+          "deleting"
+        ]
+      },
+      "readiness": "available requires physical MinIO bucket and account-scoped access policy; delete empty buckets by default, require explicit authorization to purge objects; server-managed through trusted MinIO administration, with root credentials kept server-side",
+      "reservedObservedStates": []
+    }
+  },
+  "entities": {
+    "operation": {
+      "owner": "server",
+      "states": [
+        "queued",
+        "running",
+        "completed",
+        "failed",
+        "cancelled"
+      ],
+      "initialState": "queued",
+      "terminalStates": [
+        "completed",
+        "failed",
+        "cancelled"
+      ],
+      "transitions": {
+        "queued": [
+          "running",
+          "failed",
+          "cancelled"
+        ],
+        "running": [
+          "completed",
+          "failed"
+        ],
+        "completed": [],
+        "failed": [],
+        "cancelled": []
+      },
+      "notes": "cancelled only before execution; failures are terminal for that attempt; retry creates a linked new attempt; complete only on confirmed target convergence"
+    },
+    "notification": {
+      "owner": "server",
+      "states": [
+        "queued",
+        "delivering",
+        "delivered",
+        "failed"
+      ],
+      "initialState": "queued",
+      "terminalStates": [
+        "delivered"
+      ],
+      "transitions": {
+        "queued": [
+          "delivering",
+          "failed"
+        ],
+        "delivering": [
+          "delivered",
+          "failed"
+        ],
+        "failed": [
+          "queued"
+        ],
+        "delivered": []
+      },
+      "notes": "post-commit outbox only; bounded retry policy; SMTP failure never rolls back a committed resource operation; permanent failures remain failed"
+    }
+  },
+  "metadataServices": [
+    {
+      "service": "Accounts / membership",
+      "owner": "server",
+      "policy": "Account activation/suspension and memberships belong to authorization policy, not agent resource work."
+    },
+    {
+      "service": "Access keys / Bearer tokens",
+      "owner": "server",
+      "policy": "Active/revoked/expired eligibility, key kind and permissions; no resource lifecycle or agent work."
+    },
+    {
+      "service": "SSH keys",
+      "owner": "server",
+      "policy": "Account-scoped metadata; validated public keys; referenced only by owned instances."
+    },
+    {
+      "service": "Tags",
+      "owner": "server",
+      "policy": "Account-scoped metadata and associations; reserved ownership labels are not editable user tags."
+    },
+    {
+      "service": "Regions / sizes / images catalogs",
+      "owner": "server",
+      "policy": "Read-only provider metadata; snapshots have their own resource lifecycle."
+    },
+    {
+      "service": "Spaces objects",
+      "owner": "storage",
+      "policy": "S3 put/get/list/delete behavior within an owned bucket; no asynchronous resource-state enum."
+    },
+    {
+      "service": "CLI / doctor / health",
+      "owner": "client/server",
+      "policy": "API clients/status endpoints, not agent resource kinds; detailed doctor requires authentication."
+    }
+  ]
+}

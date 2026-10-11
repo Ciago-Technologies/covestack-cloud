@@ -1,0 +1,250 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Covestack Cloud — Internal Agent API",
+    "version": "1.1.0",
+    "description": "Endpoint scaffold; lifecycle-specific schemas and descriptions are generated from lifecycle-rules.json."
+  },
+  "security": [
+    {
+      "AgentAccessKey": [],
+      "AgentDate": [],
+      "AgentNonce": [],
+      "AgentSignature": []
+    }
+  ],
+  "servers": [
+    {
+      "url": "http://localhost:4700",
+      "description": "kan-server, local dev"
+    }
+  ],
+  "paths": {
+    "/internal/v1/agent/heartbeat": {
+      "post": {
+        "summary": "Agent says \"I am alive\"",
+        "operationId": "heartbeat",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "agentVersion",
+                  "dockerVersion"
+                ],
+                "properties": {
+                  "agentVersion": {
+                    "type": "string",
+                    "example": "1.0.0"
+                  },
+                  "dockerVersion": {
+                    "type": "string",
+                    "example": "24.0.7"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Acknowledged",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/v1/agent/work": {
+      "get": {
+        "summary": "Agent asks \"what do I need to do?\"",
+        "operationId": "getWork",
+        "description": "Returns resources where generation != observedGeneration (something changed), or the resource is being deleted.\n",
+        "responses": {
+          "200": {
+            "description": "List of resources needing action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Resource"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/v1/agent/resources/{id}/observed": {
+      "put": {
+        "summary": "Agent reports what actually exists",
+        "operationId": "putObserved",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "01J8ZK9XCLUSTER1"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ObservedReport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Applied or ignored as stale; future generation must be rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "applied": {
+                      "type": "boolean",
+                      "description": "False when an old report is ignored"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/v1/agent/known-ids": {
+      "get": {
+        "summary": "Agent asks \"what should exist right now?\" (used to clean up orphan containers/clusters)",
+        "operationId": "getKnownIds",
+        "responses": {
+          "200": {
+            "description": "All live resource ids for this agent's account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "example": [
+                    "01J8ZK9XCLUSTER1",
+                    "01J8ZK9XINSTANCE2"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/v1/agent/events": {
+      "post": {
+        "summary": "Agent reports something happened (e.g. \"container died\")",
+        "operationId": "postEvent",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentEvent"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Event accepted for audit; does not directly mutate lifecycle.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "AgentAccessKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Kan-Access-Key"
+      },
+      "AgentDate": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Kan-Date"
+      },
+      "AgentNonce": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Kan-Nonce"
+      },
+      "AgentSignature": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Kan-Signature"
+      }
+    },
+    "schemas": {
+      "AgentEvent": {
+        "type": "object",
+        "required": [
+          "resourceId",
+          "type",
+          "message"
+        ],
+        "properties": {
+          "resourceId": {
+            "type": "string",
+            "example": "01J8ZK9XCLUSTER1"
+          },
+          "type": {
+            "type": "string",
+            "example": "cluster.node.died"
+          },
+          "message": {
+            "type": "string",
+            "example": "k3d node k3d-web-cluster-agent-1 stopped responding"
+          }
+        }
+      }
+    }
+  }
+}
