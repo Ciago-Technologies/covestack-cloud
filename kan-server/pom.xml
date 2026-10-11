@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!-- Pinned on purpose (your doc: "pick the version and pin it").
+       Bump deliberately, not by accident. -->
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.3.5</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>com.ciagotech.kan</groupId>
+  <artifactId>kan-server</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <name>kan-server</name>
+
+  <properties>
+    <java.version>25</java.version>
+  </properties>
+
+  <dependencies>
+    <!-- Servlet API, Spring's OncePerRequestFilter, and Jackson (used by SigV1Rules). -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <!-- JUnit 5 for KanSigV1Test. -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Add later, when those pieces exist (per your Day 0/1 list):
+         spring-boot-starter-jdbc, postgresql, flyway-core,
+         spring-boot-starter-data-redis, spring-boot-starter-validation.
+         Left out now so the app doesn't demand a database just to run the signing tests. -->
+  </dependencies>
+
+  <!-- spring-boot-maven-plugin intentionally omitted: it needs a
+       @SpringBootApplication main class, which doesn't exist yet.
+       Add it when you create KanServerApplication. -->
+</project>

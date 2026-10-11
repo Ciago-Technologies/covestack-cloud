@@ -1,0 +1,200 @@
+openapi: 3.0.3
+info:
+  title: Kan Cloud — Internal Agent API
+  version: "1.0.0"
+  description: >
+    This is THE CONTRACT between kan-server (Java, "the brain") and
+    kan-agent (Go, "the hands"). Freeze this by Day 5. After that, nobody
+    changes this file without a pull request reviewed by Anuj AND the
+    Java lead.
+
+    3 hard rules:
+    1. Every agent -> server call is signed with kan sigv1.
+    2. The agent is pull-only. It never opens a port. It only asks.
+    3. All JSON is camelCase. All times are ISO-8601 UTC.
+
+    Example resource kind used throughout this file: k8s.cluster
+    (a k3d Kubernetes cluster running on the agent's machine).
+
+servers:
+  - url: http://localhost:4700
+    description: kan-server, local dev
+
+paths:
+
+  /internal/v1/agent/heartbeat:
+    post:
+      summary: Agent says "I am alive"
+      operationId: heartbeat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [agentVersion, dockerVersion]
+              properties:
+                agentVersion: { type: string, example: "1.0.0" }
+                dockerVersion: { type: string, example: "24.0.7" }
+      responses:
+        "200":
+          description: Acknowledged
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean, example: true }
+
+  /internal/v1/agent/work:
+    get:
+      summary: Agent asks "what do I need to do?"
+      operationId: getWork
+      description: >
+        Returns resources where generation != observedGeneration
+        (something changed), or the resource is being deleted.
+      responses:
+        "200":
+          description: List of resources needing action
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Resource"
+
+  /internal/v1/agent/resources/{id}/observed:
+    put:
+      summary: Agent reports what actually exists
+      operationId: putObserved
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+          example: "01J8ZK9XCLUSTER1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ObservedReport"
+      responses:
+        "200":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean, example: true }
+
+  /internal/v1/agent/known-ids:
+    get:
+      summary: Agent asks "what should exist right now?" (used to clean up orphan containers/clusters)
+      operationId: getKnownIds
+      responses:
+        "200":
+          description: All live resource ids for this agent's account
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: string }
+                example: ["01J8ZK9XCLUSTER1", "01J8ZK9XINSTANCE2"]
+
+  /internal/v1/agent/events:
+    post:
+      summary: Agent reports something happened (e.g. "container died")
+      operationId: postEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentEvent"
+      responses:
+        "200":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean, example: true }
+
+components:
+  schemas:
+
+    Resource:
+      type: object
+      required: [id, kind, generation, desiredState, deleting, spec, labels]
+      properties:
+        id:
+          type: string
+          description: ULID, primary key
+          example: "01J8ZK9XCLUSTER1"
+        kind:
+          type: string
+          enum: [compute.instance, compute.group, db.instance, k8s.cluster]
+          example: "k8s.cluster"
+        generation:
+          type: integer
+          description: Bumped by Java every time spec/desiredState changes
+          example: 2
+        desiredState:
+          type: string
+          description: >
+            Frozen values per kind (see FROZEN-STATES.md).
+            For k8s.cluster: active, deleted
+          example: "active"
+        deleting:
+          type: boolean
+          example: false
+        spec:
+          type: object
+          description: What the user asked for. Shape depends on "kind".
+          example:
+            clusterName: "web-cluster"
+            k3dVersion: "5.6.0"
+            nodes: 3
+            image: "rancher/k3s:v1.28.8-k3s1"
+        labels:
+          type: object
+          additionalProperties: { type: string }
+          example:
+            kan.io/account: "000000000001"
+
+    ObservedReport:
+      type: object
+      required: [observedGeneration, state]
+      properties:
+        observedGeneration:
+          type: integer
+          description: Set equal to "generation" once the agent has made reality match
+          example: 2
+        state:
+          type: string
+          description: >
+            Frozen values per kind (see FROZEN-STATES.md).
+            For k8s.cluster: creating, active, deleting, deleted, error
+          example: "active"
+        detail:
+          type: object
+          description: Free-form status detail (container id, ports, cluster id, etc.)
+          example:
+            clusterId: "k3d-web-cluster"
+            nodeCount: 3
+            kubeApiPort: 6443
+        error:
+          type: string
+          nullable: true
+          example: null
+
+    AgentEvent:
+      type: object
+      required: [resourceId, type, message]
+      properties:
+        resourceId: { type: string, example: "01J8ZK9XCLUSTER1" }
+        type: { type: string, example: "cluster.node.died" }
+        message: { type: string, example: "k3d node k3d-web-cluster-agent-1 stopped responding" }

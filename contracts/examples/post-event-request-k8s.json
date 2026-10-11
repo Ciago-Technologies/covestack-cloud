@@ -1,0 +1,5 @@
+{
+  "resourceId": "01J8ZK9XCLUSTER1",
+  "type": "cluster.node.died",
+  "message": "k3d node k3d-web-cluster-agent-1 stopped responding"
+}

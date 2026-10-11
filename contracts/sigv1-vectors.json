@@ -1,0 +1,35 @@
+{
+  "note": "The signatures below are REAL computed output — but from an algorithm I proposed (see CANONICAL-REQUEST.md), not one pulled from your existing docs. Your team hasn't written sigcore yet, so nobody has confirmed this exact format. Treat this as a working starting point: implement CANONICAL-REQUEST.md in Java and Go, run sign_example.py, and if your numbers match the signature fields below, both sides agree AND match this proposal. If Person C designs it differently, regenerate this file with the real algorithm instead.",
+
+  "vectors": [
+    {
+      "name": "get-work-basic",
+      "method": "GET",
+      "path": "/internal/v1/agent/work",
+      "query": "",
+      "headers": {
+        "Host": "localhost:4700",
+        "X-Kan-Date": "20260926T120000Z",
+        "X-Kan-Access-Key": "KANKAGENT0000000001"
+      },
+      "body": "",
+      "secretKey": "test-secret-do-not-use-in-prod",
+      "expectedSignature": "4f934e9d22c52f8a04b7158964dec9f952c77d7d081cbd6fc3a4a3c8db39c86a"
+    },
+    {
+      "name": "put-observed-k8s-cluster",
+      "method": "PUT",
+      "path": "/internal/v1/agent/resources/01J8ZK9XCLUSTER1/observed",
+      "query": "",
+      "headers": {
+        "Host": "localhost:4700",
+        "X-Kan-Date": "20260926T120005Z",
+        "X-Kan-Access-Key": "KANKAGENT0000000001",
+        "Content-Type": "application/json"
+      },
+      "body": "{\"observedGeneration\":2,\"state\":\"active\",\"detail\":{\"clusterId\":\"k3d-web-cluster\",\"nodeCount\":3},\"error\":null}",
+      "secretKey": "test-secret-do-not-use-in-prod",
+      "expectedSignature": "3c6f074ef06616b68398d8fa7b7eac8469bb1e4d78d0c131750f6cd790e9a4be"
+    }
+  ]
+}
