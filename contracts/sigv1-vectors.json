@@ -1,6 +1,5 @@
 {
-  "note": "The signatures below are REAL computed output — but from an algorithm I proposed (see CANONICAL-REQUEST.md), not one pulled from your existing docs. Your team hasn't written sigcore yet, so nobody has confirmed this exact format. Treat this as a working starting point: implement CANONICAL-REQUEST.md in Java and Go, run sign_example.py, and if your numbers match the signature fields below, both sides agree AND match this proposal. If Person C designs it differently, regenerate this file with the real algorithm instead.",
-
+  "note": "Shared kan sigv1 vectors. Nonce and access-key ID are mandatory signed headers. This replaces the insecure unsigned-nonce format.",
   "vectors": [
     {
       "name": "get-work-basic",
@@ -10,11 +9,12 @@
       "headers": {
         "Host": "localhost:4700",
         "X-Kan-Date": "20260926T120000Z",
-        "X-Kan-Access-Key": "KANKAGENT0000000001"
+        "X-Kan-Access-Key": "KANKAGENT0000000001",
+        "X-Kan-Nonce": "vector-nonce-0000000000000001"
       },
       "body": "",
       "secretKey": "test-secret-do-not-use-in-prod",
-      "expectedSignature": "4f934e9d22c52f8a04b7158964dec9f952c77d7d081cbd6fc3a4a3c8db39c86a"
+      "expectedSignature": "1e34d04c4dd572f7b8f21596ecafce1dbea7cb8c7a464b3d5c776ffbfcd69a81"
     },
     {
       "name": "put-observed-k8s-cluster",
@@ -25,11 +25,29 @@
         "Host": "localhost:4700",
         "X-Kan-Date": "20260926T120005Z",
         "X-Kan-Access-Key": "KANKAGENT0000000001",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "X-Kan-Nonce": "vector-nonce-0000000000000002"
       },
-      "body": "{\"observedGeneration\":2,\"state\":\"active\",\"detail\":{\"clusterId\":\"k3d-web-cluster\",\"nodeCount\":3},\"error\":null}",
+      "body": "{\"observedGeneration\":2,\"state\":\"running\",\"detail\":{\"clusterId\":\"k3d-web-cluster\",\"nodeCount\":3},\"error\":null,\"observedAt\":\"2026-09-26T12:00:05Z\"}",
       "secretKey": "test-secret-do-not-use-in-prod",
-      "expectedSignature": "3c6f074ef06616b68398d8fa7b7eac8469bb1e4d78d0c131750f6cd790e9a4be"
+      "expectedSignature": "f0c1c271c64d25dbf1daaabc579fd5758582f601cb33fbe6423931d37a72c102"
+    },
+    {
+      "name": "raw-query-utf8",
+      "method": "POST",
+      "path": "/internal/v1/agent/events",
+      "query": "tag=b&tag=a&space=%20",
+      "headers": {
+        "Host": "localhost:4700",
+        "X-Kan-Date": "20260926T120010Z",
+        "X-Kan-Access-Key": "KANKAGENT0000000001",
+        "X-Kan-Nonce": "vector-nonce-0000000000000003",
+        "Content-Type": "application/json",
+        "User-Agent": "unsigned-test"
+      },
+      "body": "{\"message\":\"नमस्ते\"}",
+      "secretKey": "test-secret-do-not-use-in-prod",
+      "expectedSignature": "930740c28ed68dc0fa3635e613a383f90c3e638179fbc9b08c2bd049a176dc9f"
     }
   ]
 }

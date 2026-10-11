@@ -1,115 +1,45 @@
-# What is a "canonical request" and how kan sigv1 signs one
+# Kan sigv1 canonical request
 
-## Honesty first
-Your own docs say kan sigv1 shares its HMAC-SHA-256 verifier with AWS SigV4,
-and gets tested against AWS's own SigV4 worked example. They do NOT spell out
-the exact canonical-request string format anywhere I've seen. So the design
-below is **me proposing a format that fits what your docs already say** —
-it's a real, working algorithm you can implement today, not a quote from
-your TDD. Get Person C (sigcore owner) to sign off on it before it's frozen.
+Shared contract for Anuj's Go signer and Person C's Java verifier. This revision
+changes signatures: deploy Go, Java, rules and vectors together. Old signatures fail.
 
-## What "canonical request" means, in easy words
-Before you sign anything, both sides (the one signing, the one checking)
-must build the EXACT same string of text from the HTTP request. If Java
-builds the string slightly differently than Go — extra space, different
-header order, different casing — the signatures will never match, even
-with the same secret key.
+## Canonical request
 
-"Canonical" just means: one agreed, boring, predictable way to turn a
-request into text. No creativity allowed.
+Join method, raw escaped path, raw query (without `?`), canonical headers,
+signed-header names and lowercase SHA256 hex of the raw body with `\n`.
+Canonical headers themselves end with `\n`, so there is a blank line before names.
+Do not decode/re-encode the path, sort the query, or serialize the body after signing.
+Java uses request URI/query; Go callers use URL.EscapedPath()/URL.RawQuery.
 
-## The recipe (6 lines, joined with newlines)
+Always sign `host`, `x-kan-access-key`, `x-kan-date`, `x-kan-nonce`.
+For a nonempty body also sign `content-type`. Select only these names from the
+shared rules, lowercase names, trim only outer ASCII space/tab, sort names, then
+write `name:value\n`. Join the same names with `;`. Required values must be
+present and nonempty; duplicate case-insensitive names or CR/LF values are invalid.
+Other headers do not affect the signature. Use UTF-8 for textual hash/HMAC input.
 
-```
-CanonicalRequest =
-  HTTP_METHOD          (e.g. "GET")
-  + "\n" +
-  PATH                 (e.g. "/internal/v1/agent/work")
-  + "\n" +
-  QUERY_STRING         (empty string if none)
-  + "\n" +
-  CANONICAL_HEADERS    (see below)
-  + "\n" +
-  SIGNED_HEADERS       (see below)
-  + "\n" +
-  SHA256_HEX(BODY)     (hash of the raw request body; hash of "" if no body)
-```
+String to sign: `KAN1-HMAC-SHA256\n<date>\n<SHA256_HEX(canonical request)>`.
+Signature: lowercase HMAC-SHA256 hex, using the raw secret bytes, sent only in
+`X-Kan-Signature`. Date: strict UTC `yyyyMMdd'T'HHmmss'Z'`.
 
-**Canonical headers**: pick `host` and `x-kan-date` always, plus
-`content-type` if the request has a body. Lowercase the header name,
-trim the value, sort alphabetically by name, one per line as
-`name:value\n`.
+## Transport and replay protection
 
-**Signed headers**: the same header names, lowercased, joined with `;`,
-in the same sorted order. This tells the verifier which headers were
-actually included in the signature.
+Use a service credential for internal agent calls. Nonces contain 16–128 URL-safe
+ASCII characters; the Go request helper generates 32 cryptographically random
+bytes as hex. Each request/retry gets a fresh date/nonce/signature.
+The server verifies headers, time, active credential, body bound and MAC first,
+then atomically reserves the nonce in Valkey before any controller runs.
+Clock skew is at most 300 seconds; nonce retention is 600 seconds.
+Maximum signed body size is 1 MiB, including chunked bodies.
 
-## Then: string to sign
+Authenticated requests carry `kan.principal` (accountId/accessKeyId/kind).
+Controllers MUST scope reads/writes to this account. Public `/v2/` and `/kan/v1/`
+APIs are registered with the separate BearerAuthFilter; Person C must implement
+BearerTokenService lookup. Neither filter replaces controller authorization.
 
-```
-StringToSign =
-  "KAN1-HMAC-SHA256"
-  + "\n" +
-  X_KAN_DATE            (same value as the header, e.g. "20260926T120000Z")
-  + "\n" +
-  SHA256_HEX(CanonicalRequest)
-```
+## Compatibility gate
 
-## Then: the actual signature
-
-```
-Signature = HMAC_SHA256_HEX( secretKey, StringToSign )
-```
-
-That hex string is what goes in the `Authorization` (or `X-Kan-Signature`)
-header. The server re-derives the same canonical request from the incoming
-HTTP request, re-runs this exact recipe with the account's known secret
-key, and checks the two signatures match. If they don't, reject with 401.
-
-## Worked example (real, computed — not made up)
-
-Request: `GET /internal/v1/agent/work`, no query, no body.
-
-Headers used for signing:
-```
-Host: localhost:4700
-X-Kan-Date: 20260926T120000Z
-```
-
-Step 1 — Canonical Request:
-```
-GET
-/internal/v1/agent/work
-
-host:localhost:4700
-x-kan-date:20260926T120000Z
-
-host;x-kan-date
-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-```
-(that last line is `SHA256("")` — the hash of an empty body, always the
-same value, worth memorizing so you recognize it in tests)
-
-Step 2 — String To Sign:
-```
-KAN1-HMAC-SHA256
-20260926T120000Z
-a20b0876060aa38062365c07d59eecde6d327dd9a2c71b30fa452721e58530c3
-```
-(that last line is `SHA256(CanonicalRequest above)`)
-
-Step 3 — Signature (secretKey = `test-secret-do-not-use-in-prod`):
-```
-4f934e9d22c52f8a04b7158964dec9f952c77d7d081cbd6fc3a4a3c8db39c86a
-```
-
-A second worked example, this time with a body (`PUT /observed`), is in
-`sigv1-vectors.json` — same recipe, just with `content-type` added to the
-signed headers and the real body hash used.
-
-## How to check your own implementation
-Run `sign_example.py` in this folder (no dependencies, just Python 3).
-It prints the same three steps above. If your Java or Go implementation
-produces the identical Signature hex string for the identical inputs,
-your implementation is correct — for THIS proposed algorithm. Confirming
-this is the algorithm your team actually wants is still Person C's call.
+From repository root: `python3 contracts/sign_example.py`,
+`cd kan-agent && go test ./...`, `cd kan-server && mvn verify`.
+Shared vectors include empty/body/UTF-8/raw-query cases. Negative filter tests cover
+nonce tampering, replay, poisoning, oversized bodies and invalid credential kinds.

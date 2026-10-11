@@ -4,7 +4,12 @@
   "accessKeyHeader": "X-Kan-Access-Key",
   "signatureHeader": "X-Kan-Signature",
   "nonceHeader": "X-Kan-Nonce",
-  "alwaysSignedHeaders": ["host", "x-kan-date"],
+  "alwaysSignedHeaders": [
+    "host",
+    "x-kan-access-key",
+    "x-kan-date",
+    "x-kan-nonce"
+  ],
   "signBodyContentTypeHeader": true,
   "maxClockSkewSeconds": 300,
   "nonceReplayWindowSeconds": 600,

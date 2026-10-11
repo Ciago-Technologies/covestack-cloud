@@ -1,11 +1,11 @@
 package com.ciagotech.kan.server.auth;
 
-/**
- * Looks up the secret key for a signed request. Real implementation reads
- * access_keys.secret_enc from Postgres and decrypts with AES-256-GCM
- * (per the schema — see TDD key management section). NOT implemented here.
- */
+/** Person C implements active Postgres lookup and AES-GCM secret decryption. */
+@FunctionalInterface
 public interface KeyService {
-    /** Returns the decrypted secret, or null if the access key is unknown or inactive. */
-    String getSecretKey(String accessKeyId);
+    /** Null for unknown/revoked keys. Never return a default development credential. */
+    Credential findActiveCredential(String accessKeyId);
+
+    record Credential(String accountId, String accessKeyId, String kind, String secretKey) {}
+    record Principal(String accountId, String accessKeyId, String kind) {}
 }

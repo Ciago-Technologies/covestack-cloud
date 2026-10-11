@@ -1,75 +1,49 @@
 # kan-cloud
 
-Local free emulator for DigitalOcean — runs entirely on your laptop with Docker.
+Local DigitalOcean emulator under construction. Currently this repository contains
+shared contracts and Go/Java authentication libraries, not a runnable server/agent.
 
-## Architecture
+## Verify the current baseline
 
-```
-kan-server  (Java / Spring Boot)  — brains: REST API, reconcile loop, Postgres, Valkey
-kan-agent   (Go)                  — hands: talks to Docker, creates containers/volumes/networks
-contracts/                        — shared API spec + signing rules (frozen before Day 5)
-```
-
-**Flow:** User calls `kan-server` → server stores desired state in Postgres → agent polls `/internal/v1/agent/work` → agent provisions Docker resources → agent reports observed state back.
-
-## Quickstart
-
-### Prerequisites
-- Java 21, Maven 3.9+
-- Go 1.22+
-- Docker Engine 24+
-- `docker compose` v2
-
-### Start infrastructure
-```bash
-docker compose up -d   # Postgres, Valkey, Mailpit, MinIO
-```
-
-### Run kan-server
-```bash
-cd kan-server
-mvn spring-boot:run
-```
-
-### Run kan-agent
-```bash
-cd kan-agent
-go run .
-```
-
-## Repo layout
-```
-kan-cloud/
-├── contracts/          ← API contract between server and agent (READ BEFORE CODING)
-│   ├── internal-api.yaml
-│   ├── FROZEN-STATES.md
-│   ├── CANONICAL-REQUEST.md
-│   ├── sigv1-rules.json
-│   ├── sigv1-vectors.json
-│   ├── sign_example.py
-│   └── examples/
-├── kan-server/         ← Java / Spring Boot
-│   ├── pom.xml
-│   └── src/
-├── kan-agent/          ← Go
-│   ├── go.mod
-│   └── sigv1/
-└── docker-compose.yml  ← (to be added)
-```
-
-## Signing (kan sigv1)
-
-All agent↔server traffic is signed. Before writing any HTTP client or server code, read `contracts/CANONICAL-REQUEST.md` and run the test vectors:
+Use Java 25, Maven 3.9+, Go 1.27.2 (pinned by toolchain and CI), Python 3.
+From repository root:
 
 ```bash
-# Java
-cd kan-server && mvn test
-
-# Go
-cd kan-agent && go test ./sigv1/...
-
-# Python sanity check
 python3 contracts/sign_example.py
+(cd kan-agent && go test -race ./... && go vet ./...)
+(cd kan-server && mvn --batch-mode verify)
 ```
 
-Both tests read from `contracts/sigv1-rules.json` and `contracts/sigv1-vectors.json` and must produce identical signatures.
+## Local infrastructure
+
+Create `deploy/.env` from `.env.example`; select exact tested image references.
+Create `deploy/secrets/postgres_password` containing a random password and copy
+`deploy/valkey.conf.example` to `deploy/secrets/valkey.conf`, replacing its password.
+Protect local secrets with mode 600. These files are gitignored. Start from root:
+
+```bash
+docker compose --env-file deploy/.env -f deploy/docker-compose.yml config
+docker compose --env-file deploy/.env -f deploy/docker-compose.yml up -d
+```
+
+Compose provides Postgres, authenticated persistent Valkey and Mailpit. MinIO is
+not implemented here yet. Existing Postgres volumes retain their original password;
+changing the secret file does not rotate an initialized database's credentials.
+Do not delete data volumes to rotate credentials. Coordinate database password
+rotation with the Java owner and update connection settings together.
+
+## Integration
+
+Read `contracts/CANONICAL-REQUEST.md` and `docs/ANUJ-PERSON-C-HANDOFF.md`.
+Go's `sigv1.NewSignedRequest` signs exact body bytes, raw path/query and fresh nonces.
+Use HTTPS outside localhost and a client with redirects disabled.
+Person C implements `KeyService.findActiveCredential`, with service keys scoped to
+an account, and the Bearer token lookup implementation. Public filters are registered but require
+these implementations and account-scoped controllers. Agent auth configuration uses Valkey;
+there is no production fallback to the in-memory store.
+
+Person B still needs application main/configuration, migrations and account-scoped
+controllers. Boot repackage is disabled while this is a library; enable it when the
+application entry point lands. Anuj still needs the agent executable, polling and
+Docker operations. VM/Docker deployment and real Valkey integration are separate
+acceptance checks; unit tests do not establish those are working.

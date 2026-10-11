@@ -46,7 +46,10 @@ func TestVectorsMatch(t *testing.T) {
 
 	for _, v := range vf.Vectors {
 		dateStr := v.Headers["X-Kan-Date"]
-		got, _, _ := Sign(v.SecretKey, v.Method, v.Path, v.Query, v.Headers, []byte(v.Body), dateStr, rules)
+		got, _, _, err := Sign(v.SecretKey, v.Method, v.Path, v.Query, v.Headers, []byte(v.Body), dateStr, rules)
+		if err != nil {
+			t.Fatalf("%s: %v", v.Name, err)
+		}
 		if got != v.ExpectedSignature {
 			t.Errorf("%s: got %s want %s", v.Name, got, v.ExpectedSignature)
 		}

@@ -5,13 +5,11 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Same algorithm as kan-agent's Go sigv1 package — see CANONICAL-REQUEST.md.
- * Used two ways:
- *   - sign(): by the kan CLI when it calls the Kan-native REST API
- *   - verify(): by KanSigV1AuthFilter, on every incoming agent request
+ * sign() supports shared-vector tests; verify() authenticates internal agent requests.
+ * Public CLI APIs use separate Bearer authentication.
  */
 public final class KanSigV1 {
 
@@ -23,20 +21,24 @@ public final class KanSigV1 {
             Map<String, String> headers, byte[] body, SigV1Rules rules) {
 
         Set<String> signSet = new TreeSet<>();
-        for (String h : rules.alwaysSignedHeaders()) signSet.add(h.toLowerCase());
+        for (String h : rules.alwaysSignedHeaders()) signSet.add(h.toLowerCase(Locale.ROOT));
         if (body != null && body.length > 0 && rules.signBodyContentTypeHeader()) {
             signSet.add("content-type");
         }
 
         Map<String, String> lower = new HashMap<>();
         for (var e : headers.entrySet()) {
-            if (e.getValue() != null) lower.put(e.getKey().toLowerCase(), e.getValue().trim());
+            String name = e.getKey().toLowerCase(Locale.ROOT);
+            if (lower.containsKey(name)) throw new IllegalArgumentException("duplicate header: " + name);
+            lower.put(name, e.getValue() == null ? null : e.getValue().replaceAll("^[ \t]+|[ \t]+$", ""));
         }
 
-        List<String> names = signSet.stream()
-                .filter(lower::containsKey)
-                .sorted()
-                .collect(Collectors.toList());
+        for (String name : signSet) {
+            String value = lower.get(name);
+            if (value == null || value.isEmpty() || value.contains("\r") || value.contains("\n"))
+                throw new IllegalArgumentException("missing or invalid signed header: " + name);
+        }
+        List<String> names = new ArrayList<>(signSet);
 
         StringBuilder canonicalHeaders = new StringBuilder();
         for (String n : names) canonicalHeaders.append(n).append(":").append(lower.get(n)).append("\n");
@@ -56,6 +58,12 @@ public final class KanSigV1 {
 
     public static String sign(String secretKey, String method, String path, String query,
             Map<String, String> headers, byte[] body, String dateStr, SigV1Rules rules) {
+        String headerDate = headers.entrySet().stream()
+                .filter(e -> e.getKey().equalsIgnoreCase(rules.dateHeader()))
+                .map(Map.Entry::getValue).filter(Objects::nonNull).findFirst().orElse("")
+                .replaceAll("^[ \t]+|[ \t]+$", "");
+        if (!headerDate.equals(dateStr) || secretKey == null || secretKey.isEmpty())
+            throw new IllegalArgumentException("date mismatch or empty signing secret");
         CanonicalResult cr = buildCanonicalRequest(method, path, query, headers, body, rules);
         String sts = stringToSign(rules, dateStr, cr.canonicalRequest());
         return hmacSha256Hex(secretKey, sts);
