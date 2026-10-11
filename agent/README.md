@@ -1,4 +1,4 @@
-# Covestack Cloud — Agent placeholder
+# CoveStack Cloud — Agent placeholder
 
 | Item | Details |
 |---|---|

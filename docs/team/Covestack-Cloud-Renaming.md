@@ -1,38 +1,43 @@
-# CloveStack Cloud — Folder and GitHub Rename
+# CoveStack Cloud — Folder and GitHub Rename
 
-| Change | Effect | Required action |
-|---|---|---|
-| Local `kan-cloud` → `clovestack-cloud` | Moving the entire folder keeps `.git`, commits, branches and files. Remote URL does not change. | Close running tasks; move the whole folder; reopen editor; update absolute paths, scripts and systemd working directories. |
-| GitHub repository rename | GitHub redirects normal old repository URLs and Git operations. Admin permission is required. | Rename in repository Settings; each teammate updates `origin`. Do not reuse the old repository name. |
-| Protected main | Renaming does not grant push rights or remove branch protections. | Continue feature branches and reviewed PRs. |
-| GitHub Pages / hosted custom Actions | Pages project URLs and callers of Actions hosted in the renamed repository need attention. | Check Pages settings and workflows using the old owner/repository path. |
-| Docker Compose | Project name controls container/network/volume grouping. With the current `-f deploy/docker-compose.yml`, the default folder is `deploy`; root-folder rename alone normally preserves it. | Inspect `docker compose ls`; preserve the actual existing project name with `-p` if necessary. Never use `down -v` to fix a rename. |
-| Go/Java folders and protocol | Branding does not require changing `kan-agent`, `kan-server`, module/package names, `KAN_*` variables or `X-Kan-*` headers. | Keep compatibility names; coordinate separately if changing public interfaces. |
+The local checkout is now `Project-CDAC/covestack-cloud`, and `origin` points to `https://github.com/Ciago-Technologies/covestack-cloud.git`. No further folder rename is needed for this checkout.
 
-## Apply documentation first
+| Item | Action |
+|---|---|
+| Product spelling | Use **CoveStack Cloud** in titles and descriptions; use `covestack-cloud` for the repository slug. |
+| Existing checkout | Reopen the editor in `covestack-cloud` if it still displays the old workspace name. |
+| Compatibility identifiers | Keep `kan-agent`, `kan-server`, Go module/import paths, Java packages, `KAN1`, `KAN_*`, `X-Kan-*`, API paths, ownership labels, database identity and Valkey prefixes unchanged. A technical rename requires a separate coordinated migration. |
+| Older Claude artifacts | Patches and team ZIPs are historical delivery/backup files. Security, branding and lifecycle/documentation changes are already committed; do not reapply old patches or overwrite this checkout with a generated copy. |
+| Team workflow | Commit and push changes on a feature branch, then raise a reviewed PR. |
+
+## Verify this checkout
+
+Run from the repository root:
+
 ```bash
-cd /run/media/anujtiwari/DevMount/Project-CDAC/kan-cloud
-git apply --check /run/media/anujtiwari/DevMount/Claude/CloveStack-Docs-Readability.patch
-git apply /run/media/anujtiwari/DevMount/Claude/CloveStack-Docs-Readability.patch
+pwd
+git remote -v
 python3 contracts/check_lifecycle.py
 git status --short
 ```
 
-| Step | Action |
-|---|---|
-| 1 | Review and commit lifecycle plus documentation changes on your current feature branch. |
-| 2 | Push the feature branch and open/update the PR; do not push to protected main. |
-| 3 | Ask the repository admin to rename GitHub to `clovestack-cloud` when the team agrees. |
-| 4 | Run the following local rename and remote-update commands after the GitHub rename succeeds. |
+The Claude artifacts are at `/run/media/anujtiwari/DevMount/Claude`. From this checkout, reach them with `cd ../../Claude`.
+
+## Other checkouts still named kan-cloud
+
+Close running tasks and the editor before moving another checkout. Run these commands only if `kan-cloud` exists and `covestack-cloud` does not exist in that parent directory:
+
 ```bash
-cd /run/media/anujtiwari/DevMount/Project-CDAC
-mv -- kan-cloud clovestack-cloud
-cd clovestack-cloud
-git remote set-url origin https://github.com/Ciago-Technologies/clovestack-cloud.git
+cd /path/to/repository-parent
+mv -- kan-cloud covestack-cloud
+cd covestack-cloud
+git remote set-url origin https://github.com/Ciago-Technologies/covestack-cloud.git
 git remote -v
 ```
 
-| Official reference | Link |
+Update absolute paths in editor workspaces, scripts and service working directories. Keep the existing Docker Compose project name and volumes; do not use `down -v` for a rename. Check any GitHub Pages settings or callers of Actions hosted in the renamed repository separately.
+
+| Reference | Link |
 |---|---|
-| GitHub rename behavior | https://docs.github.com/en/repositories/creating-and-managing-repositories/renaming-a-repository |
-| Compose project-name rules | https://docs.docker.com/compose/how-tos/project-name/ |
+| GitHub repository renaming | https://docs.github.com/en/repositories/creating-and-managing-repositories/renaming-a-repository |
+| Compose project names | https://docs.docker.com/compose/how-tos/project-name/ |

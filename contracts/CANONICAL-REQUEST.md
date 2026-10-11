@@ -1,4 +1,4 @@
-# CloveStack Cloud — Canonical Request and Signing Guide
+# CoveStack Cloud — Canonical Request and Signing Guide
 
 ## What this file means
 
@@ -9,7 +9,7 @@
 | String to sign | Algorithm name, request date and canonical-request hash, separated by newline bytes. |
 | Signature | HMAC-SHA256 of the string to sign using the secret key; sent as lowercase hexadecimal. |
 | Owner | Anuj builds the Go signer; C builds the Java verifier; B enforces scoped controller/service behavior. |
-| Branding | CloveStack is the product name. Existing `KAN1`, `KAN_*` and `X-Kan-*` identifiers remain unchanged. |
+| Branding | CoveStack is the product name. Existing `KAN1`, `KAN_*` and `X-Kan-*` identifiers remain unchanged. |
 | Compatibility | The signed-nonce/access-key security revision already exists. This documentation rewrite does not change the algorithm or signatures. |
 
 ## Required request headers

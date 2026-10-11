@@ -1,10 +1,10 @@
-# Covestack Cloud — Documentation Cleanup
+# CoveStack Cloud — Documentation Cleanup
 
 | Current status | Meaning |
 |---|---|
 | Security baseline | Commit `349a2f4` exists. Live authentication/authorization acceptance remains pending. |
 | Branding baseline | Commit `7ac2719` exists on `fix/security-baseline`. |
-| Lifecycle 1.1.0 | Applied to the working tree, not committed at inspection. Do not reapply previous patches. |
+| Lifecycle 1.1.0 | Committed in `189df4f` with documentation improvements. Do not reapply previous patches. |
 | Submission | Tuesday, 15 December 2026. |
 
 
@@ -40,7 +40,7 @@
 | Verification / limitation | Result |
 |---|---|
 | Preservation | All original project Markdown retained in `docs/archive/Documentation-Before-Tables-2026-10-11.zip`. All 38 audit rows remain in Current-Setup-Fixes. |
-| Actual project | Read-only to this session; apply the checked patch there. Existing lifecycle working changes are the patch baseline. |
+| Actual project | Lifecycle and documentation changes are committed in `189df4f`. Older Claude patches are historical delivery artifacts; do not reapply them. |
 | Scope | Documentation presentation and Markdown generator output only; runtime security/controller work remains pending. |
 
 ## Readability follow-up

@@ -1,4 +1,4 @@
-# Covestack Cloud — Current Setup Fixes and Implementation Checklist
+# CoveStack Cloud — Current Setup Fixes and Implementation Checklist
 
 | Item | Details |
 |---|---|
@@ -21,7 +21,7 @@
 | 1 | From Claude, enter the actual repository: |
 
 ```bash
-cd ../Project-CDAC/kan-cloud
+cd ../Project-CDAC/covestack-cloud
 git status --short
 java -version
 javac -version

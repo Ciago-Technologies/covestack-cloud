@@ -54,7 +54,7 @@ def build_api(catalog):
     api = json.loads((ROOT / "internal-api.base.json").read_text())
     api["info"]["version"] = catalog["version"]
     api["info"]["description"] = (
-        "Covestack Cloud pull-only signed agent API. Generated from lifecycle-rules.json "
+        "CoveStack Cloud pull-only signed agent API. Generated from lifecycle-rules.json "
         "and internal-api.base.json. Defined kinds do not imply implemented drivers. "
         "Agents advertise supportedKinds; work must be filtered to that capability set. "
         "Server-owned groups/buckets/operations/metadata never become agent work. Coordinated "
@@ -125,7 +125,7 @@ def build_api(catalog):
     return api
 
 def build_markdown(catalog):
-    lines = ["# CloveStack Cloud — Frozen Lifecycle Contract", "", "| Contract | Rule |", "|---|---|", "| Version | **" + catalog["version"] + "** |", "| Source | Edit `lifecycle-rules.json`, then run `python3 contracts/generate_lifecycle.py`. |", "| Review | Anuj/B/C review required; CI checks generated files. |", "| Implementation | Defined vocabulary does not mean drivers/controllers are operational. |", "", "## Resource lifecycle vocabulary", "", "| Kind | Service | Owner | Desired states | Terminal state |", "|---|---|---|---|---|"]
+    lines = ["# CoveStack Cloud — Frozen Lifecycle Contract", "", "| Contract | Rule |", "|---|---|", "| Version | **" + catalog["version"] + "** |", "| Source | Edit `lifecycle-rules.json`, then run `python3 contracts/generate_lifecycle.py`. |", "| Review | Anuj/B/C review required; CI checks generated files. |", "| Implementation | Defined vocabulary does not mean drivers/controllers are operational. |", "", "## Resource lifecycle vocabulary", "", "| Kind | Service | Owner | Desired states | Terminal state |", "|---|---|---|---|---|"]
     for kind, rule in catalog["resources"].items():
         lines.append(f'| `{kind}` | {rule["service"]} | {rule["owner"]} | ' + ", ".join('`'+state+'`' for state in rule['desiredStates']) + ' | ' + ", ".join('`'+state+'`' for state in rule['terminalStates']) + ' |')
     lines += ["", "### Observed states — one state per row", "", "| Kind | Allowed observed state |", "|---|---|"]

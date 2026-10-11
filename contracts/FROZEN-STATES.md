@@ -1,4 +1,4 @@
-# CloveStack Cloud — Frozen Lifecycle Contract
+# CoveStack Cloud — Frozen Lifecycle Contract
 
 | Contract | Rule |
 |---|---|
