@@ -33,7 +33,7 @@ class KanSigV1Test {
                 headers.put(e.getKey(), e.getValue().asText());
             }
             String dateStr = headers.get("X-Kan-Date");
-            byte[] body = v.get("body").asText().getBytes();
+            byte[] body = v.get("body").asText().getBytes(java.nio.charset.StandardCharsets.UTF_8);
             String secret = v.get("secretKey").asText();
             String expected = v.get("expectedSignature").asText();
 

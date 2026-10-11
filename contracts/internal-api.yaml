@@ -16,6 +16,12 @@ info:
     Example resource kind used throughout this file: k8s.cluster
     (a k3d Kubernetes cluster running on the agent's machine).
 
+security:
+  - AgentAccessKey: []
+    AgentDate: []
+    AgentNonce: []
+    AgentSignature: []
+
 servers:
   - url: http://localhost:4700
     description: kan-server, local dev
@@ -81,13 +87,14 @@ paths:
               $ref: "#/components/schemas/ObservedReport"
       responses:
         "200":
-          description: Accepted
+          description: Applied or ignored as stale; future generation must be rejected
           content:
             application/json:
               schema:
                 type: object
                 properties:
                   ok: { type: boolean, example: true }
+                  applied: { type: boolean, description: False when an old report is ignored }
 
   /internal/v1/agent/known-ids:
     get:
@@ -115,7 +122,7 @@ paths:
               $ref: "#/components/schemas/AgentEvent"
       responses:
         "200":
-          description: Accepted
+          description: Applied or ignored as stale; future generation must be rejected
           content:
             application/json:
               schema:
@@ -124,6 +131,11 @@ paths:
                   ok: { type: boolean, example: true }
 
 components:
+  securitySchemes:
+    AgentAccessKey: {type: apiKey, in: header, name: X-Kan-Access-Key}
+    AgentDate: {type: apiKey, in: header, name: X-Kan-Date}
+    AgentNonce: {type: apiKey, in: header, name: X-Kan-Nonce}
+    AgentSignature: {type: apiKey, in: header, name: X-Kan-Signature}
   schemas:
 
     Resource:
@@ -140,6 +152,8 @@ components:
           example: "k8s.cluster"
         generation:
           type: integer
+          format: int64
+          minimum: 1
           description: Bumped by Java every time spec/desiredState changes
           example: 2
         desiredState:
@@ -167,18 +181,25 @@ components:
 
     ObservedReport:
       type: object
-      required: [observedGeneration, state]
+      required: [observedAt, state]
       properties:
         observedGeneration:
           type: integer
-          description: Set equal to "generation" once the agent has made reality match
+          format: int64
+          nullable: true
+          minimum: 1
+          description: Set to generation ONLY after successful convergence; omit/null for health reports
           example: 2
+        observedAt:
+          type: string
+          format: date-time
+          description: UTC observation time; server must reject stale/out-of-order reports
         state:
           type: string
           description: >
             Frozen values per kind (see FROZEN-STATES.md).
-            For k8s.cluster: creating, active, deleting, deleted, error
-          example: "active"
+            For k8s.cluster: provisioning, running, degraded, error, deleting, deleted
+          example: "running"
         detail:
           type: object
           description: Free-form status detail (container id, ports, cluster id, etc.)

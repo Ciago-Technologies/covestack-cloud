@@ -1,0 +1,7 @@
+# Copy to deploy/secrets/valkey.conf and replace the password before starting.
+dir /data
+appendonly yes
+appendfsync always
+maxmemory 128mb
+maxmemory-policy noeviction
+requirepass REPLACE_WITH_RANDOM_LOCAL_SECRET

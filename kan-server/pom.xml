@@ -4,12 +4,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <!-- Pinned on purpose (your doc: "pick the version and pin it").
-       Bump deliberately, not by accident. -->
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.3.5</version>
+    <version>3.5.16</version>
     <relativePath/>
   </parent>
 
@@ -23,26 +21,53 @@
   </properties>
 
   <dependencies>
-    <!-- Servlet API, Spring's OncePerRequestFilter, and Jackson (used by SigV1Rules). -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
-
-    <!-- JUnit 5 for KanSigV1Test. -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-database-postgresql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jdk8</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
-
-    <!-- Add later, when those pieces exist (per your Day 0/1 list):
-         spring-boot-starter-jdbc, postgresql, flyway-core,
-         spring-boot-starter-data-redis, spring-boot-starter-validation.
-         Left out now so the app doesn't demand a database just to run the signing tests. -->
   </dependencies>
 
-  <!-- spring-boot-maven-plugin intentionally omitted: it needs a
-       @SpringBootApplication main class, which doesn't exist yet.
-       Add it when you create KanServerApplication. -->
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <!-- Remove skip when Person B adds the application entry point. -->
+        <configuration><skip>true</skip></configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

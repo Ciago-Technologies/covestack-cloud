@@ -1,0 +1,6 @@
+
+# Local credentials and build output
+deploy/.env
+deploy/secrets/
+**/target/
+__pycache__/
