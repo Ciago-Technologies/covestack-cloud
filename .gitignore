@@ -4,3 +4,13 @@ deploy/.env
 deploy/secrets/
 **/target/
 __pycache__/
+
+CoveStack-Docker-Difference-and-ITISS-Defense.md
+
+CoveStack-VPC-IPAM-Ingress-Metadata-Proposal.md
+
+Version Docs
+
+docs/go-learning
+
+CoveStack-Team-Getting-Started.docx

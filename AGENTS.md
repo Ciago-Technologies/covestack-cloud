@@ -1,0 +1,35 @@
+# CoveStack task rules
+
+- During this task: documentation only; edit only the approved batch.
+- Never create .sql or migration files; reference DDL belongs inside Markdown.
+- Do not modify code, contracts/, deploy/, scripts, HTML or .gitignore.
+- Preserve all pre-existing changes and compare content fingerprints.
+- Never claim a feature implemented; describe target design and evidence.
+- CORE-5: Droplets, required Kubernetes, Managed PostgreSQL, Object storage, VPC/IPAM.
+- SRS and deliverables mention only the five services plus approved cross-cutting items.
+- Extended track is separate, not in SRS/deliverables; no numeric service-count claim.
+- Optional future work is separate from the named extended track.
+- Service Gate Rule: Supported only when status is Gates passed after G1–G4.
+- G1: DB desired state and generation are authoritative.
+- G2: crash-safe reconcile; rebuild state/config from DB; no duplicates.
+- G3: another account receives 404; protocol/network denial adds evidence.
+- G4: service failure test runs in CI.
+- Status: Planned | In progress | Gates passed | Extended track.
+- CORE-5 tests 1–15; extended tests E1–E8; C owns all acceptance tests.
+- A: all agent/client/driver/signing/reconcile Go, CI, Part 1 and ITISS.
+- E: cobra CLI, JSON, packaging; later thin Terraform provider; no agent Go.
+- B: Java core, all SQL, leases/fencing/idempotency, quotas and stack records.
+- C: auth/security, all acceptance tests and Java IPAM allocator.
+- D: Java /v2/DTO/schema and Terraform fixtures; writes no Go.
+- Any Go change: A review; pkg/kanclient and k3d: A+B+C; schema: B+C+A.
+- CLI never imports or calls Docker or k3d; authenticated API only.
+- CLI holds config only; mutations use idempotency; list/get offer JSON.
+- AI-generated code is reference only, A types and explains agent Go.
+- Two drivers: generic container and k3d; networking is a container-driver helper.
+- Kubernetes required: max 2 clusters per host, 1 server + max 2 agents each.
+- Contract-first: lifecycle-rules.json 1.1.0; missing strings TBD with B.
+- Signing credentials use service kind; API tokens are hash-only.
+- Acknowledgment requires exact generation, owner and epoch; progress never acks.
+- Deadline Monday 25 January 2027; planning date 14 October 2026.
+- Do not delete requirements; preserve moved text with a relocation record.
+- No commit, push, network or installs; stop after each batch for review.
