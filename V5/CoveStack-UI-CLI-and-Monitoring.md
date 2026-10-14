@@ -10,74 +10,33 @@
 
 ## 1. Single source of state
 
-**React, CLI, Terraform and Ansible use the same authenticated server services.** A UI-created resource appears in CLI results; a CLI operation appears in the UI. There is no separate synchronization database in the browser.
-
-| Interface | Responsibility |
-|---|---|
-| UI | Forms, resource views, progress and authorized downloads |
-| CLI | Scriptable requests, inspect/wait and useful exit codes |
-| Backend | Validation, account policy, durable state and actions |
-| Agent | Actual infrastructure convergence and observations |
+**Extended track — not in the SRS or deliverables.** Design details and acceptance are relocated to the [extended roadmap](CoveStack-Extended-Roadmap.md#10-react-ui). CORE-5 has priority; no capability is claimed here.
 
 ## 2. UI screens
 
-| Screen | Required content |
-|---|---|
-| Overview | Account resource counts, recent actions and stale/unknown health |
-| Create resource | Supported images/versions/sizing/VPC and validation |
-| Stack wizard | Template version, inputs, publication and retention choices |
-| Stack details | Dependency progress, errors and child-resource links |
-| Resource details | Desired/observed state, IDs and connection metadata |
-| Networks | CIDR, attachments and allocation/error status |
-| Publish application | Owned service/port, approved hostname and route status |
-| CLI help | Copyable examples with placeholders |
-| Monitoring | Actual metrics/events and time of last observation |
-
-Enable only real supported operations. A form can be designed with mock fixtures during development, but a release must not show mock creation as successful provisioning.
+**Extended track — not in the SRS or deliverables.** Design details and acceptance are relocated to the [extended roadmap](CoveStack-Extended-Roadmap.md#10-react-ui). CORE-5 has priority; no capability is claimed here.
 
 ## 3. Forms and secret handling
 
-| Form field | Validation |
-|---|---|
-| Image/template/version | Approved supported catalog entry |
-| CPU/memory/storage | Valid units/ranges and account quota |
-| VPC | Owned and reachable on resource host |
-| Hostname | Safe syntax, ownership and uniqueness |
-| App port | Approved application endpoint |
-| Persistent-data action | Explicit retain/delete choice |
-| Password/token | Separate secret workflow; not ordinary metadata |
+**Extended track — not in the SRS or deliverables.** Design details and acceptance are relocated to the [extended roadmap](CoveStack-Extended-Roadmap.md#10-react-ui). CORE-5 has priority; no capability is claimed here.
 
-Client-side checks improve feedback; the backend revalidates every input. Do not expose service signing secrets, tunnel provider credentials or kubeconfig content in general listings. Do not add a generic browser shell-command runner.
+## 4. CLI behavior — CORE-5 interface
 
-Choose a reviewed user-auth/session approach. For cookie sessions, evaluate CSRF and cookie policy; Bearer usage requires protecting user tokens. Agent signing credentials are never browser credentials. Do not claim CORS supplies authorization.
+E owns the thin cobra CLI; A owns pkg/kanclient and reviews Go. CLI calls only the authenticated API, never Docker/k3d or the DB. Config: server URL/key ID/profile; secrets env/keychain; no local DB. Every mutation sends an idempotency key; create returns pending; --wait polls with finite timeout. Get shows desired/converged generation, lease and observed state; every list/get supports -o json.
 
-## 4. CLI behavior
-
-| Behavior | Requirement |
-|---|---|
-| Create | Returns ID/action; supports explicit wait timeout |
-| Inspect/list | Same account-scoped records as UI |
-| JSON output | Stable documented shape for scripts |
-| Pending/failure | Truthful status; meaningful nonzero exits |
-| Credentials | Restricted local config; no secret output by default |
-| Remote doctor | Queries remote status; no local daemon assumption |
-| Kubeconfig export | Separate authorization; preserve existing files |
-
-CLI names in V5 examples are proposed until the executable exists. Publish actual commands and help during interface implementation, not fictional startup instructions.
+Build order: droplet → vpc → k8s → db → bucket → stack; next production service starts only after the previous failure test passes in CI. W3 K8s learning is mock-only. No UI work during CORE-5. [Go handover](CoveStack-Go-Handover.md) defines E's plan; prior broader parity details remain in the roadmap.
 
 ## 5. Monitoring model
 
-| Signal | Meaning | Do not infer |
-|---|---|---|
-| Agent last-seen | Agent communication freshness | App readiness |
-| Container/Pod running | Process/runtime state | Correct app response |
-| App probe | Defined endpoint readiness | Entire stack/data safety |
-| Failed operation | A lifecycle attempt failed | Resource is automatically deleted |
-| Host CPU/memory/disk | Measured host load/capacity | Per-tenant permission to see host metrics |
-| Backup age/result | Recorded backup status | Restore success |
-
-Poll at a modest configured interval initially; show timestamps and unknown/stale states. Streaming can be added later. Host-wide metrics are admin-only unless a reviewed scoped aggregation is supplied. Alerts should have threshold, duration, destination and a tested trigger.
+**Extended track — not in the SRS or deliverables.** Design details and acceptance are relocated to the [extended roadmap](CoveStack-Extended-Roadmap.md#10-react-ui). CORE-5 has priority; no capability is claimed here.
 
 ## 6. User workflow acceptance
 
-UI create → CLI inspect; CLI stop → UI update; Terraform update → both reflect same desired state; invalid/other-account actions denied in every interface. Test slow provisioning, server errors, double-submit, expiration and secret downloads. Do not duplicate provisioning logic inside React or the CLI.
+**Extended track — not in the SRS or deliverables.** Design details and acceptance are relocated to the [extended roadmap](CoveStack-Extended-Roadmap.md#10-react-ui). CORE-5 has priority; no capability is claimed here.
+
+
+**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
+
+Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
+
+[Gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).

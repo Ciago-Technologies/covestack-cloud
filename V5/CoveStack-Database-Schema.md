@@ -20,7 +20,7 @@
 | Names | snake_case; plural tables; singular columns; explicit unit suffixes |
 | Identity | Internal uuid; application-supplied in reference; final generation strategy B |
 | External IDs | Unique prefixed public_id for CLI; numeric provider_id for /v2; B+D finalize prefix/mapping |
-| Dates | timestamptz, UTC; created_at/updated_at on every table |
+| Dates | timestamptz, UTC; created_at on every table; updated_at on mutable tables only |
 | Mutable rows | bigint row_version; optimistic checks |
 | Tenancy | account_id NOT NULL on every tenant table; explicit composite FKs |
 | Deletion | RESTRICT by default; resource soft deletion only through resources.deleted_at |
@@ -28,7 +28,7 @@
 | Enums | Contract 1.1.0 values only; anything missing TBD with B |
 | Secret material | api_tokens hashes; signing_credentials service-kind ciphertext and key version |
 
-Global records: accounts are tenancy roots; users are global login identities; agents are host registry; subnet_pool and reviewed template registries are operator-global. They are not tenant resource lists. B+C must review access and credential-to-host binding. Every owned/support record remains account-scoped.
+Global records: accounts are tenancy roots; users are global login identities; agents are host registry; subnet_pool and reviewed template registries are operator-global. They are not tenant resource lists. B+C must review access and credential-to-host binding. Every owned/support record remains account-scoped. Proposed exception: audit_log may contain unauthenticated security events with no trusted account; nullable scope versus a separate security-events table remains B+C decision, not a settled schema.
 
 JSON contains no hidden ownership/uniqueness/business keys. Resources spec/observed/last_error shapes remain in coordinated schemas; last_error contains sanitized error details. Idempotency response_body is a documented API result snapshot, not a second resource registry. Template definition contains fixed components/order/validated inputs; stack inputs contain accepted nonsecret inputs/secret references. These exceptions are explicit; no DAG engine.
 
@@ -52,106 +52,10 @@ Operation states: queued, running, completed, failed, cancelled. Mail states: qu
 
 ## 3. ERD — Layer 1 reference
 
-The ERD includes every Layer 1 table. It is reference structure, not deployed schema. Mermaid-aware rendering is needed; existing print helpers are not modified in this batch.
+The ERD includes every Layer 1 table. **Relationships only; columns are in section 4.** It is reference structure, not deployed schema. Mermaid-aware rendering is needed; existing print helpers are not modified in this batch.
 
 ```mermaid
 erDiagram
-    accounts {
-        uuid identity "reference PK; composite where specified"
-    }
-    users {
-        uuid identity "reference PK; composite where specified"
-    }
-    account_members {
-        uuid identity "reference PK; composite where specified"
-    }
-    agents {
-        uuid identity "reference PK; composite where specified"
-    }
-    api_tokens {
-        uuid identity "reference PK; composite where specified"
-    }
-    signing_credentials {
-        uuid identity "reference PK; composite where specified"
-    }
-    resources {
-        uuid identity "reference PK; composite where specified"
-    }
-    operations {
-        uuid identity "reference PK; composite where specified"
-    }
-    resource_events {
-        bigint identity "reference PK; composite where specified"
-    }
-    idempotency_keys {
-        uuid identity "reference PK; composite where specified"
-    }
-    resource_tags {
-        uuid identity "reference PK; composite where specified"
-    }
-    volumes {
-        uuid identity "reference PK; composite where specified"
-    }
-    ssh_keys {
-        uuid identity "reference PK; composite where specified"
-    }
-    subnet_pool {
-        uuid identity "reference PK; composite where specified"
-    }
-    vpcs {
-        uuid identity "reference PK; composite where specified"
-    }
-    ip_allocations {
-        uuid identity "reference PK; composite where specified"
-    }
-    port_allocations {
-        uuid identity "reference PK; composite where specified"
-    }
-    droplets {
-        uuid identity "reference PK; composite where specified"
-    }
-    k8s_clusters {
-        uuid identity "reference PK; composite where specified"
-    }
-    k8s_node_pools {
-        uuid identity "reference PK; composite where specified"
-    }
-    db_instances {
-        uuid identity "reference PK; composite where specified"
-    }
-    buckets {
-        uuid identity "reference PK; composite where specified"
-    }
-    bucket_credentials {
-        uuid identity "reference PK; composite where specified"
-    }
-    account_quotas {
-        uuid identity "reference PK; composite where specified"
-    }
-    backups {
-        uuid identity "reference PK; composite where specified"
-    }
-    restore_jobs {
-        uuid identity "reference PK; composite where specified"
-    }
-    stack_templates {
-        uuid identity "reference PK; composite where specified"
-    }
-    stack_template_versions {
-        uuid identity "reference PK; composite where specified"
-    }
-    stacks {
-        uuid identity "reference PK; composite where specified"
-    }
-    stack_resources {
-        uuid identity "reference PK; composite where specified"
-    }
-    audit_log {
-        bigint identity "reference PK; composite where specified"
-    }
-    mail_outbox {
-        uuid identity "reference PK; composite where specified"
-    }
     accounts ||--o{ account_members : "account_id"
     users ||--o{ account_members : "user_id"
     accounts ||--o{ api_tokens : "account_id"
@@ -181,7 +85,7 @@ erDiagram
     resources ||--o{ ip_allocations : "account_id, resource_id"
     accounts ||--o{ port_allocations : "account_id"
     agents ||--o{ port_allocations : "agent_id"
-    resources ||--o{ port_allocations : "account_id, resource_id"
+    resources ||--o{ port_allocations : "account_id, resource_id; live reservations only"
     accounts ||--o{ droplets : "account_id"
     resources ||--o{ droplets : "account_id, resource_id"
     vpcs ||--o{ droplets : "account_id, vpc_id"
@@ -210,7 +114,7 @@ erDiagram
     accounts ||--o{ stack_resources : "account_id"
     stacks ||--o{ stack_resources : "account_id, stack_id"
     resources ||--o{ stack_resources : "account_id, resource_id"
-    accounts ||--o{ audit_log : "account_id"
+    accounts |o--o{ audit_log : "optional account_id"
     accounts ||--o{ mail_outbox : "account_id"
     resources ||--o{ mail_outbox : "account_id, resource_id"
     operations ||--o{ mail_outbox : "account_id, operation_id"
@@ -469,7 +373,6 @@ All are **Planned**. B owns schema; C reviews tenancy/secrets and owns tests; A 
 | `event_type` | `text`; NOT NULL | event type |
 | `message` | `text`; NOT NULL | message |
 | `created_at` | `timestamptz`; NOT NULL DEFAULT now() | UTC creation |
-| `updated_at` | `timestamptz`; NOT NULL DEFAULT now() | UTC last write; append-only records unchanged |
 
 ### 4.10 idempotency_keys
 
@@ -662,9 +565,9 @@ All are **Planned**. B owns schema; C reviews tenancy/secrets and owns tests; A 
 | Tenancy | account_id NOT NULL |
 | PK | `PRIMARY KEY (id)` |
 | FK | `FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE RESTRICT`; `FOREIGN KEY (agent_id) REFERENCES agents(id) ON DELETE RESTRICT`; `FOREIGN KEY (account_id, resource_id) REFERENCES resources(account_id, id) ON DELETE RESTRICT` |
-| Unique/exclusion | `UNIQUE (account_id, id)`; `UNIQUE (agent_id, port)`; `UNIQUE (account_id, resource_id)` |
+| Unique/exclusion | `UNIQUE (account_id, id)`; live agent/port and account/resource uniqueness through partial indexes |
 | CHECK | `CHECK (port BETWEEN 1 AND 65535)` |
-| Indexes | PK/unique indexes; additional tuning B finalizes |
+| Indexes | `port_allocations_live_port(agent_id, port)` and `port_allocations_live_resource(account_id, resource_id)` WHERE released_at IS NULL |
 
 | Column | Type / null / default | Purpose |
 |---|---|---|
@@ -673,6 +576,7 @@ All are **Planned**. B owns schema; C reviews tenancy/secrets and owns tests; A 
 | `agent_id` | `uuid`; NOT NULL | agent id |
 | `resource_id` | `uuid`; NOT NULL | resource id |
 | `port` | `integer`; NOT NULL | port |
+| `released_at` | `timestamptz`; NULL | Set only after owned cluster endpoint/runtime cleanup; NULL means live reservation |
 | `created_at` | `timestamptz`; NOT NULL DEFAULT now() | UTC creation |
 | `updated_at` | `timestamptz`; NOT NULL DEFAULT now() | UTC last write; append-only records unchanged |
 | `row_version` | `bigint`; NOT NULL DEFAULT 0 | Optimistic concurrency |
@@ -958,7 +862,6 @@ All are **Planned**. B owns schema; C reviews tenancy/secrets and owns tests; A 
 | `definition` | `jsonb`; NOT NULL | definition |
 | `schema_hash` | `text`; NOT NULL | schema hash |
 | `created_at` | `timestamptz`; NOT NULL DEFAULT now() | UTC creation |
-| `updated_at` | `timestamptz`; NOT NULL DEFAULT now() | UTC last write; append-only records unchanged |
 
 ### 4.29 stacks
 
@@ -1019,7 +922,7 @@ All are **Planned**. B owns schema; C reviews tenancy/secrets and owns tests; A 
 | Purpose | INSERT-only audit evidence; not tamper-proof guarantee |
 | Owner / layer | C/E/B; Layer 1 |
 | Status | Planned |
-| Tenancy | account_id NOT NULL |
+| Tenancy | Proposed nullable account_id for unauthenticated security events; B+C decision pending |
 | PK | `PRIMARY KEY (id)` |
 | FK | `FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE RESTRICT` |
 | Unique/exclusion | `UNIQUE (account_id, id)` |
@@ -1029,7 +932,7 @@ All are **Planned**. B owns schema; C reviews tenancy/secrets and owns tests; A 
 | Column | Type / null / default | Purpose |
 |---|---|---|
 | `id` | `bigint GENERATED ALWAYS AS IDENTITY`; NOT NULL | Event identity |
-| `account_id` | `uuid`; NOT NULL | Account boundary; explicit FK |
+| `account_id` | `uuid`; NULL (proposed option) | Trusted account when authenticated; NULL only when no trusted account exists |
 | `actor` | `text`; NOT NULL | actor |
 | `action` | `text`; NOT NULL | action |
 | `target` | `text`; NOT NULL | target |
@@ -1039,7 +942,6 @@ All are **Planned**. B owns schema; C reviews tenancy/secrets and owns tests; A 
 | `prev_hash` | `bytea`; NULL | prev hash |
 | `row_hash` | `bytea`; NOT NULL | row hash |
 | `created_at` | `timestamptz`; NOT NULL DEFAULT now() | UTC creation |
-| `updated_at` | `timestamptz`; NOT NULL DEFAULT now() | UTC last write; append-only records unchanged |
 
 ### 4.32 mail_outbox
 
@@ -1303,7 +1205,6 @@ CREATE TABLE resource_events (
     event_type text NOT NULL,
     message text NOT NULL,
     created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now(),
     PRIMARY KEY (id),
     FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE RESTRICT,
     UNIQUE (account_id, id),
@@ -1493,6 +1394,7 @@ CREATE TABLE port_allocations (
     agent_id uuid NOT NULL,
     resource_id uuid NOT NULL,
     port integer NOT NULL,
+    released_at timestamptz NULL,
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now(),
     row_version bigint NOT NULL DEFAULT 0,
@@ -1501,12 +1403,13 @@ CREATE TABLE port_allocations (
     UNIQUE (account_id, id),
     FOREIGN KEY (agent_id) REFERENCES agents(id) ON DELETE RESTRICT,
     FOREIGN KEY (account_id, resource_id) REFERENCES resources(account_id, id) ON DELETE RESTRICT,
-    UNIQUE (agent_id, port),
-    UNIQUE (account_id, resource_id),
     CHECK (port BETWEEN 1 AND 65535)
 );
 COMMENT ON TABLE port_allocations IS 'Reference design, B finalizes; CORE-5 reference; not a live schema';
 ALTER TABLE port_allocations ADD CHECK (row_version >= 0);
+
+CREATE UNIQUE INDEX port_allocations_live_port ON port_allocations(agent_id, port) WHERE released_at IS NULL;
+CREATE UNIQUE INDEX port_allocations_live_resource ON port_allocations(account_id, resource_id) WHERE released_at IS NULL;
 
 ```
 
@@ -1767,7 +1670,6 @@ CREATE TABLE stack_template_versions (
     definition jsonb NOT NULL,
     schema_hash text NOT NULL,
     created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now(),
     PRIMARY KEY (id),
     FOREIGN KEY (template_id) REFERENCES stack_templates(id) ON DELETE RESTRICT,
     UNIQUE (template_id, version),
@@ -1836,7 +1738,7 @@ ALTER TABLE stack_resources ADD CHECK (row_version >= 0);
 ```sql
 CREATE TABLE audit_log (
     id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
-    account_id uuid NOT NULL,
+    account_id uuid NULL,
     actor text NOT NULL,
     action text NOT NULL,
     target text NOT NULL,
@@ -1846,7 +1748,6 @@ CREATE TABLE audit_log (
     prev_hash bytea NULL,
     row_hash bytea NOT NULL,
     created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now(),
     PRIMARY KEY (id),
     FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE RESTRICT,
     UNIQUE (account_id, id),
@@ -1886,12 +1787,22 @@ ALTER TABLE mail_outbox ADD CHECK (row_version >= 0);
 
 ## 6. Integrity, tenancy and security
 
+### 6.1 Unauthenticated audit events — B+C open decision
+
+| Option | Tradeoff |
+|---|---|
+| Nullable audit_log.account_id (reference option shown) | Keeps one append-only stream; account FK validates non-NULL values; NULL security events require operator-only access |
+| Separate security-events table | Tenant audit stays NOT NULL; adds schema/tests/retention and combined incident-query work; no such table is created here |
+
+The reference now allows NULL so failed logins/unauthenticated requests can be recorded. B+C must approve or replace this option. For an authenticated tenant event, use the trusted principal account, never caller-supplied attribution; NULL must not bypass tenant-audit enforcement. No account-facing query may expose NULL security events or another account. Global/operator event access and conditional enforcement are TBD with B+C.
+
+
 | Boundary | Required policy |
 |---|---|
 | Owned references | Composite account/id FK; repository query always account predicate |
 | Kind extensions | B verifies each kind-table row matches its resources.kind; FK alone cannot prove discriminator |
 | Private IP | Allocator validates containment, reservations and actual execution assignment |
-| Cluster API port | Reserve before create; reconcile reservation with inspected host usage |
+| Cluster API port | Reserve before create; reconcile actual usage; release after owned runtime/network cleanup; partial indexes retain history and allow safe reuse |
 | Host quota | Lock one canonical agents host row; count derived active/reserved resources, not a second usage counter |
 | RLS | Optional defense in depth via current_setting('app.account_id'); B+C decision; no cross-session leakage |
 | Migrator role | DDL/extension authority, never application credential |
@@ -1909,6 +1820,8 @@ REVOKE UPDATE, DELETE ON resource_events, audit_log FROM <app role: TBD with B>;
 -- Migrator/app/readonly GRANTs and RLS policies: B+C finalize before migration.
 ```
 
+MinIO bucket reconciliation runs in Java, so the server needs an authorized MinIO administration path. Root/admin credentials are not tenant bucket keys and must never enter agent work, UI, ordinary metadata or logs. **Open decision B+C:** who holds/injects the admin credential, key rotation/recovery and the private server → MinIO network path. No credential or proxy/network configuration is chosen here.
+
 Token plaintext is returned only at authorized issuance, never stored/retrieved afterward. Signing secrets must be decryptable by the verifier under protected custody; they are not listed by API. A CHECK cannot prevent a previously stored discriminator changing by itself: role permissions/update logic for immutable kind are B+C decisions. Hash-chain audit fields do not prove tamper resistance against privileged administrators.
 
 ## 7. Concurrency and reference queries
@@ -1917,7 +1830,7 @@ Token plaintext is returned only at authorized issuance, never stored/retrieved 
 
 | Flow | Reference policy |
 |---|---|
-| Claim/ack | READ COMMITTED plus row locks |
+| Claim/ack | READ COMMITTED plus row locks; account comes from verified service principal; assigned agent binding B+C+A finalizes |
 | Two-cluster cap | Per-canonical-agent advisory lock plus derived count within create transaction |
 | Account share | Account quota inside host cap; value TBD with B |
 | IP/port allocation | Advisory/row lock or SERIALIZABLE; uniqueness/exclusion as final guard |
@@ -1927,15 +1840,23 @@ Token plaintext is returned only at authorized issuance, never stored/retrieved 
 
 Agent host registry/fingerprint must be canonical across accounts; multiple aliases of one physical host cannot evade the two-cluster cap. Joining tenant resources to a global host does not authorize cross-account read/write. Startup/restart rebuilds port and IP knowledge from DB plus inspected owned execution objects.
 
-### 7.2 Claim
+### 7.2 Claim — account scoping TBD (B+C+A)
 
-Reference only; parameter binding and due-row policy B finalizes. Owner identity authorization is separate from SKIP LOCKED.
+Read-only sources: contracts/examples/get-work-response-all-services.json, contracts/examples/get-work-response-k8s.json and contracts/internal-api.yaml. Work is assigned to the authenticated agent/account and advertised supportedKinds; server-owned buckets/groups are excluded. Both examples carry the same kan.io/account label. That label records ownership but is not authentication or permission to select an account. Example versions are fixtures, not a release pin.
+
+The GET work operation has no account selector. The current signing filter looks up X-Kan-Access-Key, validates a service credential and builds kan.principal from its accountId/accessKeyId/kind. The contract does not define a cross-account credential registry, account switching flow or an agent-ID wire field. The trusted agent assignment lookup behind that credential also needs B+C+A review.
+
+**One request is scoped to its verified credential account.** A global host/agent row does not authorize global work polling. For one physical agent serving multiple accounts, B+C+A must decide credential provisioning/selection and the polling model. Separate per-account authenticated polls are one possible model, not an approved implementation. Broader scope requires coordinated contract/security review; no wire field is invented here.
+
+Reference query below: **account scoping TBD**, not executable/migration-ready. Parameters named authenticated_account_id/authenticated_agent_id are server-side context derived and authorized before the query, never caller-provided query/body fields. validated_supported_kinds comes from reviewed installed capabilities/heartbeat and agent-owned contract kinds; no pending driver may be advertised. Owner authorization is separate from SKIP LOCKED.
 
 ```sql
 BEGIN;
 WITH candidate AS (
     SELECT id FROM resources
-    WHERE account_id = :account_id AND agent_id = :assigned_agent
+    WHERE account_id = :authenticated_account_id
+      AND agent_id = :authenticated_agent_id
+      AND kind = ANY(:validated_supported_kinds)
       AND acked_generation < generation
       AND (next_attempt_at IS NULL OR next_attempt_at <= now())
       AND (lease_owner IS NULL OR lease_expires_at <= now())
@@ -1943,10 +1864,12 @@ WITH candidate AS (
     FOR UPDATE SKIP LOCKED LIMIT 1
 )
 UPDATE resources r
-SET lease_owner = :agent_id, lease_epoch = r.lease_epoch + 1,
+SET lease_owner = :authenticated_agent_id, lease_epoch = r.lease_epoch + 1,
     lease_expires_at = now() + interval '30 seconds',
     updated_at = now(), row_version = r.row_version + 1
-FROM candidate c WHERE r.id = c.id AND r.account_id = :account_id
+FROM candidate c WHERE r.id = c.id
+  AND r.account_id = :authenticated_account_id
+  AND r.agent_id = :authenticated_agent_id
 RETURNING r.*;
 COMMIT;
 ```
@@ -1955,11 +1878,12 @@ The 30-second duration is the requested reference value, not a tested timeout. L
 
 ### 7.3 Fenced convergence acknowledgment and separate progress
 
-Runtime readiness, kind-specific success mapping, observation ordering and no-future generation validation occur before acknowledgment. The equality predicate is mandatory; zero rows means rejected/stale.
+Runtime readiness, kind-specific success mapping, observation ordering and no-future generation validation occur before acknowledgment. The equality predicate is mandatory; zero rows means rejected/stale. On accepted convergence, clear lease_owner AND lease_expires_at together, satisfying the lease CHECK; leave lease_epoch unchanged. A new desired generation can then be claimed without waiting for the old timeout. Progress does not release the lease or acknowledge convergence.
 
 ```sql
 UPDATE resources
 SET acked_generation = :gen, observed_generation = :gen,
+    lease_owner = NULL, lease_expires_at = NULL,
     phase = :contract_success_state, observed = :validated_observed,
     observed_at = :observed_at, updated_at = now(), row_version = row_version + 1
 WHERE account_id = :account_id AND id = :id
@@ -2014,6 +1938,18 @@ Retention defaults are TBD with B+A. Keep referenced data under RESTRICT until p
 
 Flyway is declared; no migrations found. B creates future forward-only versioned migrations only after this design is reviewed. Never edit an applied migration. Expand/contract breaking changes; each migration includes restore/backward notes. CI uses empty PostgreSQL 17, applies approved migrations and runs C's schema tests. Layer 2 is a separate future migration set, applied only when the extended track starts. This task creates no SQL/migration file.
 
+### 9.1 Migration order — proposal, B finalizes
+
+These V1–V4 labels are migration stages, not lifecycle-contract versions. Keep all reference specs; B chooses actual versioned Flyway filenames and prerequisite constraints after review. Deferred child tables are not silently required in an earlier migration; create their optional paths only when a test needs them.
+
+| Stage | Tables | Boundary |
+|---|---|---|
+| V1 core | accounts, users, account_members, agents, api_tokens, signing_credentials, resources, operations, resource_events, idempotency_keys, audit_log | Auth/intent/idempotency and crash/fence tests |
+| V2 | volumes, subnet_pool, vpcs, ip_allocations, droplets, ssh_keys, port_allocations, k8s_clusters, account_quotas | Compute/network/cluster identity, allocation and quota |
+| V3 | db_instances, backups, restore_jobs, buckets, bucket_credentials | Restore/scoped-data acceptance |
+| V4 | stack_templates, stack_template_versions, stacks, stack_resources | One integration template and test 15 |
+| Deferred until a test needs them | resource_tags, mail_outbox, k8s_node_pools | Specs retained; no extra service or unconditional early migration |
+
 ## 10. Schema acceptance tests — C owns tests
 
 | Test | Required assertion |
@@ -2025,9 +1961,9 @@ Flyway is declared; no migrations found. B creates future forward-only versioned
 | Fence | Old epoch acknowledgment updates zero rows |
 | Idempotency | Ten same-key concurrent requests: one resource; different body 422 |
 | VPC | Overlap exclusion; one VPC/account; ten accounts no overlap |
-| IP/port | Ten live IP allocations unique; duplicate host/port rejected |
+| IP/port | Ten live IP allocations unique; duplicate live host/port/resource rejected; release permits reuse after verified cleanup |
 | Cluster cap | Third host cluster rejected without side effects |
-| Privileges | App role cannot UPDATE/DELETE audit/events |
+| Privileges | App role cannot UPDATE/DELETE audit/events; unauthenticated audit fixture accepted under proposed nullable option and hidden from tenant queries |
 | Secrets | Ciphertext differs from plaintext fixture; Bearer token not stored plaintext |
 | Concurrent claims | Two claimers get distinct eligible rows |
 | Backup | Restore rows and canonical dataset checksum match |
@@ -2056,7 +1992,9 @@ Do not infer schema from authentication record types, generated contract helpers
 | UUID generation and provider/public ID mapping | B+D |
 | Ciphertext keys/hash algorithm/custody | B+C |
 | Lease expiry/renewal and observation ordering | B+A |
-| Canonical host registration/account-bound agent access | B+C+A |
+| Multi-account polling and authenticated credential-to-agent/account binding; claim account scoping TBD | B+C+A |
+| Unauthenticated audit: nullable reference option versus separate security-events table/access | B+C |
+| MinIO admin credential custody, rotation and private server-to-MinIO path | B+C |
 | Retention/backup storage format | B+A |
 | Subnet pool and VPC state/compute attachment | B+A; C allocator |
 | citext extension and GiST exclusion approval | B; C tests |

@@ -8,29 +8,28 @@
 | Compatibility names | Server: `kan-server`; agent: `kan-agent` |
 | Status | Target design and implementation guidance; not a completion certificate |
 
-## 1. Three separate networking concerns
+## 1. CORE-5 private networking boundary
 
-| Concern | Purpose |
-|---|---|
-| Private east-west | Permitted app/database/workload communication |
-| Outbound egress | Workloads reaching approved outside destinations |
-| Public ingress | Explicit published applications reached by visitors |
+**Status: Planned.** Execution backend only (Docker bridge). Platform value: allocator, ownership, collision-free subnets and IPs.
 
-A VPC is not automatically an internet website. The initial implementation maps an owned VPC onto a user-defined bridge on one host. Shared-kernel containers remain a limited isolation model.
+One private network per account on one host; no custom CIDR. VPC is server-owned, like storage.bucket, but has no kind/state in lifecycle contract 1.1.0. State is TBD with B; attaching compute.instance to this network requires coordinated schema/fixture/generated-output review B+A. No wire field is invented.
+
+Private east-west traffic, reviewed outbound egress and public ingress are different concerns. Public ingress design is preserved in the [roadmap](CoveStack-Extended-Roadmap.md#5-application-publication); it is not implied by VPC creation. Containers share the host kernel.
+
+**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
+
+Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
 
 ## 2. Address allocation
 
-Example pools are illustrative and must be checked against actual routes. Choose a reviewed private pool, such as `10.80.0.0/16`, only when it does not overlap host/VM/LAN/VPN or existing Docker networks. Centrally allocate bounded subnets (for example /24) in the initial routing domain.
-
-| Allocation | Authority | Storage |
+| Allocation | Authority | Durable record |
 |---|---|---|
-| VPC subnet | CoveStack transactional allocator | Account/host/CIDR lease |
-| Container IP — MVP | Docker IPAM | Inspect and record actual assignment |
-| Explicit stable IP — later | One coordinated allocator | Reserved IP plus Docker acceptance |
-| Gateway/system addresses | Deployment policy | Reserved before allocation |
-| Public hostname | CoveStack domain/route registry | Unique verified mapping |
+| Account subnet | C Java simple allocator; B transaction/constraints | subnet_pool and one vpcs row/account |
+| Workload IP | C allocator reserves DB lease; A helper applies reviewed assignment | ip_allocations; partial live-IP uniqueness |
+| Bridge/backend IPAM | Docker enforces selected network/IP assignment | Inspect actual runtime and reconcile with DB reservation |
+| Gateway/system exclusions | Reviewed pool policy B+A/C | Explicit exclusions before workload allocation |
 
-Do not run two independent workload-IP allocators. Docker already provides IPAM; using it under CoveStack's owned lease policy is legitimate integration. [Docker network options](https://docs.docker.com/reference/cli/docker/network/create/).
+Pool/subnet sizes are **TBD with B+A** after host/VM/VPN/Docker/Pod/Service-route overlap checks; no numeric pool is selected here. The old illustrative pool is preserved as unapproved historical text in the roadmap. Use one authoritative allocator: backend allocation cannot conflict with Java reservations. Explicit-IP assignment/route policy needs a tested decision before claiming the gate.
 
 ## 3. Lease lifecycle
 
@@ -41,10 +40,10 @@ Do not run two independent workload-IP allocators. Docker already provides IPAM;
 | Record | Save runtime network ID and actual addressing |
 | Attach | Validate resource/VPC account and host |
 | Recover | Inspect/reconcile pending leases after failure |
-| Release | Confirm attachments, ingress and metadata cleanup |
+| Release | Confirm owned attachments/runtime removed; future route/identity cleanup also required before reuse |
 | Reuse | Only after owned objects have actually gone |
 
-Track allocation exhaustion and explicit conflicting-CIDR errors. A partially created bridge/DB lease needs a reconciled failure state; deleting unrelated networks is never a valid recovery shortcut.
+Track allocation exhaustion and explicit conflicting-CIDR errors. VPC failure-state strings remain TBD with B. A partially created bridge/DB lease needs recorded retry/error intent; deleting unrelated networks is never a valid recovery shortcut.
 
 ## 4. Isolation and firewall policy
 
@@ -54,8 +53,7 @@ Track allocation exhaustion and explicit conflicting-CIDR errors. A partially cr
 | Different account/VPC | Denied unless explicitly modeled |
 | Workload → control-plane DB/cache | Denied |
 | Workload → Docker management API/socket | Denied |
-| Visitor → published app | Approved gateway only |
-| Visitor → metadata/private admin | Denied |
+| Public/private admin access | No CORE-5 public route; private management stays denied from workloads |
 
 Bridge defaults and published host ports can create alternate paths. Test backend IPs, gateways, published ports and both directions. DNS lookup failure alone is not proof of isolation. Inspect the actual Docker iptables/nftables behavior; do not assume ordinary host INPUT rules govern forwarded container packets.
 
@@ -63,25 +61,22 @@ Kubernetes adds its own service/Pod CIDRs and network policy mechanisms. Reserve
 
 ## 5. Address presentation
 
-| Value | User meaning |
+| Value | Meaning |
 |---|---|
-| Private IP | Reachable only through permitted private routes |
-| Simulated public address | Explicit emulation value; not real internet reachability |
-| Public HTTPS URL | Actually routed visitor endpoint |
-| API endpoint/kubeconfig | Separately authorized administrative connectivity |
+| Private IP | Actual inspected assignment through permitted private routes |
+| API endpoint/kubeconfig | Separately authorized private administrative connection |
+| Future public/simulated fields | Relocated to [publication design](CoveStack-Extended-Roadmap.md#5-application-publication); no fake address routes internet traffic |
 
-Documentation-only `203.0.113.42` is a fictitious example, not an address to allocate to internet services. DNS cannot make a fake address reachable. Use a real tunnel/gateway hostname for external visitors.
+Safe account views exclude credential content. Existing example addresses are not an approved allocation pool.
 
-## 6. Future constraints
+## 6. Future constraints — relocated
 
-| Request | Additional requirement |
-|---|---|
-| Overlapping tenant ranges | Stronger namespace/routing isolation |
-| Multi-host VPC | Overlay or explicitly managed routing and distributed leases |
-| Per-resource public IP | Real address supply and routing; not API fields alone |
-| Private remote admin | VPN/client routes and authentication |
-| Hostile tenant isolation | Evaluate VM/sandbox boundaries, not bridge names |
+Overlapping tenant ranges, multi-host routing, real per-resource public addresses, private remote administration and stronger hostile-tenant boundaries remain Optional future work or extended publication decisions in the [roadmap](CoveStack-Extended-Roadmap.md). No extra CORE-5 deliverable is introduced.
 
 ## 7. Acceptance evidence
 
-Run concurrent subnet allocation, exhausted-pool behavior, denied cross-account attach, allowed app/DB traffic, forbidden backend access, daemon-access denial, restart reconciliation and deletion/reuse. Record routes, runtime inspections, rule sets and versions with sanitized results.
+C owns test 14: ten parallel IP allocations in one VPC have no duplicate; ten accounts create VPCs concurrently with no overlapping CIDR; other-account network read is 404. Exercise allocator overlap/exhaustion internally, not a custom-CIDR user form. Verify allowed app/DB paths and denied control-plane/daemon/cross-account paths, restart bridge/lease reconciliation and safe release/reuse.
+
+B owns SQL/constraints, C allocator/tests, A network execution helper inside the container driver. Record actual routes/rules/versions; DNS failure alone does not prove isolation.
+
+[Gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).

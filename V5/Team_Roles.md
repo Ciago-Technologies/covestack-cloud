@@ -10,92 +10,107 @@
 
 ## 1. Five-person plan
 
-The existing A–E assignments are preserved. New frontend/provider work is a proposed extension of those assignments; confirm capacity in G0. Limited ITISS application coding does not silently transfer Anuj's existing agent ownership.
-
-| Person | Primary implementation | V5 additions |
+| Person | CORE-5 duties | Extended duties |
 |---|---|---|
-| A — Anuj | Go agent, drivers, infrastructure, CI | VPC/IPAM integration, ingress, metadata networking, ITISS evidence |
-| B | Java core, migrations, resources/actions | Stack orchestration, leases, subnet/domain records, ASG |
-| C | Authentication, permissions and security | Domain claims, secrets, metadata/SSRF policy, independent tests |
-| D | Provider DTOs/endpoints and compatibility | Terraform provider API mappings; API/schema review |
-| E | Management API, CLI, packaging and mail | React SPA and Ansible inventory/workflow examples |
+| A — Anuj | ALL agent Go, container/k3d drivers, Docker network helper, reconcile, signing, pkg/kanclient, CI, Ansible Part 1, ITISS | Proxy-config/health/snapshot helpers only after all CORE-5 gates pass |
+| B | Java core, migrations, ALL lease/fencing/idempotency SQL, quota records and stack record | ASG controller and extended records |
+| C | Auth/security; owner of ALL acceptance tests from day 1; Java IPAM allocator | Domain verification and metadata policy; E1–E8 tests |
+| D | Java /v2 endpoints including Kubernetes cluster subset, DTO mappings, API/schema review, Terraform fixtures; no Go | LB/snapshot API mappings |
+| E — Go learner | cmd/covestack thin cobra API client, -o json, cross-compile packaging; later thin Terraform provider | React read-only list page; Ansible inventory Part 2 |
 
-D/E's extra integrations need explicit resourcing. A reviews the Go provider lifecycle and infrastructure; B owns server semantics; C approves authorization. Reassign a named task if workload exceeds capacity rather than giving every feature to A.
+**Risk: A is the bottleneck** for agent, two drivers, reconcile/fencing integration, infrastructure and ITISS. Mitigation: B owns all SQL, C owns tests/allocator, E owns CLI, D owns API mappings. Extended work must never starve CORE-5 reviews. No responsibility moves silently.
 
-## 2. Anuj's current sequence
+**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
+
+Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
+
+## 2. Anuj's current sequence and Go ownership
+
+A writes and can explain all agent Go. AI-generated code is reference only: A types it and explains its error paths. E touches only cmd/covestack and the later thin Terraform layer; never agent, signing, drivers or reconcile. Any pkg/kanclient change needs A review and A+B+C pairing.
 
 | Priority | Work | Acceptance |
 |---|---|---|
-| 1 | Review config and add signed client/polling main | Real auth plus bounded error behavior |
-| 2 | Compute reconciliation | Create/stop/start/delete; no restart duplicates |
-| 3 | Networking and publication | Collision-free subnets; external HTTPS and denied private routes |
-| 4 | Kubernetes and persistent services | Bounded cluster; retained data and private endpoints |
-| 5 | Metadata and operations | Self-only data; monitoring and restore |
+| 1 | Review config; signed client/poll loop; decide module layout/signer move | Real auth-smoke; authenticated account/agent binding reviewed |
+| 2 | Container driver and reconcile | Tests 1–6, crash/fencing/idempotency |
+| 3 | VPC/IPAM integration | C allocator; A network helper; test 14 |
+| 4 | Required k3d driver | Tests 7–10; host cap 2 clusters |
+| 5 | PostgreSQL and MinIO process lifecycle | Tests 11–13; Java bucket reconciliation |
+| 6 | One stack and installer evidence | Test 15; second Ansible run changed=0 |
 
-The local config implementation exists, but review/commit/pinned-toolchain evidence remain separate. Anuj should learn the relevant Go patterns and explain accepted code; the team must not assign him unexplained generated application code and call it ITISS work.
+Source presence is not Gates passed. Follow the dated [workflow](CoveStack-Project-Workflow.md).
 
 ## 3. Java core and contracts — B
 
-| Deliverable | Completion evidence |
+| Duty | Acceptance evidence |
 |---|---|
-| Main/migrations and real configuration | Fresh DB and packaged boot |
-| Scoped resource/action transactions | Cross-account and concurrent-create tests |
-| Agent work/observations and fencing | Old lease cannot write; stale generation ignored |
-| Stack DAG and retries | Partial failure recorded; retry resumes safely |
-| VPC/lease/domain records | Atomic uniqueness and ownership |
-| ASG controller | Pending count, limits, cooldown and outage pause |
-| Persistent-data policy | Delete versus retain choices and restore metadata |
+| Main/configuration and Flyway migrations | Empty PostgreSQL 17 migration and packaged boot |
+| Scoped resource/operation transactions | Account predicates/composite FKs; tests 3–4 |
+| Lease/fencing/idempotency SQL | Epoch fence, equality generation ack, release both lease fields; progress never acks |
+| Port/quota reservations | Reserve before cluster create; release after cleanup; transactional two-cluster host cap |
+| Stack record | One fixed-sequence integration; retry no duplicates; no DAG engine |
+| Persistent-data records | Owned volume/backup references and measured restore |
+
+No live schema exists yet. Schema migration stages are proposal B finalizes; C tests, A agent-column review, D DTO review.
 
 ## 4. Authentication and security — C
 
-Implement real credential/token stores, revocation/expiry, permissions, encrypted signing-secret storage and protected audit evidence. Coordinate signed-byte and nonce behavior with A. Never use a public bootstrap endpoint that issues unrestricted account/agent keys.
+C owns every acceptance test from day 1, including tests 1–15 and E1–E8. Implement hash-only api_tokens and encrypted service-kind signing_credentials; custody is open B+C. Keep expiry/revocation, replay and account enforcement distinct.
 
-| Boundary | Required test |
+| Boundary | Required evidence |
 |---|---|
-| User versus agent credentials | Cannot swap credential kinds |
-| Object/function authorization | Every owned-resource and admin action scoped |
-| Replay | Valid duplicate rejected; bad MAC cannot poison nonce |
-| Shared storage | A credential cannot operate on B bucket |
-| Domains | Unverified/reassigned hostname cannot serve another tenant |
-| Metadata | No cross-instance selection or credential leak |
-| Automation runner | Job cannot access another account/host secret |
+| User versus service credential | Kinds cannot be substituted; no public unrestricted key bootstrap |
+| Object/action access | Other-account API 404; no existence leak |
+| Replay/signing | Duplicate rejected; invalid MAC cannot poison nonce |
+| Shared object storage | A key denied on B bucket; Java recreates buckets after MinIO restart |
+| IPAM | Ten allocations in one VPC; ten account VPCs, no overlap |
+| Audit | Unauthenticated event option and operator-only access reviewed B+C |
+| MinIO administration | Custody, rotation and server-to-MinIO private path decided B+C |
+
+Multi-account agent polling and credential-to-agent assignment remain B+C+A decisions; an ownership label is not authentication. Extended domain/metadata/automation policies remain in the roadmap.
 
 ## 5. Provider-facing integration — D
 
-Maintain the exact tested provider-style subset and explicit unsupported responses. Build Terraform incrementally against the common authenticated APIs: one resource lifecycle, refresh/import, update, delete, then stack support. Avoid a second implementation bypassing core policy.
+D writes Java only: /v2 endpoints, including the bounded Kubernetes cluster subset, DTO mappings, API/schema review and Terraform test fixtures. B owns core semantics; E writes the later thin Go provider and A reviews it. Optional Terraform covers Droplet and Kubernetes resources only; API authentication/ownership, refresh/import and explicit unsupported responses need evidence.
 
-Coordinate Kubernetes versions/shapes, snapshot mapping and client-facing connection metadata with A/B. Standard DigitalOcean tooling is not automatically compatible with a custom management API; show the exact endpoint/client tests that pass.
+B+D finalize internal uuid, prefixed public_id for CLI and numeric provider_id for /v2. Do not assert full provider compatibility. Extended LB/snapshot mappings wait for dependency gates.
 
-## 6. Interfaces and configuration workflows — E
+## 6. CLI and packaging — E
 
 | Area | Requirement |
 |---|---|
-| CLI | Resource/stack/API operations and truthful pending status |
-| React | Same records/actions as CLI; forms only for supported behavior |
-| Help | Copyable placeholder commands; no embedded credentials |
-| Ansible | Owned inventory, scoped connectivity and repeatable example |
-| Kubeconfig | Authorized export with no accidental overwrite |
-| Packaging | Clean install, remote doctor, artifact checksums |
-| Mail | Post-commit outbox; SMTP failure does not roll back resource creation |
+| CLI | Thin cobra API client through pkg/kanclient only; never Docker/k3d/DB |
+| State/config | No local DB; server URL/key ID/profile only; secrets env/keychain |
+| Mutations | Idempotency key; create pending; --wait polls with finite timeout |
+| Get/list | Desired/converged generation, lease/observed state; stable -o json |
+| Packaging | linux/amd64, darwin/arm64, windows/amd64; two actual OS demos |
+| Learning | Weekly W1–W4 review; W3 K8s mock-only |
+| Terraform | Thin provider layer after CLI; Droplet/K8s only |
+
+No UI work during CORE-5. Read-only React list page and Ansible inventory are Extended track; mail/outbox remains deferred until a test requires it. Preserve authorized kubeconfig export without overwriting existing files.
 
 ## 7. ITISS evidence ownership
 
-Anuj leads the VM/network/privilege plan, DNS/TLS/tunnel deployment, testable isolation, vulnerability triage, monitoring, incident exercises and recovery. C collaborates on security policy; application developers implement the backend changes those controls require.
+Anuj leads VM/resource budget, privileges, firewall/isolation, signing/replay validation, CI failure evidence, installer hardening and backup/restore exercises. C reviews policy and independent tests; B/D implement needed server boundaries. DNS/TLS/tunnel, advanced metrics/incidents and inventory evidence remain Extended track targets.
 
-If the mentor expects ITISS students to avoid extensive app coding, propose a named agent developer and agreed handover. Infrastructure configuration, shell/Ansible automation and API testing remain technical work requiring understanding and reproducibility.
+**Open item:** Ask mentor in writing whether ITISS students may own the Go agent/driver code; if not, name an agent developer and a handover. Confirmation is pending. No informal assumption transfers agent work to E.
 
 ## 8. Required pair reviews
 
 | Change | Reviewers |
 |---|---|
-| Signing/wire contract | A + B + C |
-| Compute/observations/leases | A + B |
-| VPC/IPAM and gateway | A + B + C |
-| Provider compatibility/Terraform | D + B + A |
-| UI/CLI/Ansible | E + B + C; A for host connectivity |
-| Domain/metadata | A + C + B |
-| Stack retention/rollback | B + A + C + E |
+| Any Go change | A |
+| pkg/kanclient or signing/wire contract | A+B+C |
+| k3d driver | A+B+C |
+| Schema change | B+C+A; D DTO alignment |
+| IPAM/network helper | C+B+A |
+| Provider compatibility | D+B; A reviews Go; C auth |
+| Stack/data retention | B+A+C; E CLI |
+| Extended domain/metadata/automation | C+B+A; E interface |
 
-## 9. Definition of task done
+Extended tasks never delay CORE-5 reviews.
 
-A task includes behavior, meaningful tests, updated supported-feature status, sanitized evidence and a reviewable PR. Documentation can describe the target, but only tested implementation and agreed acceptance mark the feature complete. Use [workflow](CoveStack-Project-Workflow.md) for the authoritative dated plan.
+## 9. Evidence and task review
+
+A reviewable task includes behavior, meaningful tests, sanitized evidence and a PR. A service status changes to Gates passed only with all G1–G4 results. Source files, mocks and screenshots alone are insufficient. Never write that all services are complete.
+
+[Service gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Extended roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).

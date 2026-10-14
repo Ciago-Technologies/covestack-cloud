@@ -15,11 +15,11 @@ All user-facing interfaces call core authorized services. Provider-style and man
 | API area | Consumer | Policy |
 |---|---|---|
 | Internal signed agent | Go worker | Service identity and private route |
-| Provider-style subset | Supported SDK/CLI | Bearer account scope and exact DTO mapping |
-| CoveStack management | UI/CLI/provider/inventory | Stack/network/publication operations |
+| Provider-style subset | Tested /v2 consumers | Bearer account scope and exact DTO mapping; no full parity claim |
+| CoveStack management | CLI and optional provider | CORE-5 resources and one stack integration; stable JSON |
 | S3 endpoint | Application/S3 client | Scoped storage credential and signed protocol |
 | Kubernetes API | Authorized kubectl/workload operator | Protected kubeconfig and route |
-| Self-metadata | Bound workload | Instance identity, no control-plane secret |
+| Extended interfaces | [Roadmap](CoveStack-Extended-Roadmap.md) | Prior interface design relocated; not SRS scope |
 
 ## 2. Existing internal endpoint inventory
 
@@ -31,19 +31,21 @@ All user-facing interfaces call core authorized services. Provider-style and man
 | GET | `/internal/v1/agent/known-ids` | Defined complete scoped inventory |
 | POST | `/internal/v1/agent/events` | Bounded report/event input |
 
+GET work/known-ids scopes are authenticated agent/account plus advertised supportedKinds, excluding server-owned groups/buckets. No caller-selected account parameter exists. Current service-key verification derives accountId/accessKeyId/kind; assignment to an agent and multi-account provisioning/poll selection remain B+C+A decisions. Ownership labels do not grant account scope. Known-ids cleanup requires a complete scoped inventory; a timeout/partial response authorizes no deletion.
+
 Actual request/response shapes remain in `contracts/internal-api.yaml`. V5 does not replace them or certify running controllers. New fields/routes require reviewed schemas, examples and tests.
 
-## 3. Proposed management models
+## 3. CORE-5 management models
 
 | Model | Required semantics |
 |---|---|
-| Resource/action | Stable IDs, pending/completed/failed outcome |
-| VPC/attachment | Account/host/CIDR ownership and uniqueness |
-| Stack/template | Immutable template version, DAG and child IDs |
-| Publication/domain | Verified hostname, approved upstream and lifecycle |
-| Metrics/doctor | Scope, timestamps and unknown/stale status |
+| Resource/operation | Account scope, generation, lease/epoch; operation states queued, running, completed, failed, cancelled |
+| VPC/IPAM | Server-owned intent; one private network/account; unknown states TBD with B; attachment schema B+A |
+| Stack/template | One immutable template version and fixed sequence; child IDs; no DAG engine |
+| IDs | Internal uuid; CLI prefixed public_id; /v2 numeric provider_id; B+D finalize |
+| Automation JSON | Stable list/get output for every service; no credential/kubeconfig content |
 
-Endpoint paths for these extensions must be agreed before coding; illustrative names are not an implemented API. Document pagination, timeouts, errors and idempotency for each operation.
+CLI, Terraform provider and future inventory use only authenticated API, never Docker/k3d or direct DB. Every mutating CLI command carries an idempotency key; pending is user-facing behavior, not a newly invented operation state. Create returns immediately; --wait polls. Endpoint additions/fields/error strings need B+D review and coordinated schemas/fixtures/generated outputs; absent values are TBD with B.
 
 ## 4. Compatibility register
 
@@ -60,12 +62,18 @@ DigitalOcean-style IDs/actions need explicit mappings rather than leaking intern
 
 ## 5. Cross-interface conflicts
 
-Store a durable operation once, then let UI/CLI wait or inspect it. Protect concurrent writes with optimistic/version checks and appropriate idempotency. Define external IaC ownership; do not let UI and Terraform silently fight over the same desired fields.
+Store a durable operation once, then let CLI wait or inspect it. Protect concurrent writes with optimistic/version checks and idempotency. Define optional provider ownership of desired fields. Broader UI/IaC conflict rules are preserved in the roadmap, not an early UI task.
 
 ## 6. Secrets and error policy
 
-Ordinary resource responses contain safe metadata. Passwords, tokens and kubeconfigs use separately authorized retrieval with restricted logging. Errors name the failed operation without returning secret configuration or upstream response dumps. Missing/inaccessible resources may use a reviewed non-disclosing status policy; tests verify side effects as well as status.
+Ordinary resource responses contain safe metadata. Passwords, tokens and kubeconfigs use separately authorized retrieval with restricted logging. Errors name the failed operation without returning secret configuration or upstream response dumps. Other-account GET/DELETE/kubeconfig requests return 404 with no existence leak; tests verify side effects as well as status.
 
 ## 7. Acceptance
 
-Test real clients and failures, not only schema conformance. Record explicit unsupported operations and reject them rather than returning fake success. Coordinate A/B/C for wire changes, D for provider mapping and E for user interface behavior.
+C owns tests 1–15 and every acceptance fixture from day 1. A reviews Go/client and wire integration; B schema/core; D Java /v2 DTOs/fixtures; E thin CLI and later provider. D writes no Go. Test real clients, negative cases and the mandatory bounded Kubernetes subset; do not return success-shaped stubs.
+
+**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
+
+Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
+
+[Gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).

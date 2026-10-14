@@ -8,15 +8,15 @@
 | Compatibility names | Server: `kan-server`; agent: `kan-agent` |
 | Status | Target design and implementation guidance; not a completion certificate |
 
-## 1. Two separate provisioning interfaces
+## 1. Bounded CORE-5 automation
 
-| Mode | User experience | Implementation |
+| Item | Scope | Owner/status |
 |---|---|---|
-| Direct Terraform | User writes configuration and runs Terraform | CoveStack provider calls authenticated API |
-| Platform template | User selects approved stack/variables | Stack engine; optionally a controlled IaC runner |
-| Ansible configuration | User configures owned targets | Scoped inventory/modules/connection |
+| Terraform optional | Thin API provider; Droplet + Kubernetes cluster resources only | E after CLI; A Go review; Planned |
+| Ansible Part 1 | Operator-reviewed host installation playbook | A with B/C service/security review; Planned |
+| Inventory/configuration expansion | Relocated to [roadmap](CoveStack-Extended-Roadmap.md#11-ansible-inventory-part-2) | Extended track |
 
-**Uploading `.tf` or playbook files does not establish support.** Terraform needs a provider, state and resource lifecycle. Ansible needs a working target/connection method and configuration semantics. They already manage Docker through existing integrations; CoveStack adds its account/resource/stack contract.
+Uploading .tf/playbooks does not establish integration. Terraform already integrates with execution tools; CoveStack adds account-scoped durable lifecycle. No platform-run arbitrary job system is a CORE-5 requirement.
 
 ## 2. Provider slice
 
@@ -30,64 +30,32 @@
 | Import | Adopt an authorized existing resource |
 | Drift | Explain difference; no silent duplication |
 
-Use the official [Terraform framework](https://developer.hashicorp.com/terraform/plugin/framework) and acceptance tests. Start with one Droplet lifecycle, then VPC/publication and whole-stack support. Pin the provider version after testing.
+Use the official [Terraform framework](https://developer.hashicorp.com/terraform/plugin/framework) and acceptance tests. CORE-5 optional provider covers Droplet and Kubernetes only, after CLI; broader resources are deferred in the roadmap. Pin the provider version after testing.
 
-Illustrative future HCL, **not a published provider schema**:
-
-```hcl
-provider "covestack" {
-  endpoint = var.covestack_endpoint
-}
-
-resource "covestack_stack" "shop" {
-  name             = "shop"
-  template_id      = "web-postgres-storage"
-  template_version = "1"
-  publish          = true
-}
-```
-
-Supply tokens through an approved secret mechanism; do not embed them in examples. The supported resource schema must be implemented before this example can run.
+No HCL resource names/version strings are approved here. Previous stack/publication examples are preserved as unapproved future design in the roadmap. Supply tokens through protected configuration, never embedded examples.
 
 ## 3. Terraform and controller ownership
 
-| Situation | Rule |
+Provider calls only the authenticated API using the reviewed client; never Docker/k3d/DB. Every mutation has agreed idempotency. Read/refresh after timeout before resubmission; reconcile desired fields without replacing observed health with requested state. Import/adoption and conflicting-write policy need B+D/E review.
+
+E owns the thin provider, D Java mappings/test fixtures, B lifecycle, C tests/auth, A every Go review. CORE-5 does not expose stack/VPC/public-route Terraform resources; broader ownership requirements remain in the roadmap.
+
+## 4. Ansible Part 1 — operator installer
+
+| Planned layout/control | Evidence |
 |---|---|
-| Stack resource manages children | Do not separately manage same children in another Terraform resource |
-| UI modifies Terraform-owned spec | Warn/reject unsupported conflicting writes or document drift policy |
-| Controller observes health | Does not overwrite provider's desired configuration |
-| ASG-managed members | Do not independently count/manage each generated member |
-| Terraform timeout | Refresh durable server result before blindly resubmitting |
+| ansible/site.yml; roles/docker, infra, server, agent | Actual reviewed installation on single AlmaLinux VM |
+| systemd NoNewPrivileges, ProtectSystem=strict | Explicit writable paths; no silent weakening |
+| ansible-vault and no_log | Secret custody B+C; no sensitive log output |
+| Checksum-verified binaries | Actual versions/checksums; mismatch fails |
+| ansible-lint | Reviewed playbook passes |
+| Repeat run | Second run changed=0 |
 
-A file upload/run interface is a job system, not a provider substitute. Use reviewed templates first. The safest initial implementation lets users run Terraform themselves against APIs; it avoids executing arbitrary user code on the platform host.
+The installer intentionally configures operator host dependencies; the API-only rule applies to CLI/provider/inventory, not the install role. No YAML/systemd/code files are created in this docs task. Part 2 inventory and SSH/Python/API-key-injection prerequisites live in the roadmap.
 
-## 4. Ansible scope
+## 5. Deferred runner/inventory designs — relocated
 
-| Target | Supported approach |
-|---|---|
-| Control-plane VM | Operator-reviewed roles with appropriate privileges |
-| Container-backed Droplet | Approved image/connectivity; module/API or restricted SSH path |
-| Kubernetes workload | Authorized kubeconfig and relevant Kubernetes modules |
-| CoveStack records | Authenticated API modules/inventory |
-
-An arbitrary minimal image may lack SSH/Python requirements for ordinary Ansible modules. Validate the chosen image/transport rather than promising every playbook will work. Do not give a user Ansible job the host Docker socket to gain convenient container access.
-
-Start with one playbook that installs/configures a supported application, reports failure clearly, and makes no unintended changes on a second run. Return owned targets and authorized connection details from inventory; secrets are protected references and sensitive tasks suppress output.
-
-## 5. Platform-run job model, if implemented
-
-| Control | Requirement |
-|---|---|
-| Execution isolation | Job cannot modify platform host or other account state |
-| Inputs | Reviewed templates/schema; no arbitrary executable plugins |
-| Identity | Separate scoped job credential |
-| State | Per-account locking and protected storage |
-| Secrets | Restricted injection, redacted logs, lifecycle cleanup |
-| Limits | Time, CPU/memory, process/output/network bounds |
-| Outcome | Exit result, durable operation and failed-step detail |
-| Cancellation | Defined partial-result/cleanup behavior |
-
-A provider or playbook can execute programs and reach networks. Treat unrestricted uploads as later scope requiring a separate threat model, not moderate configuration work. Never run all account jobs with one global administrator credential.
+All previous identity, isolated execution, secret/state, time/resource limits, cancellation and output requirements remain in the [roadmap](CoveStack-Extended-Roadmap.md). Inventory Part 2 derives JSON from authenticated CLI list output, never docker ps. Arbitrary uploaded runners are Optional future work, not a provider substitute.
 
 ## 6. State and sensitive data
 
@@ -95,4 +63,6 @@ Terraform state can contain sensitive values even when CLI output is marked sens
 
 ## 7. Integration acceptance
 
-Create with Terraform, inspect via CLI/UI, refresh/import, change a supported field and delete under retention policy. Deny another account and test interrupted apply/retry. Run the Ansible example twice, test unreachable/unauthorized targets, and verify logs contain no credentials. Record exact provider/collection versions and real endpoints.
+Optional provider: Droplet/K8s create/read/update/delete/import, denied other-account action and interrupted apply/retry through authenticated API. Part 1: clean-VM installer, lint, checksum verification and second run changed=0; record actual versions and private endpoints. No UI parity or dynamic inventory is required in CORE-5.
+
+[Gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).

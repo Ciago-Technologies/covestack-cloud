@@ -49,7 +49,11 @@ The comparison concerns the account-scoped platform contract, not unique ownersh
 
 ### 1.3 Service Gate Rule
 
-**Supported** is permitted only at status **Gates passed** after G1 DB desired state/generation, G2 crash-safe rebuild from DB without duplicates, G3 other-account 404, and G4 one failure test in CI. DB rows are authoritative, never execution objects/configuration. Status vocabulary: **Planned | In progress | Gates passed | Extended track**. No promotion is asserted here. See [Service Gates](CoveStack-Service-Gates.md).
+**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
+
+Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
+
+See [Service Gates](CoveStack-Service-Gates.md).
 
 ## 2. Architecture
 
@@ -98,7 +102,7 @@ CLI, Terraform provider and Ansible inventory talk **ONLY to the authenticated A
 | Agent restart | Inspect reserved ownership identifiers before creating |
 | Server outage | Pause new work; do not infer deletion from failed/empty polls |
 
-Convergence acknowledgment requires id, lease_owner, lease_epoch match **and generation = :gen**. Zero rows means rejected/stale. Epoch is the fence; lease-expiry checking is an open decision for B. See [reference schema/queries](CoveStack-Database-Schema.md).
+Convergence acknowledgment requires id, lease_owner, lease_epoch match **and generation = :gen**. Zero rows means rejected/stale. Accepted convergence clears lease_owner and lease_expires_at together and keeps lease_epoch unchanged. Progress never releases/acknowledges convergence. Epoch is the fence; lease-expiry checking is an open decision for B. See [reference schema/queries](CoveStack-Database-Schema.md).
 
 A controller checks what exists and brings it toward the requested state. Starting a fresh container on every poll is not reconciliation. Serialize work for the same logical resource; introduce bounded concurrency only after lease/fencing and per-resource deduplication work.
 
@@ -118,7 +122,7 @@ The current contract source remains `contracts/lifecycle-rules.json` version 1.1
 
 ## 5. Resource services and stack composition
 
-The Service Catalog and stack topic files will be aligned in Batch 3. [CORE-5 SRS](CoveStack-SRS-Scope.md) and [Service Gates](CoveStack-Service-Gates.md) govern this batch. A stack records child identities and fixed order; it exposes each resource's safe metadata and records partial failure/retry, not a new orchestration engine.
+The Service Catalog and stack topic files now use the approved CORE-5 scope. [CORE-5 SRS](CoveStack-SRS-Scope.md) and [Service Gates](CoveStack-Service-Gates.md) govern service scope and evidence. A stack records child identities and fixed order; it exposes each resource's safe metadata and records partial failure/retry, not a new orchestration engine.
 
 ### 5.1 Droplets / compute instances — Planned
 
@@ -200,7 +204,8 @@ Detailed design is preserved in [Extended Roadmap](CoveStack-Extended-Roadmap.md
 | CLI/agent boundary | A+E |
 | k3d+k3s pinned pair, API-port range, kubeconfig delivery | A+B+C |
 | Subnet pool, Java allocator and compute attachment | B+A; C allocator |
-| MinIO credential model and key custody | B+C |
+| MinIO scoped/admin credential model, custody, rotation and server network path | B+C |
+| Credential-to-agent/account binding and multi-account polling | B+C+A |
 | Backup storage format and retention | B+A |
 | ID mapping and missing contract vocabulary | B+D |
 
@@ -225,4 +230,4 @@ Root/client/agent Go module layout is a decision record; the current module cann
 
 ## 9. Reading order
 
-Read [SRS scope](CoveStack-SRS-Scope.md), [Service Gates](CoveStack-Service-Gates.md), [Acceptance](CoveStack-AntiWrapper-Acceptance.md), [Schema](CoveStack-Database-Schema.md), [Go Handover](CoveStack-Go-Handover.md), then [Extended Roadmap](CoveStack-Extended-Roadmap.md) for deferred design. Workflow/roles/setup and remaining topic files are updated in Batches 2–3; their older scope is transitional, not authority over this approved CORE-5 decision.
+Read [SRS scope](CoveStack-SRS-Scope.md), [Service Gates](CoveStack-Service-Gates.md), [Acceptance](CoveStack-AntiWrapper-Acceptance.md), [Schema](CoveStack-Database-Schema.md), [Go Handover](CoveStack-Go-Handover.md), then [Extended Roadmap](CoveStack-Extended-Roadmap.md) for deferred design. Workflow, roles, setup and topic files follow CORE-5; deferred detail is preserved in the roadmap. [V5 index](README.md#4-reading-order-and-teammate-sharing) gives the team reading order.

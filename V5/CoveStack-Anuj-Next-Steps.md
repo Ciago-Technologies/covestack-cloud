@@ -10,22 +10,29 @@
 
 ## 1. Current starting point
 
-The config loader is implemented locally; signing and lifecycle helpers exist. The typed HTTP client, production agent executable and first real compute driver remain next work. Do not reapply old patches or rename compatibility packages.
+Config/signing/lifecycle source and auth-smoke are inspection evidence only; no service is Gates passed from file presence. The next A work is reviewed client/polling, production agent and generic container reconciliation. Do not reapply old patches or rename compatibility packages. No code changes happen in this documentation task.
+
+**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
+
+Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
 
 ## 2. Immediate implementation sequence
 
-| Order | Code/work | Why |
+| Order | A work | Acceptance/review |
 |---|---|---|
-| 1 | Review config tests and usage | Validated inputs before network calls |
-| 2 | `internal/client` typed API/data | Bounded signed communication |
-| 3 | Client tests with injected transport | Progress independent of Java readiness |
-| 4 | `cmd/kan-agent` heartbeat/poll | Read-only real integration first |
-| 5 | Compute driver/reconcile | One owned resource, no duplicates |
-| 6 | Network/IPAM integration | Correct owned allocation and routing |
-| 7 | Kubernetes driver | Bounded cluster and kubeconfig |
-| 8 | Ingress and persistence work | Actual app publication and data |
+| 1 | Review local config/tests; schema and signed-poll scope | B+C+A credential-to-agent/account decision; no cross-account shortcut |
+| 2 | Plan module layout and signer move into pkg/kanclient | A+B+C review; move not performed now |
+| 3 | Typed HTTP client and injected-transport tests | Finite timeout, cancellation, no redirects, bounded body |
+| 4 | Production heartbeat/poll/shutdown main | Real server/auth-smoke; advertise only installed reviewed kinds |
+| 5 | Generic container driver and reconcile | Tests 1–6 with C; B owns all lease/fence/idempotency SQL |
+| 6 | Docker network helper inside container driver | C Java allocator; B records; test 14; attachment contract change B+A |
+| 7 | k3d CLI driver after November host spike | Tests 7–10; max 2 clusters/host; reserved port and scoped kubeconfig |
+| 8 | PostgreSQL and MinIO process/volume lifecycle | Tests 11–13; Java reconciles buckets/credentials |
+| 9 | One stack integration; Ansible Part 1 and evidence | Test 15; installer second run changed=0 |
 
-These proposed paths do not exist merely because they appear here. Build one behavior per reviewed change.
+Only two workload drivers: container and k3d. Generic container inputs are image/env/volume/labels/health. Proposed kan.* reserved labels require approval. Unknown states/wire fields remain TBD with B; contract 1.1.0 wins.
+
+A types and can explain agent Go; AI-generated code is reference only. E owns thin CLI, never agent/signing/drivers/reconcile. Follow CLI service order droplet → vpc → k8s → db → bucket → stack, waiting for the previous failure test in CI.
 
 ## 3. Client rules
 
@@ -43,20 +50,26 @@ Coordinate endpoints, retry/idempotency, agent leases and readiness with B. Test
 
 ## 4. First compute acceptance
 
-Create one owned workload, inspect it, stop/start by requested intent, restart the agent without duplication, then explicitly delete that resource. Preserve existing volumes and unrelated resources. On failure report error without acknowledging convergence. Backend/empty-poll failure must not trigger cleanup.
+Create one owned container-backed Droplet, inspect by approved labels before create, restart after mid-create crash, converge without duplicates and delete only the owned resource. Preserve volumes/unrelated resources. Never describe Droplets as VMs. Server outage or incomplete/empty poll must not trigger cleanup.
+
+Epoch is the fence; convergence ack requires exact generation/owner/epoch and clears lease_owner plus lease_expires_at together, leaving epoch unchanged. Progress is separate and never changes acked_generation. A reviews agent integration; B owns SQL; C owns tests. Lifecycle success mapping uses existing contract strings only.
+
+One poll is scoped to the verified service credential account and assigned agent. The contract does not settle provisioning/selection for multi-account polls: B+C+A must decide before implementing that behavior.
 
 ## 5. ITISS parallel track
 
-| Phase | Deliverable |
+| CORE-5 phase | Evidence |
 |---|---|
-| Foundation | VM/version baseline, CI and threat model |
-| Compute | Mount/privilege review and ownership evidence |
-| Network | Subnet pool, firewall and actual denied paths |
-| Publication | Real TLS/tunnel route and external-device test |
-| Data | Separate backup/restore exercise |
-| Extended platform | Metadata boundary, automation review, alerts/incidents |
+| Foundation | AlmaLinux VM/version/resource budget, threat model, real signing/replay tests and CI |
+| Compute | Privilege/mount review, crash/fence/isolation tests with C |
+| Network | Pool/allocator decision, private firewall and actual denied paths |
+| Kubernetes | One-day host spike: cgroup v2, SELinux, firewalld, memory and tested k3d+k3s flags |
+| Data | Owned volumes/credentials; measured backup/restore and cross-account denial |
+| Install | Vault/no_log/checksums/systemd hardening; second run changed=0 |
 
-The role remains agent plus infrastructure unless the team/mentor explicitly changes ownership. Ask for a named counterpart if broad frontend/provider work creates overload; do not silently abandon assigned integration.
+Publication/TLS/tunnel, metadata, metrics/alerts/incidents and dynamic inventory remain Extended track evidence in the roadmap. A begins extended Go only after all CORE-5 gates pass. If A is one week behind, all extended work stops.
+
+Ask mentor in writing whether ITISS students may own agent/driver Go; if not, name a developer and record handover. Confirmation remains pending.
 
 ## 6. Learning sequence
 
@@ -64,4 +77,16 @@ Study structs/pointers/interfaces/errors, HTTP/JSON/readers, contexts/timers/sig
 
 ## 7. Dated targets
 
-G1 on 23 October needs real auth/client/compute; G2 on 6 November adds reliable lifecycle/networking; G3 on 20 November needs Kubernetes/public ingress. Stack/data by 4 December; automation/UI by 18 December; expanded features and evidence by 8 January. Final submission is 25 January 2027. Report dependency failures and revise gates openly.
+| Period | A checkpoint |
+|---|---|
+| 14–31 October 2026 | Client/main/poll/auth-smoke and schema review |
+| 1–20 November 2026 | Container/reconcile/fencing integration; one-day K8s host spike |
+| 21 November–5 December 2026 | Tests 1–6 in CI and network helper/allocator integration |
+| 6–20 December 2026 | Required bounded K8s and tests 7–10 |
+| 21 December 2026–5 January 2027 | PostgreSQL/MinIO process lifecycle and restore with C/B |
+| 6–10 January 2027 | One stack and Ansible Part 1 |
+| 11–25 January 2027 | Freeze, clean-VM test, two-OS CLI evidence, viva and backup video |
+
+No new CORE-5 features after 10 January. Never cut tests 1–15; cut extended work first and report any unmet gate honestly. Final deadline: Monday, 25 January 2027.
+
+[Service gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Extended roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).

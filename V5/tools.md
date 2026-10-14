@@ -14,19 +14,23 @@ Prefer the smallest tested set. Each release has one recorded matrix of compiler
 
 | Tool/group | Role | Evidence to record |
 |---|---|---|
-| Go | Agent and proposed Terraform provider | Compiler selection, tests/race/vet |
+| Go | Agent, cobra CLI and later thin provider | Pin after testing; record actual version; race/vet/build |
 | Java/Maven/Spring | Authenticated control plane | Compiler/runtime, dependencies, packaged boot |
 | Python | Contract generation/fixtures and V5 print tooling | Script version and checks |
 | Docker/Compose | Workload execution/private dependencies | Engine/plugin and firewall backend |
-| k3d/k3s/kubectl | Bounded local Kubernetes | Compatible version pair, client and cluster |
+| k3d + k3s | Required bounded Kubernetes; driver calls CLI | Pin after testing; record actual tested pair and flags |
+| kubectl | Scoped cluster verification | Pin after testing; record actual version |
 | PostgreSQL | Durable desired state and owned workload DB | Image/digest and backup/restore |
 | Valkey | Shared replay-related state | Auth, persistence and failure policy |
-| MinIO/S3 client | Object storage | Version/digest, operations and policy tests |
-| Nginx or equivalent proxy | HTTP routing and LB execution | Configuration test/reload and TLS |
-| Tunnel connector | Real public app connectivity | Provider/config/version and outage behavior |
-| React/Node build tools | SPA | Lockfile/build and browser/API tests |
-| Terraform/framework | API provisioning integration | Provider version/state acceptance tests |
-| Ansible | Supported configuration/inventory | Core/collection versions and repeat runs |
+| MinIO/S3 client | Generic container process; Java bucket reconcile | Pin after testing; record actual version/digest and tenant/rebuild tests |
+| Extended tools | Proxy, tunnel and browser build choices | TBD decision records in [roadmap](CoveStack-Extended-Roadmap.md); not selected here |
+| cobra | E thin Go CLI | Pin after testing; record actual version |
+| Terraform + terraform-plugin-framework | Optional thin API provider, Droplet/K8s only | Pin after testing; record actual versions and lifecycle fixtures |
+| Ansible | Part 1 operator installation | Pin after testing; record actual version; second run changed=0 |
+| ansible-lint | Installer checks | Pin after testing; record actual version and result |
+| ansible-vault | Installer secret protection | Pin after testing; record actual version; custody B+C |
+| golangci-lint | Reviewed Go static checks | Pin after testing; record actual version and rules |
+| GOOS/GOARCH targets | linux/amd64, darwin/arm64, windows/amd64 | Pin compiler after testing; record actual version; two actual OS runs |
 
 ## 2. Development versus deployment
 
@@ -37,7 +41,7 @@ Prefer the smallest tested set. Each release has one recorded matrix of compiler
 | curl | Inspect supported HTTP endpoints | Do not bypass TLS verification in release |
 | Editor Go/Java tooling | Navigate, format and debug | Editor output is not CI evidence |
 | Kubernetes tools | Scoped workload validation | Protect kubeconfig; no public admin endpoint |
-| Monitoring stack/CLI | Actual health/metrics | Avoid exposing host/admin data to all accounts |
+| Extended measurements | Actual scoped health/metrics | Roadmap decision; no invented tool selection |
 | Image/config scanners | Findings and remediation | Scanner success is not proof of safety |
 
 ## 3. Version manifest contents
@@ -51,7 +55,7 @@ The team should add a release manifest under the approved deployment/evidence lo
 | Go and Java actual version | Not only configured preference |
 | Image references/digests | Exact control-plane/workload inputs |
 | k3d/k3s pair | Supported cluster shape/version |
-| Proxy/tunnel tooling | Deployment-specific routing behavior |
+| Extended tools | Future deployment-specific choices recorded in roadmap |
 | Terraform/Ansible plugins | Accepted integrations and dependencies |
 | Verification commands/results | Build, integration, security and restore |
 
@@ -66,13 +70,15 @@ docker version
 docker compose version
 ```
 
-Run module checks from the proper working directory. Extra tools become requirements only when the relevant feature is implemented. Lack of Node/Terraform does not prevent checking current signing/lifecycle code.
+Run module checks from the proper working directory. Extra tools are tied to planned features and become release requirements only with their gate evidence. Lack of Node/Terraform does not prevent checking current signing/lifecycle code.
 
 ## 5. Automation integration policy
 
-Terraform and Ansible already integrate with Docker. CoveStack's integration must add its resource/account/stack semantics rather than claim exclusive support. A provider calls the API; an Ansible module/inventory or approved playbook uses authenticated operations and appropriate private connectivity.
+Terraform and Ansible already integrate with execution tools; no exclusivity claim is made. CoveStack adds authenticated resource/account semantics. CLI, thin Terraform provider and Ansible inventory talk only to the authenticated API; none import/call Docker/k3d. The operator Ansible Part 1 installer is distinct and intentionally installs host dependencies.
 
-Do not upload arbitrary configurations and execute them with host credentials. Begin with reviewed templates and validated variables. Track job identity, permissions, timeout, logs, state and exit result.
+Optional Terraform is Droplet and Kubernetes resources only, after CLI. Part 1 requires reviewed roles, checksum-verified binaries, no_log/vault, systemd hardening and repeat-run changed=0. Part 2 inventory and unrestricted platform-run job ideas remain roadmap targets; arbitrary uploaded configurations must not run with host credentials. Preserve job identity, permissions, timeout, logs/state and exit-result requirements for that future scope.
+
+[Service gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Extended roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).
 
 ## 6. Networking tools
 
@@ -87,6 +93,6 @@ Record routes, DNS answers and actual listener addresses using platform-appropri
 | [k3d exposure](https://k3d.io/stable/usage/exposing_services/) | Cluster ingress/port integration |
 | [Terraform framework](https://developer.hashicorp.com/terraform/plugin/framework) | Provider implementation |
 | [Ansible Docker collection](https://docs.ansible.com/projects/ansible/latest/collections/community/docker/index.html) | Existing automation mechanisms |
-| [Cloudflare Tunnel routing](https://developers.cloudflare.com/tunnel/concepts/routing/) | Candidate public gateway |
+| [Extended decisions](CoveStack-Extended-Roadmap.md) | Proxy/tunnel candidates and references; tool choice TBD |
 
 These references are mechanisms, not endorsements of the complete CoveStack design. Match tested versions and document provider-specific constraints.

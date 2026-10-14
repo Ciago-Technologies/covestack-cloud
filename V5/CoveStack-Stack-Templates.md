@@ -1,4 +1,4 @@
-# CoveStack V5 — Stack Templates and Complete Environment Workflow
+# CoveStack V5 — One Stack Integration Template
 
 | Document control | Value |
 |---|---|
@@ -8,113 +8,62 @@
 | Compatibility names | Server: `kan-server`; agent: `kan-agent` |
 | Status | Target design and implementation guidance; not a completion certificate |
 
-## 1. The central user experience
+## 1. One integration template — CORE-5 cross-cutting demo
 
-**A stack is an owned environment containing references to individually managed resources.** One request coordinates dependencies, configuration, readiness and publication. Users still inspect each resource's metadata; the stack is not a replacement for its constituent services.
+**Status: Planned.** ONE fixed-sequence template creates **PostgreSQL + MinIO + app Droplet** using the account's private network and owned credentials. This is test 15 integration, not a sixth service or a DAG engine. Broader template choices/customization remain preserved in the [roadmap](CoveStack-Extended-Roadmap.md#12-optional-future-work--not-additional-extended-services).
 
-| Template | Resources | Gate |
+Each child remains a durable owned resource with its own gate evidence. The approved app must accept documented endpoint/secret references; invalid application assumptions produce explicit errors. No arbitrary uploaded shell/YAML/IaC job executes on the platform host.
+
+## 2. End-to-end CORE-5 example
+
+| Step | User action | Platform target |
 |---|---|---|
-| Single web app | Droplet, VPC, optional HTTPS route | First vertical slice |
-| Web/data/storage | Droplet app, PostgreSQL, bucket, VPC, publication | First full environment |
-| Kubernetes web/data | Cluster/workload, PostgreSQL, bucket, network, publication | After cluster and full-stack dependencies |
-| Customizable environment | Validated supported components and dependencies | After fixed templates work |
+| Select | CLI selects the ONE approved template | Read reviewed immutable definition/version |
+| Configure | Validated app/image inputs | Check account quota and documented JSON input shape |
+| Submit | One mutating command with idempotency key | Store owned stack/operation and child references |
+| Provision | Inspect pending progress or --wait | Ensure private network, DB and storage dependencies; then app |
+| Connect | Use scoped references | No passwords or signing secrets in spec/observed/list/get |
+| Inspect | CLI list/get with -o json | Same child public IDs/generations/errors from API |
+| Retry | Repeat durable request after failure | Resume without duplicate children |
+| Remove | Explicit retained-data policy | Owned cleanup; no hidden deletion of persistent data |
 
-Selecting a template is not enough to create an arbitrary application configuration. The app must accept the template's documented environment variables or secret references. Unsupported application assumptions produce an explicit validation error.
+CLI command/schema spelling is finalized by E+B; no new template ID, API version or wire field is invented. The old HCL/YAML/public-route examples are historical future designs in the roadmap, not runnable schemas.
 
-## 2. End-to-end example
+## 3. Template record and JSON shapes
 
-| Step | User input/action | CoveStack work |
-|---|---|---|
-| Select | Web/data/storage template | Load immutable template version |
-| Configure | Image, app port, sizing, region and network needs | Validate supported choices and quota |
-| Publish choice | Enable HTTPS with approved hostname | Reserve route; do not expose private services |
-| Submit | UI, CLI or provider request | Store stack/action atomically |
-| Provision | User observes progress | Create network and persistent services first |
-| Connect | No manual password copying required | Issue scoped secrets and pass references |
-| Deploy | Supported app configuration | Start workload and check readiness |
-| Publish | Route usable | Return actual public URL |
-| Inspect | CLI/UI resource view | Same stack/child IDs and status |
-| Remove | Retain/delete data choice | Reverse dependencies with safe policy |
-
-Example proposed CLI, **not an existing executable command**:
-
-```bash
-covestack stack create shop --template web-postgres-storage
-covestack stack inspect shop
-```
-
-## 3. Template contract
-
-| Field | Required meaning |
+| Record | Required documented shape |
 |---|---|
-| Template ID/version | Immutable selected behavior; no silent mutable updates |
-| Input schema | Types, ranges, approved images and supported flags |
-| Dependencies | Acyclic ordering and completion prerequisites |
-| Outputs | Resource references and reachable endpoints |
-| Secret wiring | Protected references, not plain JSON in listings |
-| Readiness | Actual criteria per resource/application |
-| Retention | Explicit persistent-data policy |
-| Update policy | Supported edits and replacement consequences |
+| stack_templates | Approved template identity and ownership/visibility |
+| stack_template_versions.definition | Fixed ordered component list, approved input validation and references; schema_hash |
+| stacks.inputs | Validated nonsecret values and protected secret references |
+| stack_resources | Stack/child account ownership, role and ordinal; no duplicate child binding |
 
-A conceptual template may declare dependencies in YAML, but the schema below is **proposed CoveStack format**, not Docker Compose or an already implemented parser:
-
-```yaml
-apiVersion: covestack.example/v1
-kind: EnvironmentTemplate
-metadata:
-  name: web-postgres-storage
-spec:
-  version: "1"
-  components:
-    - name: network
-      type: vpc
-    - name: database
-      type: postgres
-      dependsOn: [network]
-    - name: storage
-      type: s3-bucket
-      dependsOn: [network]
-    - name: app
-      type: droplet-app
-      dependsOn: [database, storage]
-  publication:
-    enabledByUser: true
-  retention:
-    persistentData: retain
-```
-
-Validate cycles, unknown components, unbounded sizes and account ownership before provisioning. User customization operates within the schema; it is not raw shell/proxy/privileged-container configuration.
+Definition and inputs are explicit jsonb exceptions; document their shapes before B writes migrations. No business ownership keys are hidden in JSON. Broader DAG/component customization is deferred, not silently removed.
 
 ## 4. Stack state and failure policy
 
-Proposed stack states are separate from the existing resource contract and require review before implementation.
-
-| Stack state | Meaning |
-|---|---|
-| Validating/queued | Request accepted for checks/scheduling |
-| Provisioning | Child operations running in dependency order |
-| Ready | Defined required outputs/readiness satisfied |
-| Degraded/failed | Required component unavailable or provisioning failed |
-| Updating/deleting | Explicit action in progress |
-| Deleted | Required cleanup complete; retention references recorded |
-
-Never overwrite a child's resource state to make the stack look ready. Show which components are pending, failed or retained. Store last error, operation attempt and timestamps without sensitive payloads.
+Stack state values are **TBD with B**; do not invent them from human progress labels. Operations use queued, running, completed, failed, cancelled. Never rewrite a child state to make the stack appear converged.
 
 | Failure | Required response |
 |---|---|
-| DB fails before app | Stop dependent step; expose cause and bounded retry |
-| Publication fails after app ready | App remains private; report publication failure |
-| Agent restarts | Resume from durable references; inspect before create |
-| Duplicate submit | Same idempotent result or conflict, not second stack |
-| Partial delete | Preserve retryable cleanup records; no hidden leak |
-| Persistent-data retention | Keep protected data ownership and restoration info |
+| DB/storage dependency unavailable | Record failed attempt; do not start dependent app with fake endpoint |
+| Agent/server restart | Resume durable child references; inspect before create |
+| Duplicate request | Same idempotent result; changed-body same key → 422 |
+| Partial deletion | Keep retryable owned cleanup records |
+| App failure | Preserve user data under reviewed retention policy |
 
-Compensating cleanup is not unconditional rollback. An app failure must not erase a database that contains user data. Default release policy retains persistent data unless the authorized user explicitly requests deletion.
+Record sanitized error/attempt/timestamps. Compensation is not unconditional data rollback; retention defaults remain B+A decision.
 
 ## 5. Single ownership model
 
-UI and CLI read the same server records. Terraform either manages an entire stack or separate child resources: do not let both models concurrently own the same child's desired specification. Ansible configures approved targets; the stack/provider owns resource provisioning. Record external-management ownership and supported adoption/import behavior.
+CLI reads server-owned stack/resource records; no local registry. Optional CORE-5 Terraform manages only Droplet and Kubernetes resources, not stacks/children. Broader IaC ownership, adoption and customization requirements are preserved in the roadmap; clients never bypass API policy.
 
 ## 6. Acceptance
 
-Create through UI and inspect through CLI; repeat the same request without duplication; fail a dependency and resume; restart agent/server during provisioning; deny another account; delete with retained data; confirm actual endpoints and secret scoping. Compose already offers multi-service definitions; the evidence must establish CoveStack's controlled self-service and policies.
+C owns test 15 with B/E and A execution pairing: one CLI command provisions PostgreSQL + MinIO + app Droplet; partial failure recorded; retry resumes without duplicate children. Also verify account denial, restart during provisioning, defined readiness and retained-data cleanup. Production CLI stack starts only after bucket failure evidence passes in CI.
+
+**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
+
+Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
+
+[Gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).

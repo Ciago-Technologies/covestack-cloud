@@ -19,7 +19,7 @@
 | `KAN_*`, `KAN1`, `X-Kan-*` | Existing configuration/signing compatibility identifiers |
 | V5 | New documentation set; not a protocol bump |
 
-Do not rename module paths, packages, database identities or ownership labels as a documentation cleanup. A technical rename needs a separate migration.
+Do not rename module paths, packages, database identities as a documentation cleanup. Existing kan.io/* fixture labels are observations; kan.* is a proposed reserved-label contract, not existing compatibility. A technical rename needs a separate migration.
 
 ## 2. Existing tree
 
@@ -48,38 +48,35 @@ covestack-cloud/
 | `contracts` | Schemas, vectors, generated-state inputs | Coordinated Go/Java changes |
 | `deploy` | Private infra and secret templates | Local secrets untracked |
 
-## 3. Proposed implementation folders
+## 3. Planned implementation folders — no code moves
 
-These paths are future placement decisions; they do not imply files exist today. Keep the current package roots and agree detailed naming before creating code.
+These are target folders, not source-presence or gate claims. This batch creates no directories, .gitkeep files, module files or code. Module layout and signer relocation need A+B+C review before implementation.
 
 ```text
-kan-agent/internal/
-  client/                typed signed API client
-  reconcile/             resource work coordination
-  driver/compute/        Droplet implementation
-  driver/kubernetes/     k3d operations
-  network/               owned bridges and leases
-  ingress/               approved proxy routes
-  metadata/              self-metadata adapter
-kan-agent/cmd/kan-agent/  production agent entry point
-kan-server/src/main/resources/db/migration/
-kan-cli/                 standalone API client
-web/                     React SPA
-terraform-provider-covestack/
-ansible/                 inventory/playbooks/role examples
-compat/                  provider compatibility tests
+covestack-cloud/
+  contracts/                     existing authoritative fixtures
+  pkg/kanclient/                 planned signer + HTTP API client (A)
+  cmd/covestack/                 planned thin cobra CLI (E)
+  kan-agent/                     existing module; A container/k3d/reconcile
+  kan-server/                    existing Java module; B/C/D
+  terraform-provider-covestack/  planned thin provider (E, after CLI)
+  ansible/                       planned Part 1 site.yml/roles; inventory later
+  deploy/                        existing private infrastructure
+  docs/                          existing documentation
 ```
 
-| Proposed area | Responsibility | Must not contain |
+| Target area | Responsibility | Boundary |
 |---|---|---|
-| Java core services | Transactions, ownership, stacks and actions | Duplicate business logic per UI |
-| Provider adapters | Map core services to tested external DTOs | Unscoped direct repository calls |
-| Go drivers | Inspect and converge owned resources | Arbitrary user shell execution |
-| CLI | Authenticated API calls and useful output | Agent signing credentials |
-| React | Forms, status, help and safe downloads | Tunnel/daemon credentials |
-| Terraform provider | API resource lifecycle and state refresh | Hidden bypass of account APIs |
-| Ansible | Approved inventory/configuration | Exported plaintext secrets |
-| Evidence | Sanitized results and versions | Private keys/full tokens |
+| pkg/kanclient | Shared signer and HTTP API client; A owns changes | Agent/CLI/provider import reviewed client; module layout TBD |
+| cmd/covestack | E cobra thin API client, JSON and packaging | No Docker/k3d/DB; no local resource DB |
+| kan-agent | A container driver, k3d driver and reconcile | Docker network helper inside container driver; only two workload drivers |
+| kan-server | B core/all SQL; C auth/tests/IPAM; D API/DTO | Account predicates; bucket/credential reconcile in Java |
+| terraform-provider-covestack | E later thin API lifecycle layer | Optional Droplet/K8s only; A review |
+| ansible | A Part 1 reviewed operator installer | roles/docker, infra, server, agent; no tenant inventory in CORE-5 |
+| Extended folders | Read-only UI/inventory and proxy-config helpers | Placement TBD; [roadmap](CoveStack-Extended-Roadmap.md), after entry gates |
+| Evidence | Sanitized tests, actual versions and restore results | No private keys/full tokens |
+
+The former internal/client, kan-cli and separate network-driver layout are superseded by the reviewed shared-client/thin-CLI/two-driver target. No existing code is moved. Production agent entry point is a planned task, not a fictional startup instruction. Java migrations belong to B's later reviewed work; this docs task creates none.
 
 ## 4. Generated versus handwritten files
 
@@ -94,7 +91,7 @@ compat/                  provider compatibility tests
 
 ## 5. Secrets and state placement
 
-Runtime state belongs in PostgreSQL/approved durable stores, not a frontend local array or CLI-only file. Local config files may hold protected credentials but never become the platform's resource registry.
+Runtime state belongs in PostgreSQL/approved durable stores, not a frontend local array or CLI-only file. CLI config contains server URL/key ID/profile only; secrets come from env or OS keychain. No client file becomes the resource registry.
 
 | Material | Placement/policy |
 |---|---|
@@ -107,4 +104,6 @@ Runtime state belongs in PostgreSQL/approved durable stores, not a frontend loca
 
 ## 6. V5 document map
 
-The six requested replacement guides are this file, `DocsV5-DO_Team.md`, setup, workflow, `Team_Roles.md`, and `tools.md`. Read `README.md` for the additional guides and recommended order. Do not copy archived patches over the current repository.
+Read the main design, SRS scope, service gates and acceptance first; then schema, workflow, roles, setup and Go handover. Topic guides now separate CORE-5 from roadmap pointers; preserved historical text must not override CORE-5. Do not copy archived patches over the current repository.
+
+[Service gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Extended roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).

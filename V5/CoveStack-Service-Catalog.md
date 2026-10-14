@@ -8,86 +8,75 @@
 | Compatibility names | Server: `kan-server`; agent: `kan-agent` |
 | Status | Target design and implementation guidance; not a completion certificate |
 
-## 1. Original resource services
+## 1. CORE-5 resource services — SRS scope
 
-**Planned offering is not implemented availability.** Each enabled service must pass its acceptance test and expose truthful status. First deliver Droplets and Kubernetes, then the dependencies of the complete stack.
+**A local cloud control plane with an account-scoped, crash-safe resource model. Docker and k3d are replaceable execution backends.**
 
-| Service | Bounded release behavior | Limit |
-|---|---|---|
-| Droplet | Container-backed compute; create/inspect/start/stop/delete | Not an independent-kernel VM |
-| Kubernetes | One reviewed version/shape; create/inspect/delete | k3d-backed local cluster |
-| PostgreSQL | One supported engine line; persistence and connection details | No broad HA/database-engine promise |
-| Object storage | MinIO S3 endpoint; owned buckets and scoped access | Selected S3 operations tested |
-| HTTP load balancer | Registered backends, health and safe configuration reload | No generic TCP/UDP LB promise |
-| Auto scaling group | Bounded replica controller, cooldown and limits | Initially approved compute members |
-| Snapshots | Scoped immutable instance filesystem images | Mounted data/memory excluded |
+| Service | Bounded deliverable | Limit | Status |
+|---|---|---|---|
+| Compute/Droplets | Container create/inspect/start/stop/delete; tenancy, generation, leases/fencing and crash recovery | Single host; containers, never VMs | Planned |
+| Kubernetes | Required k3d cluster ownership, quota and separately scoped kubeconfig | Max 2 clusters/host; 1 server + max 2 agents; one tested pinned pair | Planned |
+| Managed PostgreSQL | Owned volume, backup/restore, scoped credentials and private networking | PostgreSQL first; no HA or extra-engine promise | Planned |
+| Object storage | S3-compatible MinIO; per-account credentials and bucket scoping | Selected client operations; Java bucket reconcile | Planned |
+| VPC/IPAM | One private bridge/account; simple allocation and DB leases | Single host; no custom CIDR; pool TBD | Planned |
 
-## 2. Extensions agreed for V5
+**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
 
-| Request | Feasible bounded version | Important limit |
-|---|---|---|
-| VPC | Owned private bridge per VPC on one host | Local network simulation |
-| IPAM | Non-overlapping subnet leases; recorded actual IPs | One authoritative allocation policy |
-| Internet website | Public hostname through tunnel and reverse proxy | Host, tunnel and app must run |
-| Simulated public IP | Optional visibly simulated API/UI value | Not internet-routable |
-| Direct IP browsing | Real gateway or routed private access | Fake address is insufficient |
-| Custom domain | Verified owned name, DNS/TLS and route | Provider-specific setup required |
-| Instance metadata | Read-only self-metadata | Identity/routing must be enforced |
-| React SPA | Scoped resources, CLI help and real health | Backend still enforces policy |
+Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
 
-| Additional capability | Required delivery |
+## 2. Extended track and optional future work — relocation index
+
+The former original-service and extension categories do not determine SRS membership. Load balancing, ASG and snapshots move out of deliverables; VPC/IPAM moves into CORE-5. The scope limits below are explicit user decisions, not evidence of implementation.
+
+| Catalog item | Classification / authoritative destination |
 |---|---|
-| Stack templates | One-request dependency orchestration and resource references |
-| Terraform | CoveStack provider for supported API resources |
-| Ansible | Inventory/connectivity plus supported configuration workflows |
-| Monitoring | Actual metrics/events and alert evidence |
-| Recovery | Safe restart, bounded retry and verified restoration |
-| UI/CLI parity | Same backend records, policy and operation results |
+| Load balancing | Extended track; [roadmap section 4](CoveStack-Extended-Roadmap.md#4-load-balancing) |
+| Auto scaling groups | Extended track; [roadmap section 3](CoveStack-Extended-Roadmap.md#3-auto-scaling-groups) |
+| Snapshots | Extended track; [roadmap section 8](CoveStack-Extended-Roadmap.md#8-snapshots) |
+| Metadata | Extended track; [roadmap section 6](CoveStack-Extended-Roadmap.md#6-metadata) |
+| Application publication | Extended track; [roadmap section 5](CoveStack-Extended-Roadmap.md#5-application-publication); simulated public IP/direct IP browsing attach here |
+| Domains | Extended track; [roadmap section 9](CoveStack-Extended-Roadmap.md#9-domains) |
+| Monitoring | Extended track; [roadmap section 7](CoveStack-Extended-Roadmap.md#7-monitoring) |
+| React UI | Extended track; [roadmap section 10](CoveStack-Extended-Roadmap.md#10-react-ui); read-only list first |
+| Ansible inventory (Part 2) | Extended track; [roadmap section 11](CoveStack-Extended-Roadmap.md#11-ansible-inventory-part-2) |
 
-## 3. Publication is standard support, not automatic exposure
+Cross-cutting CORE-5 items are Security, Recovery, CLI first, optional Terraform for Droplet/K8s only, ONE Postgres + MinIO + app Droplet stack integration and Ansible Part 1 operator install. Broader customization/DAG and parity goals remain deferred in the roadmap; they are not extra deliverables.
 
-Every eligible Droplet/Kubernetes application can use the built-in publication workflow. A shared gateway is installed by the administrator. Users explicitly request publication for an approved service/port; no database, metadata or private management service becomes public merely because its resource exists.
+## 3. Publication scope — relocated
 
-The initial public endpoint is an HTTPS hostname. Arbitrary customer domains are a later gated extension. Kubernetes requests reach a Service/Ingress through the configured cluster ingress path, not a hardcoded Pod IP.
+The earlier default-publication design is an Extended track target, not a CORE-5 feature. Its shared gateway, explicit exposure, approved application port and HTTPS rules are preserved in the [roadmap](CoveStack-Extended-Roadmap.md#5-application-publication). No simulated address routes internet traffic.
 
-## 4. Resource information
+## 4. CORE-5 resource information
 
-| Resource | Normal metadata | Protected retrieval |
+| Resource | Safe list/get information | Protected retrieval |
 |---|---|---|
-| Droplet | ID, image, state, VPC, private IP, URL | SSH access material under policy |
-| Kubernetes | ID, version, readiness, nodes, endpoint | Kubeconfig/credentials |
-| Database | ID, engine, host/port, storage, readiness | Password/connection secret |
-| Bucket | ID, name, endpoint, policy summary | Scoped access credentials |
-| VPC | ID, CIDR, gateway, attachments | No ordinary secret |
-| Stack | ID, template version, child references, progress | Referenced secrets under authorization |
+| Droplet | Public ID, image, desired/converged generation, observed state, lease and approved private-network info | SSH material by policy |
+| Kubernetes | Public ID, version/node shape, generations and observed state; no kubeconfig | Scoped kubeconfig export only |
+| Database | Public ID, engine, private endpoint, volume reference and generations | Scoped password/credential reference |
+| Bucket | Public ID, name, endpoint/policy summary and generations | Scoped access credentials |
+| VPC/IPAM | Owned CIDR, allocations and generations; state TBD with B | No ordinary secret |
+| Stack integration | Template version, child IDs and progress | Authorized secret references only |
 
-The control-plane metadata shown here is distinct from the endpoint inside a simulated instance. Avoid exposing a password just because it is a connection attribute.
+These are control-plane views; they do not add a workload metadata service. Internal uuid, CLI prefixed public_id and numeric /v2 provider_id are B+D decisions. No credential or kubeconfig is placed in ordinary spec/observed/list/get.
 
-## 5. Demonstrated release tiers
+## 5. Deliverable acceptance
 
-| Tier | Required outcome |
+| CORE-5 service | Failure/acceptance tests |
 |---|---|
-| Foundation | Real authenticated backend/agent and first compute flow |
-| Initial services | Droplet and Kubernetes lifecycle with UI/CLI consistency |
-| Network/publication | Owned VPC, address policy and external HTTPS app |
-| Full template | App, PostgreSQL, S3 bucket, network and publication |
-| Automation/operations | Provider, playbook, monitoring and restore evidence |
-| Expanded services | LB, ASG and snapshots with explicit tested limits |
+| Compute/Droplets | 1–6 |
+| Kubernetes | 7–10 |
+| Managed PostgreSQL | 11 |
+| Object storage | 12–13 |
+| VPC/IPAM | 14 |
 
-All agreed services remain targets. If a gate fails, report the affected feature unsupported/pending and revise workload with the mentor; do not publish a success-shaped placeholder to preserve a timetable.
+Test 15 is the one integration stack demo. See [SRS scope](CoveStack-SRS-Scope.md), [gate register](CoveStack-Service-Gates.md) and [exact assertions](CoveStack-AntiWrapper-Acceptance.md). Gate evidence, not a scheduled date, determines status.
 
 ## 6. Reuse and differentiation
 
 Docker already offers IPAM/network primitives; Compose/Swarm support coordinated workloads; Terraform/Ansible can manage Docker. CoveStack adds its selected account/resource/stack contract and integrated workflow. It is not original merely because forms replace YAML. Evaluate whether the complete workflow helps the intended shared lab.
 
-## 7. Optional future features
+## 7. Optional future work — relocated
 
-| Future feature | Reason to defer |
-|---|---|
-| Nested Docker | Privilege/storage/network complexity |
-| VM-backed Droplets | New virtualization driver and operational model |
-| Multi-host VPC | Routing, distributed allocation and fencing |
-| Additional database engines | Engine-specific persistence/readiness tests |
-| Full provider parity | Scope and semantics substantially exceed MVP |
+The existing nested Docker, VM-backed Droplet, multi-host VPC, additional DB engine and full-provider-parity designs are **Optional future work** in [roadmap section 12](CoveStack-Extended-Roadmap.md#12-optional-future-work--not-additional-extended-services). No platform Docker socket is exposed to user workloads. This classification preserves the catalog items without expanding the SRS.
 
-Never mount the platform Docker socket into user workloads as a shortcut to nested Docker.
+[Gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).

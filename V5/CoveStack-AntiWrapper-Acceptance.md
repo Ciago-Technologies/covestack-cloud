@@ -46,8 +46,8 @@ Test 14 does not permit custom user CIDRs: overlap is exercised against allocato
 
 | Flow | Required invariant |
 |---|---|
-| Claim | READ COMMITTED with row locks; FOR UPDATE SKIP LOCKED; bump epoch; reference 30-second lease |
-| Acknowledge | id, lease_owner, lease_epoch match AND generation = :gen; zero rows rejected |
+| Claim | Verified credential account/agent context, not caller-selected account; multi-account polling TBD B+C+A; SKIP LOCKED, bump epoch, reference 30-second lease |
+| Acknowledge | id, lease_owner, lease_epoch match AND generation = :gen; zero rows rejected; accepted ack clears lease_owner and lease_expires_at together, leaves lease_epoch unchanged |
 | Progress | Separate guarded statement; never touches acked_generation |
 | Expiry | Epoch is the fence; expiry predicate decision remains with B |
 | Idempotent create | Account/key reservation, resource, operation/event and response in ONE transaction |
@@ -91,5 +91,9 @@ Extended features may be shown only as bonus after Gates passed. These tests do 
 | E8 — Ansible inventory | Bob inventory contains none of Alice Droplets; inventory uses CLI JSON/API, never docker ps. | C owns tests; E/C; A review pairing | Required target | API account predicate |
 
 React has an API-only read-only list/interface gate plus relevant account tests; it creates no tables. E1–E8 are the eight named extended acceptance tests, not nine separate service numbers.
+
+### Batch 2 checklist
+
+Batch 2 added the exact heading **## 10. Known constraints**. The [SRS constraint target](CoveStack-Complete-Working-Setup.md#10-known-constraints) now resolves; this checklist records the cross-link correction, not application acceptance.
 
 [Service gates](CoveStack-Service-Gates.md) · [Schema](CoveStack-Database-Schema.md) · [SRS](CoveStack-SRS-Scope.md) · [Extended roadmap](CoveStack-Extended-Roadmap.md) · [Go handover](CoveStack-Go-Handover.md).

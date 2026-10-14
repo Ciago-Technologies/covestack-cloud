@@ -10,7 +10,7 @@
 
 ## 1. Preserved baseline findings
 
-The 38 baseline audit IDs remain review inputs. Their older target dates are superseded by the V5 workflow. The table preserves the required remedy and acceptance but does **not** mark every finding unimplemented or resolved. Link each ID to current commits/tests before setting its status.
+The 38 baseline audit IDs remain review inputs. Their older target dates are superseded by the V5 workflow. The table preserves the required remedy and acceptance but does **not** mark every finding unimplemented or resolved. Link each ID to current commits/tests before setting its status. **Historical remedy text is not a live implementation claim, version/tool decision or extra SRS requirement.** Current role/scope/contract decisions override it; items 23, 29–32 and other broader portions are deferred where outside CORE-5.
 
 | ID | Required remedy | Acceptance |
 |---|---|---|
@@ -50,7 +50,7 @@ The 38 baseline audit IDs remain review inputs. Their older target dates are sup
 | 34 | Unrestricted credentials/overwritten kubeconfig/auth mismatch → local bootstrap, restrictive ACL/mode, atomic writes, Bearer CLI and separate/merged kubeconfig | Credential mode passes; original kubeconfig preserved |
 | 35 | Ignored errors/timeouts/always-zero script → checked errors and bounded assertions, nonzero failed checks, accurate limited-compliance claims | Deliberate bad state/failed control makes test/script fail |
 | 36 | Converged crashes missed/terminal rows churn/partial list dangerous → retry/health protocol, fencing, complete scoped snapshot, deletion acknowledgement/deleted_at | Crash heals, stopped resources stay stopped, partial responses never destroy live data |
-| 37 | Conflicting algorithm/scope/layout/versions → one corrected design/workflow and actual executable contract | No active contradictory recipes; docs match implemented entry points/features |
+| 37 | Conflicting algorithm/scope/layout/versions → one corrected design/workflow and actual executable contract | No active contradictory recipes; docs match reviewed entry-point/feature evidence |
 | 38 | Incorrect weekdays → corrected 2026 dates and explicit submission buffer | Calendar dates verified; Dec 15 is Tuesday |
 
 ## 2. Location register
@@ -96,15 +96,21 @@ The 38 baseline audit IDs remain review inputs. Their older target dates are sup
 | 37 | All Claude guides plus repo README/contracts/runtime config |
 | 38 | Workflow/calendar |
 
-## 3. V5 extension findings
+## 3. Current scope and decision register
 
-| Extension | Required review |
+| CORE-5/cross-cutting item | Required review |
 |---|---|
-| VPC/IPAM | Overlap/exhaustion/atomic allocation and safe release |
-| Gateway/domains | Owned upstream, claim uniqueness and stale route cleanup |
-| Metadata | Trusted identity, secret exclusion and namespace route |
-| Stack engine | Dependency DAG, idempotency, failure and retention |
-| Terraform/Ansible | State, connectivity, ownership and execution isolation |
-| React/monitoring | API parity, permissions and truthful freshness |
+| VPC/IPAM | C Java allocator; B SQL; A helper; ten IP allocations/ten account VPCs; no custom CIDR |
+| Polling | Verified credential account scope; assignment/multi-account model TBD B+C+A |
+| Stack | One fixed template, idempotent children and retained data; no DAG engine |
+| CLI/optional Terraform | E thin API client/provider; D Java fixtures; A Go review; no runtime imports |
+| Installer | A Part 1; checksum/vault/no_log/lint and second run changed=0 |
+| Schema/auth | No schema exists yet; Flyway declared; B finalizes staged migrations; service signing versus hash-only API tokens |
 
-Use the implementation-status and acceptance documents to assign current owners/results. Do not treat historical proposed fix wording as an instruction to undo an already corrected baseline.
+Broader gateway/domain, metadata, React/metrics and DAG requirements are preserved in the [roadmap](CoveStack-Extended-Roadmap.md). The 38 IDs remain intact in both historical tables; none is an invented new requirement ID. Do not reapply a historical remedy to undo a corrected baseline or select an old tool/version from this audit.
+
+**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
+
+Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
+
+[Gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).

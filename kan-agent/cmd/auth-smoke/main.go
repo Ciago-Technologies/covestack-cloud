@@ -4,9 +4,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/ciagotech/kan-agent/internal/config"
 	"github.com/ciagotech/kan-agent/sigv1"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -24,29 +24,11 @@ func run() error {
 }
 
 func runWithClient(client *http.Client) error {
-	base := os.Getenv("KAN_SERVER_URL")
-	key, secret := os.Getenv("KAN_ACCESS_KEY"), os.Getenv("KAN_SECRET_KEY")
-	if base == "" || key == "" || secret == "" {
-		return fmt.Errorf("set KAN_SERVER_URL, KAN_ACCESS_KEY and KAN_SECRET_KEY")
-	}
-	parsed, err := url.Parse(base)
+	cfg, err := config.Load()
 	if err != nil {
 		return err
 	}
-	if parsed.Scheme != "https" && !(parsed.Scheme == "http" && (parsed.Hostname() == "localhost" || parsed.Hostname() == "127.0.0.1" || parsed.Hostname() == "::1")) {
-		return fmt.Errorf("use HTTPS outside localhost")
-	}
-	if parsed.Path != "" && parsed.Path != "/" || parsed.RawQuery != "" || parsed.Fragment != "" {
-		return fmt.Errorf("server URL must be an origin, without path/query/fragment")
-	}
-	rulesPath := os.Getenv("KAN_RULES_PATH")
-	if rulesPath == "" {
-		rulesPath = "../contracts/sigv1-rules.json"
-	}
-	rules, err := sigv1.LoadRules(rulesPath)
-	if err != nil {
-		return err
-	}
+	base, key, secret, rules := cfg.ServerURL, cfg.AccessKey, cfg.SecretKey, cfg.Rules
 
 	target := strings.TrimRight(base, "/") + "/internal/v1/agent/work"
 	fresh := func() (*http.Request, error) {

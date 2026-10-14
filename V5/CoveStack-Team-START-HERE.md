@@ -10,17 +10,20 @@
 
 ## 1. Read first
 
-| Order | Document | Purpose |
-|---|---|---|
-| 1 | [README](README.md) | V5 index and scope |
-| 2 | [Design](DocsV5-DO_Team.md) | Components and boundaries |
-| 3 | [Roles](Team_Roles.md) | Owners and pairing |
-| 4 | [Workflow](CoveStack-Project-Workflow.md) | New dated gates |
-| 5 | [Setup](CoveStack-Complete-Working-Setup.md) | Verified commands and pending prerequisites |
-| 6 | [Status](CoveStack-Implementation-Status.md) | What exists versus planned |
-| 7 | [Testing](CoveStack-Testing-and-Acceptance.md) | What marks behavior accepted |
+Start from the [V5 index and teammate reading order](README.md#4-reading-order-and-teammate-sharing). Everyone reads:
 
-Then read feature guides relevant to your task. Java developers work in `kan-server`, Go developers in `kan-agent`. Clone the entire repository; Git pushes repository commits, not a separate folder.
+| Order | File | Purpose |
+|---|---|---|
+| 1 | [SRS scope](CoveStack-SRS-Scope.md) | Exactly five services and cross-cutting deliverables |
+| 2 | [Design](DocsV5-DO_Team.md) | Control plane, not direct runtime handlers |
+| 3 | [Roles](Team_Roles.md) | A agent Go; E thin CLI; B/C/D Java boundaries |
+| 4 | [Workflow](CoveStack-Project-Workflow.md) | CORE-5 schedule to Monday, 25 January 2027 |
+| 5 | [Setup](CoveStack-Complete-Working-Setup.md) | Baseline checks, target installation and Known constraints |
+| 6 | [Gates](CoveStack-Service-Gates.md) | G1–G4 promotion evidence |
+| 7 | [Acceptance](CoveStack-AntiWrapper-Acceptance.md) | Tests 1–15 and CORE-5 viva |
+| 8 | [Status](CoveStack-Implementation-Status.md) | No service promoted from source presence |
+
+Then read assigned schema/API/Go/security guides from the index. Clone the entire repository. Java developers work in kan-server; A works in kan-agent/pkg/kanclient; E in planned cmd/covestack and later thin provider. Git pushes repository commits, not into a service folder.
 
 ## 2. Branch workflow
 
@@ -48,19 +51,37 @@ Raise a reviewed PR into main. Stage intended files explicitly. Do not add ignor
 | Rule | Reason |
 |---|---|
 | Keep server/agent identifiers | Compatibility and imports |
-| Common API/services | UI/CLI/IaC must share policy/state |
+| Common API/services | CLI/provider/inventory authenticated API only; no Docker/k3d/DB |
 | Contract changes reviewed | Go/Java/schema agreement |
 | No direct main push | Review and required tests |
 | Local secrets per teammate | No shared real secret bundles |
-| Honest pending state | Mock/schema is not runtime success |
-| Actual evidence | Date, commit, versions and result |
+| Honest service status | Planned / In progress / Gates passed / Extended track only; mocks do not pass gates |
+| Actual evidence | Date, commit, versions and result; C owns all acceptance tests |
+| CLI order | droplet → vpc → k8s → db → bucket → stack; previous failure test in CI first |
+| Kubernetes | Required; max 2 clusters/host, 1 server + max 2 agents |
+| Credentials/polling | service signing versus hash-only API tokens; multi-account polls TBD B+C+A |
+| Go learning | E CLI only; A types/explains agent Go; any Go change reviewed by A |
 
 ## 4. Documentation sharing
 
-Share this V5 set and the source branch/PR. `V5` is currently ignored by the repository's `.gitignore`, so the files will not appear on GitHub automatically. Decide whether to distribute them as a document bundle or deliberately change that ignore policy in a reviewed change. This generation does not change it.
+Share the reviewed whole V5 directory and exact repository branch/revision; README lists essential files by owner. V5 is tracked in checkpoint 40291e6; subsequent edits are local until deliberately committed/pushed. No ignore policy change is needed or made here. Do not tell teammates to clone an unpublished local revision.
 
-The older `docs/team` timetable is historical for planning; V5 uses 25 January 2027. Runtime `contracts` remains authoritative for current wire behavior. Do not reapply archived delivery patches.
+Older docs/team schedules are historical; V5 deadline is Monday, 25 January 2027. Contracts retain lifecycle 1.1.0 authority. Use source/template links, not separate stale ZIP source copies; each teammate creates private configuration. Never share real credentials, kubeconfigs, Terraform state or deployment secrets. The existing print HTML is stale.
 
 ## 5. First team task
 
-Agree owners for new React/provider/Ansible work, confirm the bounded template/cluster/network shape, review current implementation, then accept one real Droplet flow. Complete it before broad success claims or a dashboard filled with mock statuses.
+| Owner | First agreed slice |
+|---|---|
+| A | Review config/client/module boundary; signed poll main and real auth-smoke; agent account/assignment decision with B+C |
+| B | Server main/configuration; schema review and staged Flyway proposal; all lease/fence/idempotency SQL |
+| C | Concrete credential/auth lookup; acceptance tests from day 1; allocator/security review |
+| D | Java API/DTO schema review and /v2 subset fixtures; no Go |
+| E | W1–W4 Go handover; thin cobra CLI/API mocks and cross-builds; no agent work |
+
+Confirm the shared baseline and reviewers, then deliver one real Droplet lifecycle through API/CLI before advancing. No UI work during CORE-5. Extend only under the roadmap entry rule; if A is one week behind, stop all extended work. Mentor ITISS coding confirmation remains pending.
+
+**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
+
+Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
+
+[Gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).

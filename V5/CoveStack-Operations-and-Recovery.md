@@ -10,16 +10,15 @@
 
 ## 1. Operational principle
 
-**Preserve owned resources and persistent data during uncertainty.** A network outage, incomplete list or malformed work response is not deletion intent. Restart recovery inspects durable IDs and reserved labels before making changes.
+**Preserve owned resources and persistent data during uncertainty.** A network outage, incomplete list or malformed work response is not deletion intent. Restart recovery inspects durable IDs and approved proposed-label contract before making changes. kan.* is not existing compatibility.
 
 | Event | Immediate behavior |
 |---|---|
 | Server unreachable | Pause new work; retain workloads |
-| Agent stops | Mark stale; avoid speculative replacement storms |
+| Agent stops | Create stays pending; bounded waits; no claimed convergence |
 | Replay store unavailable | Reject affected authenticated requests safely |
 | App fails | Report health/error; honor desired state |
-| Tunnel fails | Public endpoint unavailable; internal resources remain |
-| Proxy config invalid | Keep last valid configuration; report failure |
+| Extended operation failures | Prior route/config requirements relocated to roadmap; not CORE-5 release gates |
 
 ## 2. Routine operations
 
@@ -27,9 +26,9 @@
 |---|---|
 | Startup | Secrets, versions, private listeners, schema and dependency health |
 | Deployment/update | Reviewed image/config changes; health and compatibility |
-| Shutdown | Drain/stop supported work; preserve volumes |
+| Shutdown | Drain/stop reviewed work; preserve volumes |
 | Key rotation | Scoped replacement, revocation and tested rollback |
-| Certificate renewal | Valid certificate plus tested proxy reload |
+| Extended edge procedures | Prior renewal/reload policy preserved in roadmap |
 | Resource deletion | Owned dependency cleanup and explicit retention |
 
 Do not use `docker compose down -v` or blanket prune as a default repair. A workload's desired off state is different from an active workload crashing. Recovery must honor that distinction.
@@ -42,10 +41,10 @@ Do not use `docker compose down -v` or blanket prune as a default repair. A work
 | Workload PostgreSQL | Database-consistent data backup |
 | Object storage | Objects plus policies/ownership references |
 | Master secrets | Protected key recovery distinct from DB backup |
-| Runtime config | Proxy/domain/network/version records |
+| Runtime config | Account/private-network/cluster/volume records and tested version decisions |
 | Kubernetes | Defined workload/data recovery; kubeconfig alone is not backup |
 
-A container filesystem snapshot excludes mounted-volume data and is not a database backup or VM memory snapshot. Record precisely what each backup/snapshot contains.
+Filesystem image-capture limits are preserved in the roadmap. CORE-5 PostgreSQL backup must be database-consistent, with verified known rows/checksum. Control-plane DB backup and protected key recovery are separate necessities; record exactly what artifacts contain.
 
 ## 4. Restore exercise
 
@@ -69,14 +68,23 @@ RTO is time to the defined usable service. RPO describes data/time lost relative
 | Request response lost | Refresh durable operation before resubmitting |
 | Agent retry | Fresh signed request; mutation semantics agreed |
 | Worker duplicate | Per-resource serialization and durable identity |
-| Old agent resumes | Lease/epoch check prevents stale authority |
+| Old agent resumes | Exact owner/epoch/generation ack predicate; old epoch rejected |
+| Accepted convergence | Clear lease_owner and lease_expires_at together; keep epoch unchanged; progress never changes acked_generation |
 | Partial stack failure | Resume safe steps; do not erase persistent data |
-| IP/hostname reuse | Wait until stale route/metadata attachment removed |
+| IP/port reuse | Release only after owned attachment/cluster cleanup; live partial uniqueness remains |
 
 ## 6. Incident runbook outline
 
 Record symptom, time/commit/environment, affected accounts, observed state and safe containment. Restrict/revoke relevant credentials, preserve sanitized evidence, correct the cause, verify recovery, and write follow-up fixes. A reboot without diagnosis is not an incident report.
 
-## 7. Release evidence
+## 7. CORE-5 release evidence
 
-Clean VM install, remote browser app, approved private admin connectivity, restart test, credential revocation, alert trigger and separate restoration all need actual results. Store exact versions/hardware and identify cases not tested. Use the [acceptance matrix](CoveStack-Testing-and-Acceptance.md).
+Clean-VM install, tests 1–15, private administration, credential revocation and measured PostgreSQL restoration need actual results. Live demo highlights tests 1, 3, 4 and get view; remaining tests are CI/video. Keep backup recording for the phone hotspot; CLI cross-builds three targets and runs on two actual OSes. Public-edge/alert scenarios are preserved as extended targets in the roadmap.
+
+Only two drivers: generic container and k3d. Java reconciles bucket/policy after MinIO restart; failed/partial work inventory never authorizes deletion. Multi-account agent polls remain B+C+A decision. Retention defaults are TBD with B+A.
+
+**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
+
+Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
+
+[Gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).

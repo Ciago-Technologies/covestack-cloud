@@ -1,4 +1,4 @@
-# CoveStack V5 — Test Matrix and Definition of Done
+# CoveStack V5 — Test Matrix and Gate Evidence
 
 | Document control | Value |
 |---|---|
@@ -32,71 +32,61 @@ python3 contracts/check_lifecycle.py
 
 Run from the repository root. A dependency-download or missing entry-point problem is recorded honestly. A local older toolchain pass does not prove the pinned version.
 
-## 3. Service acceptance
+## 3. CORE-5 acceptance
 
-| Area | Required cases |
-|---|---|
-| Authentication | Active/invalid/revoked/expired credentials; wrong credential kind |
-| Signing | Tampered nonce/key/body/path/query; replay and nonce-poisoning |
-| Droplet | Create/read/start/stop/delete; intentional stop vs crash |
-| Recovery | Restart mid-work; inspect IDs; no duplicates |
-| Observations | Stale/future generation, old lease and readiness acknowledgment |
-| Kubernetes | Real ready cluster, kubeconfig and deployed test app |
-| PostgreSQL | Connection readiness, private access and retained/restored data |
-| S3 | Put/get/list/delete on scoped bucket; cross-account deny |
-| VPC/IPAM | Concurrent/overlap/exhaustion allocation and denied attachment |
-| HTTP LB | Healthy member routing, removal, empty pool and reload failure |
-| ASG | Pending reservations, min/max/cooldown and outage pause |
-| Snapshot | Owned image restore; volume data explicitly excluded |
+C owns ALL acceptance tests from day 1. The [canonical exact-assertion table](CoveStack-AntiWrapper-Acceptance.md#2-core-5-acceptance--srs-tests) is authoritative; do not maintain a contradictory second numbering scheme.
 
-## 4. Extension acceptance
+| Service | Tests | Required evidence |
+|---|---|---|
+| Compute/Droplets | 1–6 | Crash, fencing, tenant 404, atomic idempotency, stale generation, server outage |
+| Kubernetes | 7–10 | Crash-safe one cluster; scoped kubeconfig; owned cleanup; third-cluster quota rejection |
+| Managed PostgreSQL | 11 | Known rows/checksum restored; private/scoped credentials; cross-account network denial |
+| Object storage | 12–13 | Cross-account S3 denial; Java reconstructs bucket/credential policy after MinIO restart |
+| VPC/IPAM | 14 | Ten IP allocations in one VPC; ten accounts creating non-overlapping VPCs; tenant denial |
 
-| Area | Required cases |
-|---|---|
-| Public apps | Droplet and Kubernetes site from external mobile network |
-| Domain policy | Unknown/unverified/stale hostname and wrong account |
-| Metadata | Self-only identity; no secrets/public ingress; IP reuse cleanup |
-| Stack | Dependencies/readiness, retry, partial failure and data retention |
-| Terraform | Create/read/update/delete/import, drift and interrupted apply |
-| Ansible | Supported configuration twice; denied/unreachable target |
-| UI/CLI | Create in either, inspect/mutate in other; identical policy |
-| Monitoring | Real timestamps, stale/unknown states and triggered alert |
-| Restore | Separate environment with known records/objects verified |
+Authentication/replay, invalid inputs, actual readiness, retained data and migration/security regressions supplement these tests. Never cut tests 1–15.
+
+**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
+
+Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
+
+## 4. Extended acceptance — relocated
+
+The former extended/proxy/UI/metadata/domain/metrics scenarios are preserved in the [roadmap](CoveStack-Extended-Roadmap.md). Canonical E1–E8 assertions are in the [acceptance appendix](CoveStack-AntiWrapper-Acceptance.md#appendix-a-extended-track-tests--not-srs-acceptance). They are not SRS requirements. Interface tests reuse account/lifecycle evidence; bonus demonstrations require Gates passed.
 
 ## 5. Isolation checks
 
 Test allowed same-VPC paths and forbidden account/control-plane paths by actual IP/port, gateway and published host endpoint. Inspect workload mounts/capabilities. Never equate a failed DNS lookup with blocked access. Use synthetic workloads and authorized lab targets.
 
-## 6. Stack acceptance scenario
+## 6. Stack acceptance scenario — test 15
 
-| Order | Expected result |
+| Order | Exact target |
 |---|---|
-| Submit approved template | One durable stack/action |
-| Network allocation | Owned non-overlapping bridge |
-| DB/bucket readiness | Private DB and scoped storage |
-| App deploy/config | References correct service endpoints |
-| Publication | Trusted real HTTPS URL |
-| CLI inspect UI-created stack | Same child IDs and outcomes |
-| Dependency failure/retry | Truthful state and no duplicate children |
-| Delete with retain | Data remains protected/recoverable |
+| One CLI command | Store one owned fixed-template stack |
+| Dependencies | Private network; PostgreSQL + scoped MinIO; then app Droplet |
+| Inspect | API-backed child IDs/generations and truthful progress |
+| Partial failure/retry | Record failed step; resume without duplicate children |
+| Delete with retention | Protect owned persistent data per reviewed policy |
 
-A ready stack cannot be backed by success-shaped stubs. Test a failure at each dependency boundary; retain user data even if the app step fails.
+No DAG engine, UI or public route is part of this integration acceptance. A stub does not establish readiness.
 
 ## 7. Fair comparison and mentor evidence
 
-Use the same workload/hardware and comparable security assumptions for Docker/Compose versus CoveStack. Measure workflow effort, account controls, publication setup, restart behavior, overhead and restoration. Credit Docker/Compose for mechanisms already supplied; show the added cloud-style account/template policy.
+Use equal workload/hardware and comparable security assumptions. Measure account denial, atomic idempotency, restart convergence, quotas and known-data restore. Credit runtime tools for existing mechanisms; platform value must be shown by CORE-5 gate evidence, not by forms replacing YAML. The CORE-5 viva questions are in [Acceptance](CoveStack-AntiWrapper-Acceptance.md#5-core-5-viva-questions). No mentor acceptance is invented.
 
 ## 8. Release checklist
 
-| Release check | Required evidence |
+| Check | Required evidence |
 |---|---|
-| Supported-feature matrix | Exact endpoints/actions/limits |
-| Tests | Required CI and recorded live cases |
-| Security | Cross-account denial and private-boundary tests |
-| Artifacts | Pinned inputs/checksums and clean install |
-| Docs | No fictional commands presented as runnable |
-| Data | Retention and restore proof |
-| Interfaces | Same API/state and non-sensitive listings |
-| Rehearsal | Second-device app and complete stack demonstration |
+| Gate register | G1–G4 per CORE-5 service; status honestly retained if missing |
+| CI | Tests 1–15 and schema/auth/client regressions; C owns results |
+| Installer/artifacts | Clean VM; pinned tested inputs/checksums; Ansible second run changed=0 |
+| CLI | API-only dependency check; three cross-builds; two actual OS runs; stable JSON |
+| Live demo | Tests 1, 3, 4 and get view; remaining tests as CI/video |
+| Documentation | No fictional main or unapproved wire/DDL presented as runnable |
+| Recovery | Control-plane backup and workload restore evidence; measured scenario |
+| Network | Exact [Known constraints](CoveStack-Complete-Working-Setup.md#10-known-constraints), hotspot backup video |
 
-All unresolved tests are recorded as pending/failed with an owner; “not tested” is not “passed.”
+Record untested/failed cases with owner; do not promote service status from mock results. No new CORE-5 features after 10 January 2027; deadline Monday, 25 January 2027.
+
+[Gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).

@@ -4,7 +4,7 @@
 |---|---|
 | 1 | Local DigitalOcean emulator under construction. Currently this repository contains shared contracts and Go/Java authentication libraries, not a runnable server/agent. |
 | 2 | Product name: **CoveStack Cloud**; repository slug: `covestack-cloud`. Existing kan-server/kan-agent folders, KAN_* configuration and signing identifiers remain compatible. The local checkout and origin URL now use `covestack-cloud`. See [team start guide](docs/team/Covestack-Cloud-START-HERE.md). |
-| 3 | Baseline 349a2f4 is published on fix/security-baseline. Anuj's config.go is currently a placeholder; credential/token persistence, app/controllers and full agent remain pending. Review the baseline PR before claiming runtime readiness. |
+| 3 | Baseline 349a2f4 is published on fix/security-baseline. Agent configuration loading is implemented; the signed HTTP client and polling executable remain pending; credential/token persistence, app/controllers and full agent remain pending. Review the baseline PR before claiming runtime readiness. |
 
 ## Verify the current baseline
 
