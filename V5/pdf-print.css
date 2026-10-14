@@ -1,0 +1,34 @@
+@page { size: A4 portrait; margin: 16mm 13mm 17mm; }
+* { box-sizing: border-box; }
+body { max-width: 980px; margin: 28px auto; padding: 0 16px; color: #17212b; font: 15px/1.5 Arial, sans-serif; }
+h1, h2, h3 { color: #173b55; line-height: 1.22; break-after: avoid-page; page-break-after: avoid; }
+h1 { font-size: 27px; border-bottom: 2px solid #397897; padding-bottom: 9px; }
+h2 { font-size: 21px; margin-top: 26px; }
+h3 { font-size: 17px; }
+p { margin: 10px 0; }
+strong { color: #102f47; }
+a { color: #195c83; text-decoration: none; overflow-wrap: anywhere; }
+table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 14px 0 20px; font-size: 13px; }
+th, td { border: 1px solid #bbc9d2; padding: 7px 8px; text-align: left; vertical-align: top; overflow-wrap: anywhere; word-break: normal; }
+th { background: #e9f0f5; color: #12334b; font-weight: bold; }
+tbody tr:nth-child(even) { background: #f8fafb; }
+thead { display: table-header-group; }
+tr { break-inside: avoid; page-break-inside: avoid; }
+.audit th:first-child, .audit td:first-child { width: 6%; }
+.audit th:nth-child(2), .audit td:nth-child(2) { width: 58%; }
+code { font-family: 'DejaVu Sans Mono', Consolas, monospace; font-size: .9em; overflow-wrap: anywhere; }
+pre { background: #f1f4f6; border: 1px solid #d4dde3; padding: 10px; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; font-size: 12px; }
+pre code { white-space: pre-wrap; }
+blockquote { border-left: 3px solid #558ba9; margin-left: 0; padding-left: 14px; }
+.document { margin-bottom: 48px; }
+.document-source { font-size: 12px; color: #536675; }
+@media print {
+ body { max-width: none; margin: 0; padding: 0; font-size: 10pt; line-height: 1.35; }
+ h1 { font-size: 19pt; } h2 { font-size: 14pt; } h3 { font-size: 11pt; }
+ table { font-size: 8.5pt; margin: 8pt 0 12pt; }
+ th, td { padding: 4pt 5pt; }
+ pre { font-size: 8pt; }
+ .document + .document { break-before: page; page-break-before: always; }
+ a { color: inherit; }
+ .screen-only { display: none; }
+}
