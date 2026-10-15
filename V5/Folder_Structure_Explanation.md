@@ -26,7 +26,7 @@ Do not rename module paths, packages, database identities as a documentation cle
 ```text
 covestack-cloud/
   V5/                    new documentation set
-  docs/team/             older active guides; historical schedule
+  docs/archive/          historical team/handoff ZIPs; not active setup
   Version Docs/          archived copies and delivery patches
   contracts/             authoritative wire/lifecycle fixtures
   kan-server/            Java authentication/core libraries

@@ -60,4 +60,4 @@ The unchanged script checks table row shapes/header delimiters, blank boundaries
 
 ## 5. Sharing
 
-Send the V5 Markdown directory or generated print HTML/PDF as documentation. Do not include deployment secrets, Terraform state or real kubeconfigs. V5 is tracked in checkpoint commit 40291e6; current batch edits are uncommitted. Share reviewed repository links after the branch is published, or share the current Markdown folder. Do not share the stale HTML as current. Ignore rules remain untouched. No automatic commit/push is performed.
+Send the V5 Markdown directory or generated print HTML/PDF as documentation. Do not include deployment secrets, Terraform state or real kubeconfigs. V5 is tracked in Git; share reviewed repository links to the published branch/revision, or a dated Markdown bundle. Do not share the stale HTML as current. Ignore rules remain untouched. Publication requires a deliberate commit/push of reviewed changes.
