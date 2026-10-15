@@ -1,39 +1,39 @@
 # CoveStack V5 — Baseline Status, Missing Work and Contract Changes
 
-| Document control | Value |
-|---|---|
-| Product / documentation | **CoveStack / V5** |
-| Updated | **14 October 2026** |
-| Submission deadline | **Monday, 25 January 2027** |
-| Compatibility names | Server: `kan-server`; agent: `kan-agent` |
-| Status | Target design and implementation guidance; not a completion certificate |
+| Document control        | Value                                                                   |
+| ----------------------- | ----------------------------------------------------------------------- |
+| Product / documentation | **CoveStack / V5**                                                      |
+| Updated                 | **15 October 2026**                                                     |
+| Submission deadline     | **Monday, 25 January 2027**                                             |
+| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
+| Status                  | Target design and implementation guidance; not a completion certificate |
 
 ## 1. Snapshot interpretation
 
 The inspected working tree contains local configuration changes and existing security/lifecycle libraries. This document does not verify a new build or live deployment. **Documentation V5 describes the target, not the state of implementation.** Verify current PR/CI status before onboarding another developer.
 
-| Component | Inspected evidence | Next verification |
-|---|---|---|
-| Go config | Loader/tests exist locally | Review/commit and pinned toolchain |
-| Signing | Rules/request/signer and shared tests | Real server/store acceptance |
-| Lifecycle | Source/generator/helpers and fixtures | Wire into runtime services/drivers |
-| Agent command | Auth-smoke exists | Production client/main/polling |
-| Java auth | Filters/interfaces/stores scaffold | Real credentials/tokens and application boot |
-| Java packaging | Boot plugin skip remains enabled | Entry point then package/boot |
-| Compose | Private Postgres/Valkey/Mailpit | Actual configured readiness/restore |
-| Public resource services | Contract/design records | Gate evidence for real workflows |
+| Component                | Inspected evidence                    | Next verification                            |
+| ------------------------ | ------------------------------------- | -------------------------------------------- |
+| Go config                | Loader/tests exist locally            | Review/commit and pinned toolchain           |
+| Signing                  | Rules/request/signer and shared tests | Real server/store acceptance                 |
+| Lifecycle                | Source/generator/helpers and fixtures | Wire into runtime services/drivers           |
+| Agent command            | Auth-smoke exists                     | Production client/main/polling               |
+| Java auth                | Filters/interfaces/stores scaffold    | Real credentials/tokens and application boot |
+| Java packaging           | Boot plugin skip remains enabled      | Entry point then package/boot                |
+| Compose                  | Private Postgres/Valkey/Mailpit       | Actual configured readiness/restore          |
+| Public resource services | Contract/design records               | Gate evidence for real workflows             |
 
 Earlier local tests passed with Go 1.27.1; that is not pinned 1.27.2 evidence. V5 generation itself does not run Java/Go integration tests or inspect real secret values.
 
 ## 2. Planned work register
 
-| CORE-5 service | Status | Required evidence | Owner |
-|---|---|---|---|
-| Compute/Droplets | Planned | G1–G4; tests 1–6 | A+B; C tests; E CLI |
-| Kubernetes | Planned | G1–G4; tests 7–10; hard cap 2 clusters/host | A+B+D; C tests; E CLI |
-| Managed PostgreSQL | Planned | G1–G4; test 11; backup/restore/scoped credentials/private network | A+B; C tests |
-| Object storage | Planned | G1–G4; tests 12–13; Java recreates buckets after MinIO restart | B+C server; A process |
-| VPC/IPAM | Planned | G1–G4; test 14; ten IP allocations and ten account VPCs | C allocator; B records; A helper |
+| CORE-5 service     | Status  | Required evidence                                                 | Owner                            |
+| ------------------ | ------- | ----------------------------------------------------------------- | -------------------------------- |
+| Compute/Droplets   | Planned | G1–G4; tests 1–6                                                  | A+B; C tests; E CLI              |
+| Kubernetes         | Planned | G1–G4; tests 7–10; hard cap 2 clusters/host                       | A+B+D; C tests; E CLI            |
+| Managed PostgreSQL | Planned | G1–G4; test 11; backup/restore/scoped credentials/private network | A+B; C tests                     |
+| Object storage     | Planned | G1–G4; tests 12–13; Java recreates buckets after MinIO restart    | B+C server; A process            |
+| VPC/IPAM           | Planned | G1–G4; test 14; ten IP allocations and ten account VPCs           | C allocator; B records; A helper |
 
 Cross-cutting status is Planned: authenticated CLI, Security, Recovery, optional Terraform Droplet/K8s, one stack integration (test 15), Ansible Part 1. None is a sixth service. Extended features remain [Extended track](CoveStack-Extended-Roadmap.md), not deliverables; optional future items are separate.
 
@@ -43,16 +43,16 @@ Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CO
 
 ## 3. Contract and schema decision checklist
 
-| Open item | Required coordinated review |
-|---|---|
+| Open item              | Required coordinated review                                                                   |
+| ---------------------- | --------------------------------------------------------------------------------------------- |
 | VPC/compute attachment | VPC server-owned, no contract kind; attachment schema/capability change B+A; state TBD with B |
-| Multi-account polling | One credential-account poll; trusted agent lookup and multi-account credential model B+C+A |
-| Stack | One fixed-sequence integration; missing states TBD with B; no invented DAG wire model |
-| IDs/DTOs | Internal uuid, CLI public_id, numeric /v2 provider_id; B+D finalize |
-| Credential custody | Hash-only api_tokens; encrypted service-kind signing_credentials; B+C |
-| MinIO administration | Server reconcile needs private administration path, custody and rotation B+C |
-| Unauthenticated audit | Nullable reference option versus separate security events; final B+C decision |
-| Host/labels/ports | Canonical physical agent; proposed reserved kan.* labels; port release after cleanup |
+| Multi-account polling  | Agreed one process/host and separate account credentials/clients; implementation Planned; assignment/custody details B+C+A    |
+| Stack                  | One fixed-sequence integration; missing states TBD with B; no invented DAG wire model         |
+| IDs/DTOs               | Internal uuid, CLI public_id, numeric /v2 provider_id; B+D finalize                           |
+| Credential custody     | Hash-only api_tokens; encrypted service-kind signing_credentials; B+C                         |
+| MinIO administration   | Server reconcile needs private administration path, custody and rotation B+C                  |
+| Unauthenticated audit  | Nullable reference option versus separate security events; final B+C decision                 |
+| Host/labels/ports      | Canonical physical agent; proposed reserved kan.* labels; port release after cleanup          |
 
 Lifecycle contract stays **1.1.0**. It supplies existing kinds/states; missing enums are TBD with B. Any new message type needs coordinated schema, fixtures and generated outputs, not an isolated catalog edit. Flyway is declared but no migrations/entities/repositories were found; **no schema exists yet**. The markdown DDL is reference design, not executable or migration-ready. B finalizes staged migrations; this task creates none.
 

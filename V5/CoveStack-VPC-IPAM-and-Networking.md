@@ -1,12 +1,12 @@
 # CoveStack V5 — VPC, IPAM and Connectivity Policy
 
-| Document control | Value |
-|---|---|
-| Product / documentation | **CoveStack / V5** |
-| Updated | **14 October 2026** |
-| Submission deadline | **Monday, 25 January 2027** |
-| Compatibility names | Server: `kan-server`; agent: `kan-agent` |
-| Status | Target design and implementation guidance; not a completion certificate |
+| Document control        | Value                                                                   |
+| ----------------------- | ----------------------------------------------------------------------- |
+| Product / documentation | **CoveStack / V5**                                                      |
+| Updated                 | **14 October 2026**                                                     |
+| Submission deadline     | **Monday, 25 January 2027**                                             |
+| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
+| Status                  | Target design and implementation guidance; not a completion certificate |
 
 ## 1. CORE-5 private networking boundary
 
@@ -22,38 +22,38 @@ Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CO
 
 ## 2. Address allocation
 
-| Allocation | Authority | Durable record |
-|---|---|---|
-| Account subnet | C Java simple allocator; B transaction/constraints | subnet_pool and one vpcs row/account |
-| Workload IP | C allocator reserves DB lease; A helper applies reviewed assignment | ip_allocations; partial live-IP uniqueness |
-| Bridge/backend IPAM | Docker enforces selected network/IP assignment | Inspect actual runtime and reconcile with DB reservation |
-| Gateway/system exclusions | Reviewed pool policy B+A/C | Explicit exclusions before workload allocation |
+| Allocation                | Authority                                                           | Durable record                                           |
+| ------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------- |
+| Account subnet            | C Java simple allocator; B transaction/constraints                  | subnet_pool and one vpcs row/account                     |
+| Workload IP               | C allocator reserves DB lease; A helper applies reviewed assignment | ip_allocations; partial live-IP uniqueness               |
+| Bridge/backend IPAM       | Docker enforces selected network/IP assignment                      | Inspect actual runtime and reconcile with DB reservation |
+| Gateway/system exclusions | Reviewed pool policy B+A/C                                          | Explicit exclusions before workload allocation           |
 
 Pool/subnet sizes are **TBD with B+A** after host/VM/VPN/Docker/Pod/Service-route overlap checks; no numeric pool is selected here. The old illustrative pool is preserved as unapproved historical text in the roadmap. Use one authoritative allocator: backend allocation cannot conflict with Java reservations. Explicit-IP assignment/route policy needs a tested decision before claiming the gate.
 
 ## 3. Lease lifecycle
 
-| Step | Rule |
-|---|---|
-| Reserve | Atomic uniqueness/locking, not check-then-insert race |
-| Provision | Create only the intended owned bridge |
-| Record | Save runtime network ID and actual addressing |
-| Attach | Validate resource/VPC account and host |
-| Recover | Inspect/reconcile pending leases after failure |
-| Release | Confirm owned attachments/runtime removed; future route/identity cleanup also required before reuse |
-| Reuse | Only after owned objects have actually gone |
+| Step      | Rule                                                                                                |
+| --------- | --------------------------------------------------------------------------------------------------- |
+| Reserve   | Atomic uniqueness/locking, not check-then-insert race                                               |
+| Provision | Create only the intended owned bridge                                                               |
+| Record    | Save runtime network ID and actual addressing                                                       |
+| Attach    | Validate resource/VPC account and host                                                              |
+| Recover   | Inspect/reconcile pending leases after failure                                                      |
+| Release   | Confirm owned attachments/runtime removed; future route/identity cleanup also required before reuse |
+| Reuse     | Only after owned objects have actually gone                                                         |
 
 Track allocation exhaustion and explicit conflicting-CIDR errors. VPC failure-state strings remain TBD with B. A partially created bridge/DB lease needs recorded retry/error intent; deleting unrelated networks is never a valid recovery shortcut.
 
 ## 4. Isolation and firewall policy
 
-| Path | Initial policy |
-|---|---|
-| Same VPC approved app → DB | Allowed under selected service policy |
-| Different account/VPC | Denied unless explicitly modeled |
-| Workload → control-plane DB/cache | Denied |
-| Workload → Docker management API/socket | Denied |
-| Public/private admin access | No CORE-5 public route; private management stays denied from workloads |
+| Path                                    | Initial policy                                                         |
+| --------------------------------------- | ---------------------------------------------------------------------- |
+| Same VPC approved app → DB              | Allowed under selected service policy                                  |
+| Different account/VPC                   | Denied unless explicitly modeled                                       |
+| Workload → control-plane DB/cache       | Denied                                                                 |
+| Workload → Docker management API/socket | Denied                                                                 |
+| Public/private admin access             | No CORE-5 public route; private management stays denied from workloads |
 
 Bridge defaults and published host ports can create alternate paths. Test backend IPs, gateways, published ports and both directions. DNS lookup failure alone is not proof of isolation. Inspect the actual Docker iptables/nftables behavior; do not assume ordinary host INPUT rules govern forwarded container packets.
 
@@ -61,10 +61,10 @@ Kubernetes adds its own service/Pod CIDRs and network policy mechanisms. Reserve
 
 ## 5. Address presentation
 
-| Value | Meaning |
-|---|---|
-| Private IP | Actual inspected assignment through permitted private routes |
-| API endpoint/kubeconfig | Separately authorized private administrative connection |
+| Value                          | Meaning                                                                                                                             |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Private IP                     | Actual inspected assignment through permitted private routes                                                                        |
+| API endpoint/kubeconfig        | Separately authorized private administrative connection                                                                             |
 | Future public/simulated fields | Relocated to [publication design](CoveStack-Extended-Roadmap.md#5-application-publication); no fake address routes internet traffic |
 
 Safe account views exclude credential content. Existing example addresses are not an approved allocation pool.

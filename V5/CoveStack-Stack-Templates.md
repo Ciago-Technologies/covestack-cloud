@@ -1,12 +1,12 @@
 # CoveStack V5 — One Stack Integration Template
 
-| Document control | Value |
-|---|---|
-| Product / documentation | **CoveStack / V5** |
-| Updated | **14 October 2026** |
-| Submission deadline | **Monday, 25 January 2027** |
-| Compatibility names | Server: `kan-server`; agent: `kan-agent` |
-| Status | Target design and implementation guidance; not a completion certificate |
+| Document control        | Value                                                                   |
+| ----------------------- | ----------------------------------------------------------------------- |
+| Product / documentation | **CoveStack / V5**                                                      |
+| Updated                 | **14 October 2026**                                                     |
+| Submission deadline     | **Monday, 25 January 2027**                                             |
+| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
+| Status                  | Target design and implementation guidance; not a completion certificate |
 
 ## 1. One integration template — CORE-5 cross-cutting demo
 
@@ -16,27 +16,27 @@ Each child remains a durable owned resource with its own gate evidence. The appr
 
 ## 2. End-to-end CORE-5 example
 
-| Step | User action | Platform target |
-|---|---|---|
-| Select | CLI selects the ONE approved template | Read reviewed immutable definition/version |
-| Configure | Validated app/image inputs | Check account quota and documented JSON input shape |
-| Submit | One mutating command with idempotency key | Store owned stack/operation and child references |
-| Provision | Inspect pending progress or --wait | Ensure private network, DB and storage dependencies; then app |
-| Connect | Use scoped references | No passwords or signing secrets in spec/observed/list/get |
-| Inspect | CLI list/get with -o json | Same child public IDs/generations/errors from API |
-| Retry | Repeat durable request after failure | Resume without duplicate children |
-| Remove | Explicit retained-data policy | Owned cleanup; no hidden deletion of persistent data |
+| Step      | User action                               | Platform target                                               |
+| --------- | ----------------------------------------- | ------------------------------------------------------------- |
+| Select    | CLI selects the ONE approved template     | Read reviewed immutable definition/version                    |
+| Configure | Validated app/image inputs                | Check account quota and documented JSON input shape           |
+| Submit    | One mutating command with idempotency key | Store owned stack/operation and child references              |
+| Provision | Inspect pending progress or --wait        | Ensure private network, DB and storage dependencies; then app |
+| Connect   | Use scoped references                     | No passwords or signing secrets in spec/observed/list/get     |
+| Inspect   | CLI list/get with -o json                 | Same child public IDs/generations/errors from API             |
+| Retry     | Repeat durable request after failure      | Resume without duplicate children                             |
+| Remove    | Explicit retained-data policy             | Owned cleanup; no hidden deletion of persistent data          |
 
 CLI command/schema spelling is finalized by E+B; no new template ID, API version or wire field is invented. The old HCL/YAML/public-route examples are historical future designs in the roadmap, not runnable schemas.
 
 ## 3. Template record and JSON shapes
 
-| Record | Required documented shape |
-|---|---|
-| stack_templates | Approved template identity and ownership/visibility |
+| Record                             | Required documented shape                                                           |
+| ---------------------------------- | ----------------------------------------------------------------------------------- |
+| stack_templates                    | Approved template identity and ownership/visibility                                 |
 | stack_template_versions.definition | Fixed ordered component list, approved input validation and references; schema_hash |
-| stacks.inputs | Validated nonsecret values and protected secret references |
-| stack_resources | Stack/child account ownership, role and ordinal; no duplicate child binding |
+| stacks.inputs                      | Validated nonsecret values and protected secret references                          |
+| stack_resources                    | Stack/child account ownership, role and ordinal; no duplicate child binding         |
 
 Definition and inputs are explicit jsonb exceptions; document their shapes before B writes migrations. No business ownership keys are hidden in JSON. Broader DAG/component customization is deferred, not silently removed.
 
@@ -44,13 +44,13 @@ Definition and inputs are explicit jsonb exceptions; document their shapes befor
 
 Stack state values are **TBD with B**; do not invent them from human progress labels. Operations use queued, running, completed, failed, cancelled. Never rewrite a child state to make the stack appear converged.
 
-| Failure | Required response |
-|---|---|
+| Failure                           | Required response                                                    |
+| --------------------------------- | -------------------------------------------------------------------- |
 | DB/storage dependency unavailable | Record failed attempt; do not start dependent app with fake endpoint |
-| Agent/server restart | Resume durable child references; inspect before create |
-| Duplicate request | Same idempotent result; changed-body same key → 422 |
-| Partial deletion | Keep retryable owned cleanup records |
-| App failure | Preserve user data under reviewed retention policy |
+| Agent/server restart              | Resume durable child references; inspect before create               |
+| Duplicate request                 | Same idempotent result; changed-body same key → 422                  |
+| Partial deletion                  | Keep retryable owned cleanup records                                 |
+| App failure                       | Preserve user data under reviewed retention policy                   |
 
 Record sanitized error/attempt/timestamps. Compensation is not unconditional data rollback; retention defaults remain B+A decision.
 

@@ -1,25 +1,25 @@
 # CoveStack V5 — Markdown and PDF Export
 
-| Document control | Value |
-|---|---|
-| Product / documentation | **CoveStack / V5** |
-| Updated | **14 October 2026** |
-| Submission deadline | **Monday, 25 January 2027** |
-| Compatibility names | Server: `kan-server`; agent: `kan-agent` |
-| Status | Target design and implementation guidance; not a completion certificate |
+| Document control        | Value                                                                   |
+| ----------------------- | ----------------------------------------------------------------------- |
+| Product / documentation | **CoveStack / V5**                                                      |
+| Updated                 | **14 October 2026**                                                     |
+| Submission deadline     | **Monday, 25 January 2027**                                             |
+| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
+| Status                  | Target design and implementation guidance; not a completion certificate |
 
 ## 1. Formatting policy
 
-| Element | Convention |
-|---|---|
-| Comparison/ownership/status | Real pipe table with header separator |
-| Table boundary | Blank line before and after |
-| Table width | Match required comparison/gate/schema columns; wide tables need landscape or reviewed layout |
-| Highlight | Bold decisions, deadline and critical status |
-| Commands/examples | Fenced code with language; examples labeled |
-| Diagram | Text layout or Mermaid ERD; use Mermaid-aware rendering for the schema |
-| Headings | Hierarchical titles with whitespace |
-| Dates | Full year and consistent schedule |
+| Element                     | Convention                                                                                   |
+| --------------------------- | -------------------------------------------------------------------------------------------- |
+| Comparison/ownership/status | Real pipe table with header separator                                                        |
+| Table boundary              | Blank line before and after                                                                  |
+| Table width                 | Match required comparison/gate/schema columns; wide tables need landscape or reviewed layout |
+| Highlight                   | Bold decisions, deadline and critical status                                                 |
+| Commands/examples           | Fenced code with language; examples labeled                                                  |
+| Diagram                     | Text layout or Mermaid ERD; use Mermaid-aware rendering for the schema                       |
+| Headings                    | Hierarchical titles with whitespace                                                          |
+| Dates                       | Full year and consistent schedule                                                            |
 
 Tables are not enclosed in code fences. A Markdown viewer must enable pipe-table support (GFM/Pandoc style). If the viewer treats a valid pipe table as plain text, that is a renderer configuration issue rather than a different table syntax.
 
@@ -60,4 +60,4 @@ The unchanged script checks table row shapes/header delimiters, blank boundaries
 
 ## 5. Sharing
 
-Send the V5 Markdown directory or generated print HTML/PDF as documentation. Do not include deployment secrets, Terraform state or real kubeconfigs. V5 is tracked in checkpoint commit 40291e6; current batch edits are uncommitted. Share reviewed repository links after the branch is published, or share the current Markdown folder. Do not share the stale HTML as current. Ignore rules remain untouched. No automatic commit/push is performed.
+Send the V5 Markdown directory or generated print HTML/PDF as documentation. Do not include deployment secrets, Terraform state or real kubeconfigs. V5 is tracked in Git; share reviewed repository links to the published branch/revision, or a dated Markdown bundle. Do not share the stale HTML as current. Ignore rules remain untouched. Publication requires a deliberate commit/push of reviewed changes.
