@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
+| Updated                 | **15 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -30,6 +30,12 @@ Every table/column below is proposed reference design, B finalizes. No live sche
 
 VPC has no kind in contract 1.1.0. It is a server-owned design, not new agent work. Its state vocabulary and compute attachment message remain **TBD with B**; decision owners B+A. Bucket reconciliation stays server-side under `storage.bucket`.
 
+### 2.1 HLD/LLD evidence prerequisites
+
+All five statuses remain Planned. [Acceptance variants](CoveStack-AntiWrapper-Acceptance.md#32-hldlld-regression-variants--existing-test-numbers) extend existing tests: 1/5 periodic drift/health, 2/7 runtime takeover, 6 no new outage mutations, 9/10 retained deletion quota/ports, 12/13 shared MinIO persistence, 14 standalone network execution and attachment ordering, 15 scoped bucket child and shared-process protection.
+
+Claim epoch fences DB writes; it does not fence Docker/k3d directly. A service needs reviewed claim/renew/report schemas, host exclusion/uncertain-operation handling, and actual failure results. A network API row or a bucket policy row alone cannot pass runtime recovery. Rebuilding bucket metadata is not restoring object data. Gate workbook slogans/old historical comparisons do not override these precise assertions or establish implementation.
+
 ## 3. Extended track — not in SRS
 
 | Service                    | G1 DB intent                                                                                 | G2 rebuild from DB                                                    | G3 tenant test        | G4/CI test                         | Owner               | Status         |
@@ -44,7 +50,7 @@ VPC has no kind in contract 1.1.0. It is a server-owned design, not new agent wo
 | React UI                   | No new tables; state/gen fields TBD with B where missing                                     | Account-scoped list responses through API                             | Other-account API 404 | Interface gate; relevant tests 3/8 | E                   | Extended track |
 | Ansible inventory (Part 2) | No new tables; state/gen fields TBD with B where missing                                     | Owned inventory JSON through CLI/API                                  | Other-account API 404 | E8                                 | E; A review         | Extended track |
 
-React and inventory are interfaces, not persisted services: their underlying CORE-5 resources meet G1–G4; the interface itself has the access/lifecycle checks below. Monitoring samples are measured evidence, never authoritative desired state. Publication/metadata/domain enums are TBD with B. See [roadmap](CoveStack-Extended-Roadmap.md).
+React and inventory are interfaces, not persisted services: their underlying CORE-5 resources must meet G1–G4; the interface itself has the access/lifecycle checks below. Monitoring samples are measured evidence, never authoritative desired state. Publication/metadata/domain enums are TBD with B. See [roadmap](CoveStack-Extended-Roadmap.md).
 
 ## 4. Interface and cross-cutting gates
 

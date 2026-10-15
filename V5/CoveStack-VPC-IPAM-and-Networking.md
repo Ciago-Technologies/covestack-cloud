@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
+| Updated                 | **15 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -19,6 +19,14 @@ Private east-west traffic, reviewed outbound egress and public ingress are diffe
 **Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
 
 Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
+
+### 1.1 HLD/LLD resolution — network before workload
+
+Java owns network policy and durable vpcs/IP reservations; only A's container-driver helper changes bridges. A separate signed internal network-control exchange, rather than a VPC /work kind, carries current assigned VPC intent/claim and observations. Exact route/field/state/capability encoding remains TBD with B+D/A/C and requires coordinated schemas/fixtures/generated outputs before execution. [Schema section 7.5](CoveStack-Database-Schema.md#75-server-owned-vpc-execution--lld-target) defines its row/lease model.
+
+The first Droplet API request transaction creates/reuses the account's default VPC and stores pending workload intent. Java must not dispatch workload attachment until the network's required generation converges. Therefore default networking is an internal prerequisite for the first real Droplet, even though standalone CLI commands still ship droplet → vpc → k8s → db → bucket → stack. Initial single-account integration uses the same approved network path; no undocumented manual bridge substitutes for the gate.
+
+Serialize VPC teardown/admission against live and reserved attachments; retain CIDR/IP identity until owned cleanup is confirmed. Apply the same DB-clock claim fencing and host exclusion as other execution. A blocked/uncertain backend operation is not permission to free its subnet. Periodic inspection can repair the same bridge from server intent without a new user request. Shared S3 access needs an explicit permitted data path that does not expose control-plane DB/cache/daemon or MinIO console.
 
 ## 2. Address allocation
 

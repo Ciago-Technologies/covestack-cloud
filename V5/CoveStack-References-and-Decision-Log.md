@@ -53,6 +53,20 @@ Links are carried from earlier documents; no network access or source revalidati
 
 No versions, CIDRs, quota-error wire names or confirmations are chosen here. Extended proxy/health/cooldown/storage/identity/domain/tunnel decisions live only in the roadmap; old G0 schedule wording is superseded by the workflow.
 
+### 3.1 HLD/LLD review decisions — target resolution
+
+| Decision | Target selected | Remaining review |
+|---|---|---|
+| Runtime safety | OS host exclusion plus per-resource serialization; uncertain actions block takeover | A+C prototype; no Docker epoch-fencing claim |
+| Lease semantics | Current owner/epoch/generation and unexpired DB-clock lease for renew/report/ack | B+D/A/C schema and fixtures; values TBD |
+| Drift/health | next_attempt_at schedules retries and periodic inspections; new claim after convergence | B+A query/scheduling and C tests |
+| Network transport | Separate signed network-control exchange, server-owned vpcs, default network prerequisite | Routes/fields/states TBD B+D/A/C |
+| Shared MinIO | Operator-owned durable compute.instance runtime; protected host secret references; stack tenant bucket | B+C/A bootstrap/custody/private route; approved compute mapping |
+| Required cuts | Preserve stack/test 15 and installer; optional provider and extended work cut first | Explicit SRS revision required for any other reduction |
+| Capacity | Spike at first host preparation, before driver capacity commitment | Actual workload matrix; revalidate integration in November |
+
+Prior contradictory cut wording is superseded, not a removed service requirement. Historical roadmap text and the gate spreadsheet preserve earlier targets/slogans; they do not establish runtime capability or override this review. No spreadsheet/code/contract edit occurs here.
+
 ## 4. Claim and evidence policy
 
 Do not claim provider parity, VM isolation for Droplets, fake-IP routing, tamper-proof audit or an operational service from documentation. Unknown kinds/states are TBD with B; new messages require coordinated schema/fixtures/generated outputs. Reference DDL is not executable or migration-ready; no schema exists yet.

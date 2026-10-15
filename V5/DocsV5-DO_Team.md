@@ -105,6 +105,40 @@ Team agreement recorded on 15 October 2026; this is a target design, not accepta
 
 Provisioning transport, secret storage mechanism, reload/rotation policy and credential-to-agent lookup must be finalized B+C+A before that integration. Do not invent APIs, wire fields, database tables or secret paths. Separate account clients may share a safe transport, never mutable credential state. Start with single-account lifecycle/failure evidence, then add the second account. Any new protocol fields need coordinated schema, fixtures and generated outputs.
 
+### 2.2 HLD — control, execution and data paths
+
+Status: **Planned**. The following resolves architecture choices at design level; code, contracts and acceptance evidence remain future work.
+
+| Boundary | Target responsibility / dependency |
+|---|---|
+| User control plane | CLI → authenticated Java API → account-scoped DB transaction; return durable operation/public ID immediately |
+| Agent control plane | Assigned account clients → signed work/claim/report exchange; Java derives account/host, never trusts a caller-selected account |
+| Execution host | One process-wide OS exclusion lock plus serialized resource execution; only generic container and k3d backends |
+| Network control | Java owns VPC/IP reservations; a separate signed internal network-control exchange carries approved intent/results to the agent network helper; route/payload names TBD with B+D |
+| Dependency admission | Ensure the account's default VPC before any Droplet/DB runtime attachment; its record can exist while pending; do not start workload execution until network convergence |
+| Shared storage bootstrap | One operator-owned MinIO process/volume on this host, with persisted platform-owned compute.instance intent and the generic container backend; bootstrap must establish operator account/assignment before agent work |
+| Bucket control | Java reconciles storage.bucket and account credentials through private MinIO administration; stack creates a scoped bucket, not another shared server |
+| Data paths | App → private PostgreSQL or approved shared S3 endpoint; kubectl → separately authorized Kubernetes API; these do not pass through the agent polling endpoint |
+| Administrative secrets | Operator installation provisions protected host-side secret material; work carries approved nonsecret references only; no root/admin secret values in agent payloads |
+| Isolation | Workload routes deny control-plane DB/cache/daemon; shared S3 access is explicit and policy-scoped; trusted agent/host compromise is outside tenant isolation guarantee |
+
+MinIO administration and tenant S3 operations can share the S3 API listener. Do not claim separate ports alone isolate administration: protect root/admin credentials and policies; keep console/operator routes private. Java must have a reviewed private path to that API. Secret custody, actual ports/paths, operator identity issuance, key recovery and rotation mechanics remain B+C/A implementation decisions; no values or wire names are chosen here.
+
+The MinIO process is an operator-owned platform dependency, not a tenant-created sixth service. Register its desired runtime before execution through the reviewed bootstrap workflow. Extend reviewed compute spec/secret-reference mapping only through coordinated schemas/fixtures/generated outputs; do not put arbitrary env/root credentials into an unreviewed existing payload.
+
+### 2.3 HLD — failure boundaries and capacity
+
+| Failure | Target behavior |
+|---|---|
+| API/DB/replay authentication unavailable | No new authorized mutations; retain workloads; admitted backend actions may still settle, so inspect before resuming |
+| One account credential rejected | Isolate/backoff that context; no fallback credential; other assigned contexts continue |
+| Agent main dies while k3d child/backend request runs | Treat outcome as uncertain until settled; no competing operation on that identity |
+| Resource drifts after convergence | Periodic DB-scheduled inspection reclaims it without inventing a new desired generation |
+| MinIO restart | Java rechecks buckets/credential policy after dependency readiness; object recovery needs retained volume/backup, not DB metadata alone |
+| Host lost | Restore control-plane DB, keys and owned data; a same-host backup is insufficient evidence |
+
+The 2-cluster cap is an upper bound, not a promise every allowed workload fits simultaneously. Move the host spike to the first host-preparation stage, before committing driver work. Measure Java, control-plane DB, workload DB, Valkey, MinIO, applications and one/two bounded clusters together. Reserve platform headroom and enforce workload CPU/memory/PID/disk admission; values and tested combinations are TBD after measurements. Reject requests exceeding the measured budget even below the cluster-count cap. No version, port range or RAM-per-cluster estimate is promoted to a tested fact.
+
 ## 3. State and reconciliation
 
 | Concept            | Rule                                                                |
@@ -119,11 +153,55 @@ Provisioning transport, secret storage mechanism, reload/rotation policy and cre
 | Agent restart      | Inspect reserved ownership identifiers before creating              |
 | Server outage      | Pause new work; do not infer deletion from failed/empty polls       |
 
-Convergence acknowledgment requires id, lease_owner, lease_epoch match **and generation = :gen**. Zero rows means rejected/stale. Accepted convergence clears lease_owner and lease_expires_at together and keeps lease_epoch unchanged. Progress never releases/acknowledges convergence. Epoch is the fence; lease-expiry checking is an open decision for B. See [reference schema/queries](CoveStack-Database-Schema.md).
+Convergence acknowledgment requires id, lease_owner, lease_epoch match **and generation = :gen**. Zero rows means rejected/stale. Accepted convergence clears lease_owner and lease_expires_at together and keeps lease_epoch unchanged. Progress never releases/acknowledges convergence. The design requires unexpired claims for renewal, reports and acknowledgment, checked using the DB clock. Epoch fences DB writes; it does not fence Docker/k3d side effects. See the host exclusion and uncertain-operation rules below. See [reference schema/queries](CoveStack-Database-Schema.md).
 
 A controller checks what exists and brings it toward the requested state. Starting a fresh container on every poll is not reconciliation. Serialize work for the same logical resource; introduce bounded concurrency only after lease/fencing and per-resource deduplication work.
 
 The current contract source remains `contracts/lifecycle-rules.json` version 1.1.0. **V5 is the documentation version, not a wire-protocol version.** New stack/network/ingress messages require coordinated schema changes, fixtures and generated Go/Java outputs. Do not invent undocumented strings in an agent work payload.
+
+### 3.1 LLD — mutation sequence and contract gate
+
+```mermaid
+sequenceDiagram
+    participant C as CLI
+    participant S as Java control plane
+    participant D as PostgreSQL
+    participant A as Host agent
+    participant R as Container or k3d backend
+    C->>S: Authenticated idempotent create
+    S->>D: Store intent, operation and default-network dependency
+    S-->>C: Pending operation and public ID
+    A->>S: Signed read-only account-scoped candidate poll
+    S->>D: Read eligible assigned resource candidates
+    S-->>A: Candidate references without execution authority
+    A->>S: Separate idempotent signed claim request
+    S->>D: Claim due assigned work, bump epoch
+    S-->>A: Reviewed claim identity and desired snapshot
+    A->>A: Verify host exclusion, dependency and resource serialization
+    A->>R: Inspect before bounded mutation
+    A->>S: Renew claim while safe operation continues
+    A->>R: Verify actual readiness
+    A->>S: Report convergence with exact claim/generation
+    S->>D: Validate current unexpired claim, ack and release lease
+    Note over S,A: New claim/report schemas must be reviewed before this sequence is executable
+```
+
+| LLD decision | Target invariant |
+|---|---|
+| Claim correlation | Keep /work read-only; acquire authority through a separate signed idempotent claim exchange binding account, host, resource, generation and epoch |
+| Contract gap | Existing 1.1.0 resource/observation shapes do not define the full claim token/renewal protocol; route, headers/fields and errors remain TBD with B+D/C/A |
+| Renewal | DB-clock expiry and same owner/epoch/generation required; expiry/change/revocation stops new mutations and rejects old reports |
+| Completion | Validate kind-specific readiness, exact generation, authorized assignment, epoch and unexpired lease; clear both lease fields; keep epoch |
+| Periodic inspection | Schedule next_attempt_at after convergence for nonterminal live rows; due inspections remain eligible even when acked_generation equals generation |
+| Health-only inspection | Obtain a fresh claim for the inspected generation; update guarded observations without advancing acked_generation; release/reschedule only the matching claim |
+| Drift repair | Inspect current intent and Ensure under that claim; keep desired generation unchanged when intent did not change; no fake user operation |
+| Backend exclusion | Process lock plus per-resource serialization; long-lived child commands retain operation exclusion until settled |
+| Uncertain action | Timeout/cancel is not proof a backend request stopped; do not issue replacement/delete/recreate until prior operation is proven settled |
+| Restart/takeover | Acquire host exclusion, recover outstanding backend operation identity and inspect deterministic objects before new work; ambiguity requires operator recovery, not automatic lock expiry |
+
+There is no atomic transaction across PostgreSQL and Docker/k3d. Do not claim strict exactly-once execution or that DB fencing prevents every stale runtime action. If an old process/child is paused or an API request may still execute, fail closed for that resource. An already admitted action may finish during an outage; no new mutation may start without current authorization. Operator recovery must settle the old execution and preserve owned data before enabling retry. Local locks/checkpoints are execution evidence, not a second desired-state database.
+
+Detailed claims, inspection scheduling, health/retry predicates and network rows are in [Schema section 7](CoveStack-Database-Schema.md#7-concurrency-and-reference-queries). No tests pass from this sequence alone.
 
 ## 4. Ownership and consistency
 
@@ -132,7 +210,7 @@ The current contract source remains `contracts/lifecycle-rules.json` version 1.1
 | Account scope      | Derive identity from authentication; validate every object action                                  |
 | Database writes    | Account predicate and optimistic/version checks; avoid whole-row observation overwrite             |
 | Idempotency        | Scope request key, store fingerprint and result atomically                                         |
-| Lease/fencing      | Old agent cannot acknowledge or mutate work after losing authority                                 |
+| Lease/fencing | Old claims cannot write DB results; runtime mutations require host exclusion and a current claim; uncertain backend operations block takeover |
 | Runtime labels     | Proposed kan.account/kan.resource/kan.agent contract; review before use; not present compatibility |
 | Garbage collection | Complete scoped inventory plus explicit deletion intent and grace policy                           |
 | Secret data        | Separate authorized retrieval from ordinary metadata listings                                      |
@@ -172,7 +250,7 @@ This table describes the missing CoveStack account/policy semantics at the execu
 | Shape               | 1 server + maximum 2 agent nodes each                                         |
 | Version             | One pinned tested k3d+k3s pair; values TBD after spike                        |
 | Memory estimate     | 0.5–1 GB/cluster: unverified estimate, confirm in K8s host spike              |
-| November host spike | One day: cgroup v2, SELinux, firewalld, RAM budget and tested pair            |
+| Early host spike | One day at first host preparation: cgroup v2, SELinux, firewalld, total workload RAM and tested pair |
 | Execution           | Shell out to pinned k3d CLI, not library; verify each flag before documenting |
 
 Ensure finds a half-created cluster by proposed labels/deterministic name and finishes it or cleans owned partial objects before recreating under the same name. Port is reserved first; tests 7–10 prove crash, tenancy, cleanup and quota.
@@ -187,7 +265,7 @@ Acceptance requires backup, measured restore, scoped credentials and private net
 
 Execution backend only (MinIO). Platform value: per-account credentials, bucket scoping, cross-account denial.
 
-MinIO process uses the container driver. Java server reconciles physical buckets and scoped credential policy from DB rows; storage.bucket remains server-owned. Tests 12–13 prove denied key usage and rebuild. Root storage credentials remain private.
+One operator-owned shared MinIO process uses the container driver; the fixed stack creates a scoped bucket in that process, not a new server. Java server reconciles physical buckets and scoped credential policy from DB rows; storage.bucket remains server-owned. Tests 12–13 prove denied key usage and rebuild. Root storage credentials remain private.
 
 ### 5.5 VPC/IPAM — Planned
 
@@ -244,6 +322,20 @@ covestack-cloud/
 ```
 
 Root/client/agent Go module layout is a decision record; the current module cannot import a new root package merely because this tree is drawn. No go.mod or signer relocation occurs here.
+
+### 8.2 Architecture decisions resolved versus pending encoding
+
+| Review gap | Design resolution | Implementation gate |
+|---|---|---|
+| Claim fencing missing on wire | Correlated claim/renew/report protocol with DB-clock expiry | B+D schema, A client and C negative fixtures before mutation |
+| Runtime fencing overclaim | Host exclusion, serialization and fail-closed uncertain-operation recovery | A+C stale-worker/backend tests |
+| Converged drift invisible | DB-scheduled leased inspections and same-intent repair | B scheduler/query, A inspection and C test variants |
+| Unleased health update | Fresh inspection claim; no health acknowledgment | B/A guarded reports; C proves lease release/stale rejection |
+| VPC execution gap/order | Separate signed network control and default-network prerequisite | B+D/A contract; C allocator/tests |
+| MinIO bootstrap ambiguity | Shared operator-owned process; tenant bucket child; protected host secret references | B+C/A bootstrap/private-route/recovery evidence |
+| Stack cut contradicts test 15 | Keep fixed stack and installer; cut extended/optional provider work | Workflow/SRS agree; no mentor scope reduction assumed |
+
+These are target decisions for implementation review, not claims that the contract now contains the messages or that acceptance passed. Numeric timeouts/intervals, secret storage product, protocol field/route names, VPC states and tested backend versions remain TBD with the named owners.
 
 ## 9. Reading order
 

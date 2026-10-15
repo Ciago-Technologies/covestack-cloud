@@ -3,16 +3,24 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
+| Updated                 | **15 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
 
 ## 1. One integration template — CORE-5 cross-cutting demo
 
-**Status: Planned.** ONE fixed-sequence template creates **PostgreSQL + MinIO + app Droplet** using the account's private network and owned credentials. This is test 15 integration, not a sixth service or a DAG engine. Broader template choices/customization remain preserved in the [roadmap](CoveStack-Extended-Roadmap.md#12-optional-future-work--not-additional-extended-services).
+**Status: Planned.** ONE fixed-sequence template creates **PostgreSQL + MinIO-backed object storage + app Droplet** using the account's private network and scoped credentials. This is test 15 integration, not a sixth service or a DAG engine. Broader template choices/customization remain preserved in the [roadmap](CoveStack-Extended-Roadmap.md#12-optional-future-work--not-additional-extended-services).
 
 Each child remains a durable owned resource with its own gate evidence. The approved app must accept documented endpoint/secret references; invalid application assumptions produce explicit errors. No arbitrary uploaded shell/YAML/IaC job executes on the platform host.
+
+### 1.1 Shared MinIO and network dependency
+
+The template's MinIO component is a tenant-owned bucket/credential binding in the operator-owned shared MinIO process. It does not create or own a new MinIO server. Bootstrap persists that shared process/volume's platform-owned compute.instance intent before execution through the generic container backend; protected root/admin material is installed by the operator, never included in work values. Java alone reconciles buckets/policy. See [HLD](DocsV5-DO_Team.md#22-hld--control-execution-and-data-paths).
+
+Default VPC creation/reuse precedes DB/app attachment; an unready network keeps workload intent pending. Shared endpoint readiness precedes bucket policy and app startup. stack_resources references the tenant bucket and DB/app children, not the shared process. Stack deletion follows reviewed data retention and cannot delete shared MinIO or other tenants' data. Policy rebuild does not recover lost objects; test 13 also reads known retained objects.
+
+This clarification preserves the one Postgres + MinIO + app integration requirement. The stack and test 15 stay required; optional provider/extended work is cut first. No DAG engine or public route is added.
 
 ## 2. End-to-end CORE-5 example
 

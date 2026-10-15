@@ -78,7 +78,7 @@ erDiagram
     accounts ||--o{ volumes : "account_id"
     accounts ||--o{ ssh_keys : "account_id"
     accounts ||--o{ vpcs : "account_id"
-    agents ||--o{ vpcs : "agent_id"
+    agents ||--o{ vpcs : "agent_id / lease_owner"
     subnet_pool ||--o{ vpcs : "pool_id"
     accounts ||--o{ ip_allocations : "account_id"
     vpcs ||--o{ ip_allocations : "account_id, vpc_id"
@@ -293,7 +293,7 @@ All are **Planned**. B owns schema; C reviews tenancy/secrets and owns tests; A 
 | FK               | `FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE RESTRICT`; `FOREIGN KEY (agent_id) REFERENCES agents(id) ON DELETE RESTRICT`; `FOREIGN KEY (lease_owner) REFERENCES agents(id) ON DELETE RESTRICT`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | Unique/exclusion | `UNIQUE (account_id, id)`; `UNIQUE (public_id)`; `UNIQUE (provider_id)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | CHECK            | `CHECK (kind IN ('compute.instance', 'db.instance', 'k8s.cluster', 'compute.group', 'compute.snapshot', 'network.load-balancer', 'storage.bucket'))`; `CHECK ((kind = 'compute.instance' AND desired_state IN ('active', 'off', 'archive')) OR (kind = 'db.instance' AND desired_state IN ('online', 'stopped', 'deleted')) OR (kind = 'k8s.cluster' AND desired_state IN ('active', 'deleted')) OR (kind = 'compute.group' AND desired_state IN ('active', 'deleted')) OR (kind = 'compute.snapshot' AND desired_state IN ('available', 'deleted')) OR (kind = 'network.load-balancer' AND desired_state IN ('active', 'deleted')) OR (kind = 'storage.bucket' AND desired_state IN ('available', 'deleted')))`; `CHECK ((kind = 'compute.instance' AND phase IN ('new', 'provisioning', 'starting', 'active', 'stopping', 'off', 'deleting', 'archive', 'error')) OR (kind = 'db.instance' AND phase IN ('creating', 'starting', 'online', 'stopping', 'stopped', 'deleting', 'deleted', 'error')) OR (kind = 'k8s.cluster' AND phase IN ('provisioning', 'running', 'degraded', 'deleting', 'deleted', 'error')) OR (kind = 'compute.group' AND phase IN ('new', 'active', 'scaling', 'degraded', 'deleting', 'deleted', 'error')) OR (kind = 'compute.snapshot' AND phase IN ('creating', 'available', 'deleting', 'deleted', 'error')) OR (kind = 'network.load-balancer' AND phase IN ('new', 'provisioning', 'active', 'degraded', 'deleting', 'deleted', 'error')) OR (kind = 'storage.bucket' AND phase IN ('creating', 'available', 'deleting', 'deleted', 'error')))`; `CHECK (generation > 0 AND acked_generation >= 0 AND acked_generation <= generation)`; `CHECK (lease_epoch >= 0 AND attempt_count >= 0)`; `CHECK (observed_generation IS NULL OR observed_generation BETWEEN 1 AND generation)`; `CHECK (lease_owner IS NULL OR lease_expires_at IS NOT NULL)` |
-| Indexes          | `CREATE UNIQUE INDEX resources_live_name ON resources(account_id, kind, name) WHERE deleted_at IS NULL;`; `CREATE INDEX resources_claim ON resources(next_attempt_at, lease_expires_at, id) WHERE acked_generation < generation;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Indexes          | `CREATE UNIQUE INDEX resources_live_name ON resources(account_id, kind, name) WHERE deleted_at IS NULL;`; `CREATE INDEX resources_claim ON resources(next_attempt_at, lease_expires_at, id);`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
 | Column                | Type / null / default                 | Purpose                                                  |
 | --------------------- | ------------------------------------- | -------------------------------------------------------- |
@@ -317,7 +317,7 @@ All are **Planned**. B owns schema; C reviews tenancy/secrets and owns tests; A 
 | `lease_epoch`         | `bigint`; NOT NULL DEFAULT 0          | lease epoch                                              |
 | `lease_expires_at`    | `timestamptz`; NULL                   | lease expires at                                         |
 | `attempt_count`       | `integer`; NOT NULL DEFAULT 0         | attempt count                                            |
-| `next_attempt_at`     | `timestamptz`; NULL                   | next attempt at                                          |
+| `next_attempt_at` | `timestamptz`; NULL | Next retry or periodic inspection; interval B+A after measurement |
 | `last_error`          | `jsonb`; NULL                         | last error                                               |
 | `deleted_at`          | `timestamptz`; NULL                   | deleted at                                               |
 | `created_at`          | `timestamptz`; NOT NULL DEFAULT now() | UTC creation                                             |
@@ -507,9 +507,9 @@ All are **Planned**. B owns schema; C reviews tenancy/secrets and owns tests; A 
 | Status           | Planned                                                                                                                                                                                                         |
 | Tenancy          | account_id NOT NULL                                                                                                                                                                                             |
 | PK               | `PRIMARY KEY (id)`                                                                                                                                                                                              |
-| FK               | `FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE RESTRICT`; `FOREIGN KEY (agent_id) REFERENCES agents(id) ON DELETE RESTRICT`; `FOREIGN KEY (pool_id) REFERENCES subnet_pool(id) ON DELETE RESTRICT` |
+| FK               | `FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE RESTRICT`; `FOREIGN KEY (agent_id) REFERENCES agents(id) ON DELETE RESTRICT`; `FOREIGN KEY (pool_id) REFERENCES subnet_pool(id) ON DELETE RESTRICT`; `FOREIGN KEY (lease_owner) REFERENCES agents(id) ON DELETE RESTRICT` |
 | Unique/exclusion | `UNIQUE (account_id, id)`; `UNIQUE (account_id)`; `UNIQUE (public_id)`; `UNIQUE (bridge_name)`; `EXCLUDE USING gist (cidr inet_ops WITH &&)`                                                                    |
-| CHECK            | `CHECK (generation > 0 AND acked_generation BETWEEN 0 AND generation)`; `CHECK (<TBD with B: desired_state/phase — no VPC contract kind; server-owned mapping B+A>)`                                            |
+| CHECK            | `CHECK (generation > 0 AND acked_generation BETWEEN 0 AND generation)`; `CHECK (lease_epoch >= 0)`; `CHECK (lease_owner IS NULL OR lease_expires_at IS NOT NULL)`; `CHECK (<TBD with B: desired_state/phase — no VPC contract kind; server-owned mapping B+A>)`                                            |
 | Indexes          | PK/unique indexes; additional tuning B finalizes                                                                                                                                                                |
 
 | Column             | Type / null / default                 | Purpose                                                  |
@@ -525,6 +525,12 @@ All are **Planned**. B owns schema; C reviews tenancy/secrets and owns tests; A 
 | `phase`            | `text`; NOT NULL                      | phase                                                    |
 | `generation`       | `bigint`; NOT NULL DEFAULT 1          | generation                                               |
 | `acked_generation` | `bigint`; NOT NULL DEFAULT 0          | acked generation                                         |
+| `lease_owner` | `uuid`; NULL | Authenticated assigned agent holding network execution claim |
+| `lease_epoch` | `bigint`; NOT NULL DEFAULT 0 | Network claim fence; not a wire-field declaration |
+| `lease_expires_at` | `timestamptz`; NULL | DB-clock expiry |
+| `observed_at` | `timestamptz`; NULL | Validated network inspection time |
+| `next_attempt_at` | `timestamptz`; NULL | Retry/periodic bridge inspection |
+| `last_error` | `jsonb`; NULL | Sanitized network execution error; shape TBD with B |
 | `created_at`       | `timestamptz`; NOT NULL DEFAULT now() | UTC creation                                             |
 | `updated_at`       | `timestamptz`; NOT NULL DEFAULT now() | UTC last write; append-only records unchanged            |
 | `row_version`      | `bigint`; NOT NULL DEFAULT 0          | Optimistic concurrency                                   |
@@ -1165,7 +1171,7 @@ CREATE TABLE resources (
 COMMENT ON TABLE resources IS 'Reference design, B finalizes; CORE-5 reference; not a live schema';
 ALTER TABLE resources ADD CHECK (row_version >= 0);
 CREATE UNIQUE INDEX resources_live_name ON resources(account_id, kind, name) WHERE deleted_at IS NULL;
-CREATE INDEX resources_claim ON resources(next_attempt_at, lease_expires_at, id) WHERE acked_generation < generation;
+CREATE INDEX resources_claim ON resources(next_attempt_at, lease_expires_at, id);
 ```
 
 ### operations
@@ -1340,6 +1346,12 @@ CREATE TABLE vpcs (
     phase text NOT NULL,
     generation bigint NOT NULL DEFAULT 1,
     acked_generation bigint NOT NULL DEFAULT 0,
+    lease_owner uuid NULL,
+    lease_epoch bigint NOT NULL DEFAULT 0,
+    lease_expires_at timestamptz NULL,
+    observed_at timestamptz NULL,
+    next_attempt_at timestamptz NULL,
+    last_error jsonb NULL,
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now(),
     row_version bigint NOT NULL DEFAULT 0,
@@ -1347,12 +1359,15 @@ CREATE TABLE vpcs (
     FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE RESTRICT,
     UNIQUE (account_id, id),
     FOREIGN KEY (agent_id) REFERENCES agents(id) ON DELETE RESTRICT,
+    FOREIGN KEY (lease_owner) REFERENCES agents(id) ON DELETE RESTRICT,
     FOREIGN KEY (pool_id) REFERENCES subnet_pool(id) ON DELETE RESTRICT,
     UNIQUE (account_id),
     UNIQUE (public_id),
     UNIQUE (bridge_name),
     EXCLUDE USING gist (cidr inet_ops WITH &&),
     CHECK (generation > 0 AND acked_generation BETWEEN 0 AND generation),
+    CHECK (lease_epoch >= 0),
+    CHECK (lease_owner IS NULL OR lease_expires_at IS NOT NULL),
     CHECK (<TBD with B: desired_state/phase — no VPC contract kind; server-owned mapping B+A>)
 );
 COMMENT ON TABLE vpcs IS 'Reference design, B finalizes; CORE-5 reference; not a live schema';
@@ -1847,6 +1862,8 @@ The GET work operation has no account selector. The current signing filter looks
 
 **One request is scoped to its verified credential account.** Team-agreed target on 15 October 2026: one agent process per physical host, with separate service credentials and immutable authenticated client/polling contexts for each assigned account, sharing a bounded execution coordinator. A global host row never authorizes global work polling. B validates stored account/agent assignments; C owns credential provisioning/custody/rotation/revocation review; A implements isolated clients. Assignment lookup and credential delivery/storage details remain to be finalized B+C+A. This is a design decision, not a running feature; no new wire field is invented.
 
+The query belongs to a separate signed idempotent claim mutation, not GET /work. GET work/known-ids and auth-smoke stay read-only. Reserve the claim request key and its validated response atomically with the lease update; duplicate same-body requests return the original claim result without bumping epoch or claiming another row. Replaying an expired result never revives it; the agent starts a new logical claim attempt only after checking outcome/expiry. Route/key-field names remain TBD with B+D/A/C.
+
 Reference query below follows the agreed account-scoped model; **assignment lookup/provisioning details remain TBD with B+C+A**. It is not executable/migration-ready. Parameters named authenticated_account_id/authenticated_agent_id are server-side context derived and authorized before the query, never caller-provided query/body fields. validated_supported_kinds comes from reviewed installed capabilities/heartbeat and agent-owned contract kinds; no pending driver may be advertised. Owner authorization is separate from SKIP LOCKED.
 
 ```sql
@@ -1856,8 +1873,16 @@ WITH candidate AS (
     WHERE account_id = :authenticated_account_id
       AND agent_id = :authenticated_agent_id
       AND kind = ANY(:validated_supported_kinds)
-      AND acked_generation < generation
-      AND (next_attempt_at IS NULL OR next_attempt_at <= now())
+      AND (
+          (acked_generation < generation
+           AND (next_attempt_at IS NULL OR next_attempt_at <= now()))
+          OR (acked_generation = generation
+              AND next_attempt_at IS NOT NULL AND next_attempt_at <= now())
+      )
+      AND NOT (
+          (kind = 'compute.instance' AND desired_state = 'archive' AND acked_generation = generation)
+          OR (kind <> 'compute.instance' AND desired_state = 'deleted' AND acked_generation = generation)
+      )
       AND (lease_owner IS NULL OR lease_expires_at <= now())
     ORDER BY next_attempt_at NULLS FIRST, id
     FOR UPDATE SKIP LOCKED LIMIT 1
@@ -1873,7 +1898,7 @@ RETURNING r.*;
 COMMIT;
 ```
 
-The 30-second duration is the requested reference value, not a tested timeout. Long k3d operations need lease renewal and safe reclaim. Lease-expiry checks on acknowledgment are still B's open decision; epoch change is the fence.
+The 30-second duration is an untested reference, not a release pin. Renew long operations before expiry using the DB clock and the same authorized owner/epoch/generation. Reject expiry/change/revocation; no renewal revives an expired claim. Actual interval, lead time and endpoint/field/error encoding remain B+A/C/D review. Runtime takeover is separately blocked until prior backend actions are settled; SQL reclaim is not permission to race an old Docker/k3d command. Server-owned buckets/groups use their Java scheduler and must never enter validated_supported_kinds.
 
 ### 7.3 Fenced convergence acknowledgment and separate progress
 
@@ -1883,22 +1908,66 @@ Runtime readiness, kind-specific success mapping, observation ordering and no-fu
 UPDATE resources
 SET acked_generation = :gen, observed_generation = :gen,
     lease_owner = NULL, lease_expires_at = NULL,
+    next_attempt_at = :next_inspection_at_or_null_for_terminal,
     phase = :contract_success_state, observed = :validated_observed,
     observed_at = :observed_at, updated_at = now(), row_version = row_version + 1
-WHERE account_id = :account_id AND id = :id
-  AND lease_owner = :lease_owner AND lease_epoch = :lease_epoch
-  AND generation = :gen;
+WHERE account_id = :authenticated_account_id AND id = :id
+  AND agent_id = :authenticated_agent_id
+  AND lease_owner = :authenticated_agent_id AND lease_epoch = :lease_epoch
+  AND generation = :gen
+  AND lease_expires_at > now();
 
 -- Progress is a separate statement; no acked_generation assignment.
 UPDATE resources
 SET phase = :contract_progress_state, observed = :validated_observed,
     observed_at = :observed_at, updated_at = now(), row_version = row_version + 1
-WHERE account_id = :account_id AND id = :id
-  AND lease_owner = :lease_owner AND lease_epoch = :lease_epoch
-  AND generation = :current_generation;
+WHERE account_id = :authenticated_account_id AND id = :id
+  AND agent_id = :authenticated_agent_id
+  AND lease_owner = :authenticated_agent_id AND lease_epoch = :lease_epoch
+  AND generation = :current_generation
+  AND lease_expires_at > now();
 ```
 
-Stale generation 3 after desired 4 updates neither convergence nor current progress. Observation time/sequence checks and heartbeat-only progress policy remain coordinated B+A decisions.
+Stale generation 3 after desired 4 updates neither convergence nor progress. No report is authorized solely by a current principal or a generation guessed from DB state: bind the report to the reviewed claim identity. Observation ordering/sequence encoding remains coordinated B+A/C/D contract work. This progress statement is for a currently claimed attempt, not an unleased post-convergence heartbeat.
+
+### 7.3.1 Renewal, health completion and failure — reference predicates
+
+All SQL is reference design, B finalizes; not executable/migration-ready. Named parameters are server-validated design variables, not approved wire fields.
+
+```sql
+-- Renew only a live unchanged claim; never revive an expired epoch.
+UPDATE resources
+SET lease_expires_at = now() + :reviewed_lease_duration,
+    updated_at = now(), row_version = row_version + 1
+WHERE account_id = :authenticated_account_id AND id = :id
+  AND agent_id = :authenticated_agent_id AND lease_owner = :authenticated_agent_id
+  AND lease_epoch = :claimed_epoch AND generation = :claimed_generation
+  AND lease_expires_at > now();
+
+-- Fresh periodic inspection, healthy at the already-acknowledged generation.
+-- Observation time/order, assignment and contract phase validated before this statement.
+UPDATE resources
+SET phase = :validated_current_phase, observed = :validated_observed,
+    observed_at = :observed_at, next_attempt_at = :next_inspection_at,
+    lease_owner = NULL, lease_expires_at = NULL,
+    updated_at = now(), row_version = row_version + 1
+WHERE account_id = :authenticated_account_id AND id = :id
+  AND agent_id = :authenticated_agent_id AND lease_owner = :authenticated_agent_id
+  AND lease_epoch = :claimed_epoch AND generation = :claimed_generation
+  AND acked_generation = generation AND lease_expires_at > now();
+```
+
+Health completion never assigns acked_generation or observed_generation. The claim correlates the inspected generation even if the health report's existing observedGeneration is null. If newer desired intent arrives, old health completion updates zero rows. A lost lease leaves observations unchanged and requires a fresh claim.
+
+On definitive failure, persist sanitized last_error/attempt_count/next retry and release only the matching live claim; leave successful generation unchanged. On uncertain backend outcome, retain operation evidence and block new resource mutation until runtime settlement is proven; do not turn a timeout into an ordinary retry. Exact error payload shape and operator-resolution protocol are TBD with B+C+A/D, not new lifecycle states.
+
+### 7.3.2 Inspection scheduling and host execution
+
+A new desired mutation resets next_attempt_at for immediate eligibility in the same transaction; it must not wait behind a previous inspection deadline. Nonterminal convergence sets next_attempt_at to the next measured inspection deadline; terminal convergence clears it. Due clean inspections reschedule it. Repair does not increment desired generation unless the user's specification changes. Reconstruct due inspection work from durable rows after agent restart; event streams are hints, not the only trigger. Claim ordering/fairness must prevent periodic work starving new intent. Keep claim/renew/report transactions short; never hold DB locks during backend commands. The agent uses a conservative monotonic execution deadline derived from the reviewed lease exchange; local wall-clock skew must not extend server authority.
+
+Before submitting any resource backend mutation, record its durable internal execution attempt under operations with existing queued/running/completed/failed/cancelled semantics and claim correlation; no fake user action is created. Correlation schema/type encoding is TBD with B and reviewed with A+C/D. Record proven settlement afterward. Reconcile attempts whose prior backend outcome is uncertain remain blocked from mutation even if SQL admits a fresh inspection claim.
+
+A acquires process-wide OS host exclusion and serializes every resource/backend mutation. Child commands retain operation exclusion until they settle; parent death does not prove a child or submitted daemon request stopped. No new agent execution begins during ambiguous recovery. The database epoch only fences DB updates; runtime operations do not implement that epoch. Distinct agents in the fencing test may exercise DB claims without simultaneously receiving authority to mutate the same host backend. C must also test the paused/uncertain-runtime case separately under existing test 2.
 
 ### 7.4 Idempotent create
 
@@ -1926,6 +1995,22 @@ COMMIT;
 ```
 
 A conflicting inserter waits for the transaction outcome, then reads the stored result. Rollback cannot leave a committed empty reservation from a failed create. Response/status representation and expiry/reuse policy B+C+D finalize. An idempotency key is account-scoped; the chosen endpoint/body fingerprint normalization must be documented.
+
+### 7.5 Server-owned VPC execution — LLD target
+
+Java allocates the default network row before the first Droplet/DB; resource insert may remain pending while its network dependency converges. A separate signed network-control exchange carries an assigned account/host VPC snapshot and claim identity, receives progress/completion and renews leases. It does not add a VPC kind to /work or overload storage.bucket. Route/field names, VPC states and capability negotiation remain TBD with B+D/A/C; reviewed schemas, fixtures and generated outputs are prerequisites.
+
+Reuse vpcs generation/ack/lease fields for row-scoped network execution claims with the same expiry/epoch rules; do not insert VPC work into operations.resource_id against a nonexistent resources kind. Use the row's current lease/generation/phase as durable network-attempt evidence; exact phase values remain TBD with B. A recovered unfinished/expired network execution is uncertain until backend settlement/inspection proves its outcome. Store bounded network failure/inspection evidence on vpcs; any future unified operation API needs separately reviewed target mapping. Do not hold a DB transaction open across bridge creation. C's allocator and B's reservation transaction remain authoritative; A only applies and inspects approved addressing.
+
+Workload creation is not execution-ready until the required network generation is converged and ownership/host matches. Lock the VPC and resource when admitting attachments/deletion: reject network teardown with live/reserved attachments; keep IP leases and bridge identity until backend removal is confirmed. Periodic VPC inspection repairs the same deterministic bridge/leases only after conflicting runtime operations settle. Do not silently detach workloads or release CIDRs on timeout. Table/FK checks supplement Java validation of IP containment, reserved addresses, resource/VPC host match and matching allocation references.
+
+### 7.6 Shared MinIO bootstrap — LLD target
+
+One operator-owned compute.instance runtime row drives the shared MinIO process/volume through the generic container driver; it is not a bucket-owned container or new wire kind. Bootstrap provisions the operator account/host assignment and durable process/volume intent before execution; register the reviewed internal image/secret-reference mapping through coordinated compute schemas where needed. Work never contains root/admin secret values; trusted installation mounts operator-controlled secret material. Exact credential storage/delivery and paths remain C+B/A review.
+
+The fixed stack creates/reuses its account default VPC, PostgreSQL instance/volume, storage.bucket with scoped credentials, and app Droplet. stack_resources references the tenant bucket, never owns/deletes the shared MinIO process. Java waits for shared endpoint readiness, then idempotently applies bucket/credential policies under serialized bucket ownership. Loss/restart of that process does not authorize recreating or deleting tenant data. Policy rebuild cannot recreate lost objects; volume/artifact recovery and verified object readback are separate acceptance evidence.
+
+Private Java administration and explicitly permitted tenant S3 access may share a listener. MinIO authorization and protected operator keys enforce administrative separation; console access stays operator-only. Server DB/signing/audit storage keys and MinIO administrator keys have distinct custody/rotation roles. No secret mechanism, endpoint port, credential value or network pool is invented by this reference.
 
 ## 8. Data lifecycle
 
@@ -1967,6 +2052,8 @@ These V1–V4 labels are migration stages, not lifecycle-contract versions. Keep
 | Concurrent claims   | Two claimers get distinct eligible rows                                                                                                          |
 | Backup              | Restore rows and canonical dataset checksum match                                                                                                |
 
+Additional C-owned cases: expired renew/ack updates zero rows; clean inspection leaves acked_generation unchanged; converged runtime deletion is repaired without a new desired generation; terminal rows are not periodically recreated; stale inspection cannot overwrite a new generation; paused/uncertain runtime blocks conflicting takeover; VPC claim fencing and network-before-workload admission; deleting clusters keep ports/quota until cleanup; shared MinIO restart preserves objects and stack deletion leaves the shared process intact.
+
 These support [CORE-5 tests 1–15](CoveStack-AntiWrapper-Acceptance.md). Layer 2 tests are in Appendix B and are not SRS requirements.
 
 ## 11. No schema exists yet
@@ -1990,10 +2077,10 @@ Do not infer schema from authentication record types, generated contract helpers
 | RLS and role/session isolation                                                                         | B+C                    |
 | UUID generation and provider/public ID mapping                                                         | B+D                    |
 | Ciphertext keys/hash algorithm/custody                                                                 | B+C                    |
-| Lease expiry/renewal and observation ordering                                                          | B+A                    |
+| Claim/renew/report encoding and observation ordering | B+D+A; C security tests |
 | Account-scoped model agreed; finalize credential provisioning/custody and trusted credential-to-agent assignment | B+C+A                  |
 | Unauthenticated audit: nullable reference option versus separate security-events table/access          | B+C                    |
-| MinIO admin credential custody, rotation and private server-to-MinIO path                              | B+C                    |
+| Shared MinIO bootstrap/secret delivery, rotation and private server path | B+C+A |
 | Retention/backup storage format                                                                        | B+A                    |
 | Subnet pool and VPC state/compute attachment                                                           | B+A; C allocator       |
 | citext extension and GiST exclusion approval                                                           | B; C tests             |

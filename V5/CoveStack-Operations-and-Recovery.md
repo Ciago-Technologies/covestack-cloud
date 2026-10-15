@@ -20,6 +20,14 @@
 | App fails                   | Report health/error; honor desired state                                       |
 | Extended operation failures | Prior route/config requirements relocated to roadmap; not CORE-5 release gates |
 
+### 1.1 LLD recovery boundaries
+
+DB claim expiry is required for renew/report/ack but is not backend fencing. Keep host process exclusion and per-resource serialization; child/backend actions may outlive main or a client timeout. Before takeover, settle old execution and inspect deterministic owned state. If the outcome remains uncertain, block conflicting mutation and require operator recovery; never delete/recreate just because the request timed out. Record durable attempt evidence before runtime invocation and settlement afterward; do not claim strict exactly-once execution.
+
+Post-convergence resources need DB-scheduled inspections with fresh claims; healthy completion releases/reschedules without changing acked_generation. User intent changes make inspection deadlines immediately eligible; stale health cannot overwrite newer intent. An outage prohibits new mutations, not the completion of an already submitted backend action.
+
+Default-VPC bridge execution precedes attachment. Shared MinIO bootstrap/process is operator-owned; bucket reconstruction is Java-owned. Stack deletion never removes the shared process. DB metadata can recreate policies/buckets but cannot restore lost object bytes; retain/recover volumes and verify known objects separately. Capacity and quota reservations remain held through uncertain deletion/cleanup.
+
 ## 2. Routine operations
 
 | Procedure                | Required checks                                                    |
