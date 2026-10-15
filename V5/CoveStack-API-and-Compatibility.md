@@ -1,35 +1,35 @@
 # CoveStack V5 — API Boundaries and Compatibility Matrix
 
-| Document control | Value |
-|---|---|
-| Product / documentation | **CoveStack / V5** |
-| Updated | **14 October 2026** |
-| Submission deadline | **Monday, 25 January 2027** |
-| Compatibility names | Server: `kan-server`; agent: `kan-agent` |
-| Status | Target design and implementation guidance; not a completion certificate |
+| Document control        | Value                                                                   |
+| ----------------------- | ----------------------------------------------------------------------- |
+| Product / documentation | **CoveStack / V5**                                                      |
+| Updated                 | **14 October 2026**                                                     |
+| Submission deadline     | **Monday, 25 January 2027**                                             |
+| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
+| Status                  | Target design and implementation guidance; not a completion certificate |
 
 ## 1. One backend model
 
 All user-facing interfaces call core authorized services. Provider-style and management controllers adapt those services; they must not implement duplicate resource state or bypass account checks.
 
-| API area | Consumer | Policy |
-|---|---|---|
-| Internal signed agent | Go worker | Service identity and private route |
-| Provider-style subset | Tested /v2 consumers | Bearer account scope and exact DTO mapping; no full parity claim |
-| CoveStack management | CLI and optional provider | CORE-5 resources and one stack integration; stable JSON |
-| S3 endpoint | Application/S3 client | Scoped storage credential and signed protocol |
-| Kubernetes API | Authorized kubectl/workload operator | Protected kubeconfig and route |
-| Extended interfaces | [Roadmap](CoveStack-Extended-Roadmap.md) | Prior interface design relocated; not SRS scope |
+| API area              | Consumer                                 | Policy                                                           |
+| --------------------- | ---------------------------------------- | ---------------------------------------------------------------- |
+| Internal signed agent | Go worker                                | Service identity and private route                               |
+| Provider-style subset | Tested /v2 consumers                     | Bearer account scope and exact DTO mapping; no full parity claim |
+| CoveStack management  | CLI and optional provider                | CORE-5 resources and one stack integration; stable JSON          |
+| S3 endpoint           | Application/S3 client                    | Scoped storage credential and signed protocol                    |
+| Kubernetes API        | Authorized kubectl/workload operator     | Protected kubeconfig and route                                   |
+| Extended interfaces   | [Roadmap](CoveStack-Extended-Roadmap.md) | Prior interface design relocated; not SRS scope                  |
 
 ## 2. Existing internal endpoint inventory
 
-| Method | Path | Purpose |
-|---|---|---|
-| POST | `/internal/v1/agent/heartbeat` | Presence and installed capabilities |
-| GET | `/internal/v1/agent/work` | Scoped desired work |
-| PUT | `/internal/v1/agent/resources/{id}/observed` | State/generation observation |
-| GET | `/internal/v1/agent/known-ids` | Defined complete scoped inventory |
-| POST | `/internal/v1/agent/events` | Bounded report/event input |
+| Method | Path                                         | Purpose                             |
+| ------ | -------------------------------------------- | ----------------------------------- |
+| POST   | `/internal/v1/agent/heartbeat`               | Presence and installed capabilities |
+| GET    | `/internal/v1/agent/work`                    | Scoped desired work                 |
+| PUT    | `/internal/v1/agent/resources/{id}/observed` | State/generation observation        |
+| GET    | `/internal/v1/agent/known-ids`               | Defined complete scoped inventory   |
+| POST   | `/internal/v1/agent/events`                  | Bounded report/event input          |
 
 GET work/known-ids scopes are authenticated agent/account plus advertised supportedKinds, excluding server-owned groups/buckets. No caller-selected account parameter exists. Current service-key verification derives accountId/accessKeyId/kind; assignment to an agent and multi-account provisioning/poll selection remain B+C+A decisions. Ownership labels do not grant account scope. Known-ids cleanup requires a complete scoped inventory; a timeout/partial response authorizes no deletion.
 
@@ -37,26 +37,26 @@ Actual request/response shapes remain in `contracts/internal-api.yaml`. V5 does 
 
 ## 3. CORE-5 management models
 
-| Model | Required semantics |
-|---|---|
+| Model              | Required semantics                                                                                     |
+| ------------------ | ------------------------------------------------------------------------------------------------------ |
 | Resource/operation | Account scope, generation, lease/epoch; operation states queued, running, completed, failed, cancelled |
-| VPC/IPAM | Server-owned intent; one private network/account; unknown states TBD with B; attachment schema B+A |
-| Stack/template | One immutable template version and fixed sequence; child IDs; no DAG engine |
-| IDs | Internal uuid; CLI prefixed public_id; /v2 numeric provider_id; B+D finalize |
-| Automation JSON | Stable list/get output for every service; no credential/kubeconfig content |
+| VPC/IPAM           | Server-owned intent; one private network/account; unknown states TBD with B; attachment schema B+A     |
+| Stack/template     | One immutable template version and fixed sequence; child IDs; no DAG engine                            |
+| IDs                | Internal uuid; CLI prefixed public_id; /v2 numeric provider_id; B+D finalize                           |
+| Automation JSON    | Stable list/get output for every service; no credential/kubeconfig content                             |
 
 CLI, Terraform provider and future inventory use only authenticated API, never Docker/k3d or direct DB. Every mutating CLI command carries an idempotency key; pending is user-facing behavior, not a newly invented operation state. Create returns immediately; --wait polls. Endpoint additions/fields/error strings need B+D review and coordinated schemas/fixtures/generated outputs; absent values are TBD with B.
 
 ## 4. Compatibility register
 
-| Field | Record per tested feature |
-|---|---|
-| Endpoint/method | Exact supported operation |
-| Request fields | Required/optional/unsupported |
-| Response and error | Actual status/body and pagination |
-| Client/tool | Version tested and endpoint override |
-| Async behavior | Polling/timeout/action result |
-| Limitation | Container/cluster/provider differences |
+| Field              | Record per tested feature              |
+| ------------------ | -------------------------------------- |
+| Endpoint/method    | Exact supported operation              |
+| Request fields     | Required/optional/unsupported          |
+| Response and error | Actual status/body and pagination      |
+| Client/tool        | Version tested and endpoint override   |
+| Async behavior     | Polling/timeout/action result          |
+| Limitation         | Container/cluster/provider differences |
 
 DigitalOcean-style IDs/actions need explicit mappings rather than leaking internal identifiers by accident. A custom Terraform provider does not automatically make the standard DigitalOcean provider compatible. A real S3 endpoint is distinct from a management bucket record. Website reachability is distinct from Kubernetes admin connectivity.
 

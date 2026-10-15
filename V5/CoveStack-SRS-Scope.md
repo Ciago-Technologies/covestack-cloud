@@ -1,12 +1,12 @@
 # CoveStack V5 — CORE-5 SRS Scope for Integration
 
-| Document control | Value |
-|---|---|
-| Product / documentation | **CoveStack / V5** |
-| Updated | **14 October 2026** |
-| Submission deadline | **Monday, 25 January 2027** |
-| Compatibility names | Server: `kan-server`; agent: `kan-agent` |
-| Status | Target design and implementation guidance; not a completion certificate |
+| Document control        | Value                                                                   |
+| ----------------------- | ----------------------------------------------------------------------- |
+| Product / documentation | **CoveStack / V5**                                                      |
+| Updated                 | **14 October 2026**                                                     |
+| Submission deadline     | **Monday, 25 January 2027**                                             |
+| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
+| Status                  | Target design and implementation guidance; not a completion certificate |
 
 ## 1. Status and purpose
 
@@ -18,34 +18,34 @@ This scope file is to be merged into the future SRS; no existing SRS/requirement
 
 ## 2. Exactly five services
 
-| Service | Scope | Status |
-|---|---|---|
-| Compute/Droplets | Container-backed, single host; never a VM | Planned |
-| Kubernetes | Required k3d; max 2 clusters/host; 1 server + max 2 agents; one pinned k3s version | Planned |
-| Managed PostgreSQL | Backup/restore, scoped credentials, private network | Planned |
-| Object storage | S3-compatible MinIO, per-account credentials, scoped buckets | Planned |
-| VPC/IPAM | One private network/account; simple allocator; no custom CIDR | Planned |
+| Service            | Scope                                                                              | Status  |
+| ------------------ | ---------------------------------------------------------------------------------- | ------- |
+| Compute/Droplets   | Container-backed, single host; never a VM                                          | Planned |
+| Kubernetes         | Required k3d; max 2 clusters/host; 1 server + max 2 agents; one pinned k3s version | Planned |
+| Managed PostgreSQL | Backup/restore, scoped credentials, private network                                | Planned |
+| Object storage     | S3-compatible MinIO, per-account credentials, scoped buckets                       | Planned |
+| VPC/IPAM           | One private network/account; simple allocator; no custom CIDR                      | Planned |
 
 ## 3. Cross-cutting items — not additional services
 
-| Item | Bound |
-|---|---|
-| Security | Authenticated API, account predicates, ciphertext/hash custody |
-| Recovery | DB desired state/generation; crash tests and measured restore |
-| CLI first | Go/cobra API client; no UI work during CORE-5 |
-| Terraform optional | Droplet and Kubernetes resources only |
+| Item                  | Bound                                                           |
+| --------------------- | --------------------------------------------------------------- |
+| Security              | Authenticated API, account predicates, ciphertext/hash custody  |
+| Recovery              | DB desired state/generation; crash tests and measured restore   |
+| CLI first             | Go/cobra API client; no UI work during CORE-5                   |
+| Terraform optional    | Droplet and Kubernetes resources only                           |
 | One integration stack | PostgreSQL + MinIO + app Droplet; fixed sequence, no DAG engine |
-| Ansible Part 1 | Install playbook and ITISS evidence |
+| Ansible Part 1        | Install playbook and ITISS evidence                             |
 
 ## 4. Five deliverables and one integration demo
 
-| Deliverable | G1 DB intent | G2 crash/rebuild | G3 isolation | G4 failure evidence |
-|---|---|---|---|---|
-| Compute/Droplets | Resource generation | Inspect before create | Other-account 404 | Tests 1–6 |
-| Kubernetes | Cluster/port reservation | Recover half-create | Kubeconfig 404 | Tests 7–10 |
-| Managed PostgreSQL | Owned resource/volume | Reattach/restore | API 404/private DB denial | Test 11 |
-| Object storage | Bucket/credential rows | Java reconciles after restart | API 404/S3 denial | Tests 12–13 |
-| VPC/IPAM | Network intent/IP leases | Rebuild helper configuration | Network 404 | Test 14 |
+| Deliverable        | G1 DB intent             | G2 crash/rebuild              | G3 isolation              | G4 failure evidence |
+| ------------------ | ------------------------ | ----------------------------- | ------------------------- | ------------------- |
+| Compute/Droplets   | Resource generation      | Inspect before create         | Other-account 404         | Tests 1–6           |
+| Kubernetes         | Cluster/port reservation | Recover half-create           | Kubeconfig 404            | Tests 7–10          |
+| Managed PostgreSQL | Owned resource/volume    | Reattach/restore              | API 404/private DB denial | Test 11             |
+| Object storage     | Bucket/credential rows   | Java reconciles after restart | API 404/S3 denial         | Tests 12–13         |
+| VPC/IPAM           | Network intent/IP leases | Rebuild helper configuration  | Network 404               | Test 14             |
 
 Stack demo: test **15** proves one-command provisioning, recorded partial failure and retry without duplicates. It is integration of the five-service deliverable, not a sixth service.
 

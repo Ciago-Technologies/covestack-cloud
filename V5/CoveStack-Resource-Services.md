@@ -1,24 +1,24 @@
 # CoveStack V5 — Resource Specifications and Service Behavior
 
-| Document control | Value |
-|---|---|
-| Product / documentation | **CoveStack / V5** |
-| Updated | **14 October 2026** |
-| Submission deadline | **Monday, 25 January 2027** |
-| Compatibility names | Server: `kan-server`; agent: `kan-agent` |
-| Status | Target design and implementation guidance; not a completion certificate |
+| Document control        | Value                                                                   |
+| ----------------------- | ----------------------------------------------------------------------- |
+| Product / documentation | **CoveStack / V5**                                                      |
+| Updated                 | **14 October 2026**                                                     |
+| Submission deadline     | **Monday, 25 January 2027**                                             |
+| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
+| Status                  | Target design and implementation guidance; not a completion certificate |
 
 ## 1. Common resource envelope
 
-| Field/behavior | Requirement |
-|---|---|
-| ID, account and kind | Stable identity from trusted server context |
-| Host/agent and lease | Authorized execution placement |
-| Desired spec/generation | Validated versioned intent |
-| Observed state/time | Actual evidence, not requested state echoed back |
-| Operation | Durable create/update/delete attempt and result |
-| Secret references | Separate protected retrieval |
-| Ownership labels | kan.* reserved labels are proposed; approve contract before use; existing fixtures do not establish these labels |
+| Field/behavior          | Requirement                                                                                                      |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| ID, account and kind    | Stable identity from trusted server context                                                                      |
+| Host/agent and lease    | Authorized execution placement                                                                                   |
+| Desired spec/generation | Validated versioned intent                                                                                       |
+| Observed state/time     | Actual evidence, not requested state echoed back                                                                 |
+| Operation               | Durable create/update/delete attempt and result                                                                  |
+| Secret references       | Separate protected retrieval                                                                                     |
+| Ownership labels        | kan.* reserved labels are proposed; approve contract before use; existing fixtures do not establish these labels |
 
 Use authoritative current contract vocabulary, not new enums copied from this document. Unsupported fields/actions are rejected explicitly. Failed work never acknowledges successful generation. Contract 1.1.0 wins; unknown strings are TBD with B. Convergence ack requires exact owner/epoch/generation and clears both lease fields; progress never changes acked_generation.
 
@@ -28,14 +28,14 @@ Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CO
 
 ## 2. Droplets / compute instances
 
-| Input | Bounded behavior |
-|---|---|
-| Image | Approved tested workload image |
-| Size | Enforced CPU/memory/storage policy |
-| Network | Owned VPC on selected execution host |
-| SSH key | Validated owned public key; only if SSH mode supported |
-| App port | Private application listener; public routing is a roadmap target |
-| Persistent storage | Explicit volume identity and retention |
+| Input              | Bounded behavior                                                 |
+| ------------------ | ---------------------------------------------------------------- |
+| Image              | Approved tested workload image                                   |
+| Size               | Enforced CPU/memory/storage policy                               |
+| Network            | Owned VPC on selected execution host                             |
+| SSH key            | Validated owned public key; only if SSH mode supported           |
+| App port           | Private application listener; public routing is a roadmap target |
+| Persistent storage | Explicit volume identity and retention                           |
 
 Inspect approved reserved labels and stable runtime identity before Ensure creates anything. Start/stop must respect user intent; an intentional stop is not a failure requiring replacement. Reboot requires an explicit operation or restart marker, not an active-to-active state change with no effect. Convergence includes agreed readiness, not only container existence.
 
@@ -47,14 +47,14 @@ Droplets are container-backed on one host, never VMs. Tests 1–6 prove crash/fe
 
 ## 3. Kubernetes clusters
 
-| Area | Initial support |
-|---|---|
-| Version | One tested pinned k3d+k3s pair; verify every CLI flag |
-| Shape | 1 server + max 2 agents; hard cap 2 clusters/host |
-| Network | Explicit Docker, Pod and Service CIDRs without collisions |
-| Administration | Authorized separately exported kubeconfig |
-| Website | Private workload rollout; public routing details relocated to roadmap |
-| Lifecycle | Create/inspect/delete; other actions enabled after tests |
+| Area           | Initial support                                                       |
+| -------------- | --------------------------------------------------------------------- |
+| Version        | One tested pinned k3d+k3s pair; verify every CLI flag                 |
+| Shape          | 1 server + max 2 agents; hard cap 2 clusters/host                     |
+| Network        | Explicit Docker, Pod and Service CIDRs without collisions             |
+| Administration | Authorized separately exported kubeconfig                             |
+| Website        | Private workload rollout; public routing details relocated to roadmap |
+| Lifecycle      | Create/inspect/delete; other actions enabled after tests              |
 
 Cluster provisioning is actual local Kubernetes, not a renamed app container. Track provisioning, readiness, failure and safe cleanup using the shared lifecycle. Protect cluster administration from ordinary public website routing. Preserve the caller's existing kubeconfig on export/merge.
 
@@ -68,14 +68,14 @@ Tests 7–10: exactly one cluster after crash; other-account kubeconfig 404 and 
 
 ## 4. Managed PostgreSQL
 
-| Area | Required policy |
-|---|---|
-| Engine | One reviewed tested PostgreSQL line |
-| Data | Named owned volume and stable attachment |
-| Credentials | Scoped generated secret and protected connection details |
-| Network | User VPC/private route, separate from control-plane DB |
-| Readiness | Authenticated usable connection under timeout |
-| Delete | Explicit retain/delete policy |
+| Area           | Required policy                                          |
+| -------------- | -------------------------------------------------------- |
+| Engine         | One reviewed tested PostgreSQL line                      |
+| Data           | Named owned volume and stable attachment                 |
+| Credentials    | Scoped generated secret and protected connection details |
+| Network        | User VPC/private route, separate from control-plane DB   |
+| Readiness      | Authenticated usable connection under timeout            |
+| Delete         | Explicit retain/delete policy                            |
 | Backup/restore | Measured known-row and checksum restore; scoped artifact |
 
 The database used by the control plane is not a user-managed database. Restart/replacement must preserve data and account identity. Existing volumes have their initialized password; changing an environment variable is not a password rotation. Schema migrations for platform state differ from user database application migrations.
@@ -86,14 +86,14 @@ Generic container driver: image/env/volume/labels/health, not a third PostgreSQL
 
 ## 5. Object storage through MinIO
 
-| Area | Required behavior |
-|---|---|
-| Bucket | Account-owned logical/physical mapping |
-| S3 endpoint | Actual client-reachable supported protocol endpoint |
-| Credential | Scoped policy; not global MinIO root keys |
-| Operations | Selected put/get/list/delete tests |
-| Persistence | Correct mounted data path and object verification |
-| Network | Defined shared-service/private/public endpoint policy |
+| Area        | Required behavior                                     |
+| ----------- | ----------------------------------------------------- |
+| Bucket      | Account-owned logical/physical mapping                |
+| S3 endpoint | Actual client-reachable supported protocol endpoint   |
+| Credential  | Scoped policy; not global MinIO root keys             |
+| Operations  | Selected put/get/list/delete tests                    |
+| Persistence | Correct mounted data path and object verification     |
+| Network     | Defined shared-service/private/public endpoint policy |
 
 A bucket is a server-managed logical resource; it need not be one container or bridge. Prefixing its name avoids collisions but does not authorize access. Shared MinIO can be used if credentials/policies isolate accounts. Define approved app access to that shared endpoint rather than pretending each bucket is physically attached to a VPC.
 

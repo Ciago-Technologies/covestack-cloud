@@ -1,27 +1,27 @@
 # CoveStack V5 — Team Onboarding and Shared Working Rules
 
-| Document control | Value |
-|---|---|
-| Product / documentation | **CoveStack / V5** |
-| Updated | **14 October 2026** |
-| Submission deadline | **Monday, 25 January 2027** |
-| Compatibility names | Server: `kan-server`; agent: `kan-agent` |
-| Status | Target design and implementation guidance; not a completion certificate |
+| Document control        | Value                                                                   |
+| ----------------------- | ----------------------------------------------------------------------- |
+| Product / documentation | **CoveStack / V5**                                                      |
+| Updated                 | **14 October 2026**                                                     |
+| Submission deadline     | **Monday, 25 January 2027**                                             |
+| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
+| Status                  | Target design and implementation guidance; not a completion certificate |
 
 ## 1. Read first
 
 Start from the [V5 index and teammate reading order](README.md#4-reading-order-and-teammate-sharing). Everyone reads:
 
-| Order | File | Purpose |
-|---|---|---|
-| 1 | [SRS scope](CoveStack-SRS-Scope.md) | Exactly five services and cross-cutting deliverables |
-| 2 | [Design](DocsV5-DO_Team.md) | Control plane, not direct runtime handlers |
-| 3 | [Roles](Team_Roles.md) | A agent Go; E thin CLI; B/C/D Java boundaries |
-| 4 | [Workflow](CoveStack-Project-Workflow.md) | CORE-5 schedule to Monday, 25 January 2027 |
-| 5 | [Setup](CoveStack-Complete-Working-Setup.md) | Baseline checks, target installation and Known constraints |
-| 6 | [Gates](CoveStack-Service-Gates.md) | G1–G4 promotion evidence |
-| 7 | [Acceptance](CoveStack-AntiWrapper-Acceptance.md) | Tests 1–15 and CORE-5 viva |
-| 8 | [Status](CoveStack-Implementation-Status.md) | No service promoted from source presence |
+| Order | File                                              | Purpose                                                    |
+| ----- | ------------------------------------------------- | ---------------------------------------------------------- |
+| 1     | [SRS scope](CoveStack-SRS-Scope.md)               | Exactly five services and cross-cutting deliverables       |
+| 2     | [Design](DocsV5-DO_Team.md)                       | Control plane, not direct runtime handlers                 |
+| 3     | [Roles](Team_Roles.md)                            | A agent Go; E thin CLI; B/C/D Java boundaries              |
+| 4     | [Workflow](CoveStack-Project-Workflow.md)         | CORE-5 schedule to Monday, 25 January 2027                 |
+| 5     | [Setup](CoveStack-Complete-Working-Setup.md)      | Baseline checks, target installation and Known constraints |
+| 6     | [Gates](CoveStack-Service-Gates.md)               | G1–G4 promotion evidence                                   |
+| 7     | [Acceptance](CoveStack-AntiWrapper-Acceptance.md) | Tests 1–15 and CORE-5 viva                                 |
+| 8     | [Status](CoveStack-Implementation-Status.md)      | No service promoted from source presence                   |
 
 Then read assigned schema/API/Go/security guides from the index. Clone the entire repository. Java developers work in kan-server; A works in kan-agent/pkg/kanclient; E in planned cmd/covestack and later thin provider. Git pushes repository commits, not into a service folder.
 
@@ -48,19 +48,19 @@ Raise a reviewed PR into main. Stage intended files explicitly. Do not add ignor
 
 ## 3. Shared rules
 
-| Rule | Reason |
-|---|---|
-| Keep server/agent identifiers | Compatibility and imports |
-| Common API/services | CLI/provider/inventory authenticated API only; no Docker/k3d/DB |
-| Contract changes reviewed | Go/Java/schema agreement |
-| No direct main push | Review and required tests |
-| Local secrets per teammate | No shared real secret bundles |
-| Honest service status | Planned / In progress / Gates passed / Extended track only; mocks do not pass gates |
-| Actual evidence | Date, commit, versions and result; C owns all acceptance tests |
-| CLI order | droplet → vpc → k8s → db → bucket → stack; previous failure test in CI first |
-| Kubernetes | Required; max 2 clusters/host, 1 server + max 2 agents |
-| Credentials/polling | service signing versus hash-only API tokens; multi-account polls TBD B+C+A |
-| Go learning | E CLI only; A types/explains agent Go; any Go change reviewed by A |
+| Rule                          | Reason                                                                              |
+| ----------------------------- | ----------------------------------------------------------------------------------- |
+| Keep server/agent identifiers | Compatibility and imports                                                           |
+| Common API/services           | CLI/provider/inventory authenticated API only; no Docker/k3d/DB                     |
+| Contract changes reviewed     | Go/Java/schema agreement                                                            |
+| No direct main push           | Review and required tests                                                           |
+| Local secrets per teammate    | No shared real secret bundles                                                       |
+| Honest service status         | Planned / In progress / Gates passed / Extended track only; mocks do not pass gates |
+| Actual evidence               | Date, commit, versions and result; C owns all acceptance tests                      |
+| CLI order                     | droplet → vpc → k8s → db → bucket → stack; previous failure test in CI first        |
+| Kubernetes                    | Required; max 2 clusters/host, 1 server + max 2 agents                              |
+| Credentials/polling           | service signing versus hash-only API tokens; multi-account polls TBD B+C+A          |
+| Go learning                   | E CLI only; A types/explains agent Go; any Go change reviewed by A                  |
 
 ## 4. Documentation sharing
 
@@ -70,13 +70,13 @@ Older docs/team schedules are historical; V5 deadline is Monday, 25 January 2027
 
 ## 5. First team task
 
-| Owner | First agreed slice |
-|---|---|
-| A | Review config/client/module boundary; signed poll main and real auth-smoke; agent account/assignment decision with B+C |
-| B | Server main/configuration; schema review and staged Flyway proposal; all lease/fence/idempotency SQL |
-| C | Concrete credential/auth lookup; acceptance tests from day 1; allocator/security review |
-| D | Java API/DTO schema review and /v2 subset fixtures; no Go |
-| E | W1–W4 Go handover; thin cobra CLI/API mocks and cross-builds; no agent work |
+| Owner | First agreed slice                                                                                                     |
+| ----- | ---------------------------------------------------------------------------------------------------------------------- |
+| A     | Review config/client/module boundary; signed poll main and real auth-smoke; agent account/assignment decision with B+C |
+| B     | Server main/configuration; schema review and staged Flyway proposal; all lease/fence/idempotency SQL                   |
+| C     | Concrete credential/auth lookup; acceptance tests from day 1; allocator/security review                                |
+| D     | Java API/DTO schema review and /v2 subset fixtures; no Go                                                              |
+| E     | W1–W4 Go handover; thin cobra CLI/API mocks and cross-builds; no agent work                                            |
 
 Confirm the shared baseline and reviewers, then deliver one real Droplet lifecycle through API/CLI before advancing. No UI work during CORE-5. Extend only under the roadmap entry rule; if A is one week behind, stop all extended work. Mentor ITISS coding confirmation remains pending.
 
