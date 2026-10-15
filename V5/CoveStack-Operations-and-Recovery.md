@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
+| Updated                 | **15 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -81,7 +81,7 @@ Record symptom, time/commit/environment, affected accounts, observed state and s
 
 Clean-VM install, tests 1–15, private administration, credential revocation and measured PostgreSQL restoration need actual results. Live demo highlights tests 1, 3, 4 and get view; remaining tests are CI/video. Keep backup recording for the phone hotspot; CLI cross-builds three targets and runs on two actual OSes. Public-edge/alert scenarios are preserved as extended targets in the roadmap.
 
-Only two drivers: generic container and k3d. Java reconciles bucket/policy after MinIO restart; failed/partial work inventory never authorizes deletion. Multi-account agent polls remain B+C+A decision. Retention defaults are TBD with B+A.
+Only two drivers: generic container and k3d. Java reconciles bucket/policy after MinIO restart; failed/partial work inventory never authorizes deletion. Agreed target: one agent process per physical host; separate service credential and authenticated polling context per assigned account. B owns server assignment validation; C credential provisioning/rotation/revocation; A isolated clients and shared bounded execution. Provisioning/storage details still need B+C+A review; no new wire fields. Retention defaults are TBD with B+A.
 
 **Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
 

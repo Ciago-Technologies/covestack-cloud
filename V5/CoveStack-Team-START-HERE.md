@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
+| Updated                 | **15 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -59,7 +59,7 @@ Raise a reviewed PR into main. Stage intended files explicitly. Do not add ignor
 | Actual evidence               | Date, commit, versions and result; C owns all acceptance tests                      |
 | CLI order                     | droplet → vpc → k8s → db → bucket → stack; previous failure test in CI first        |
 | Kubernetes                    | Required; max 2 clusters/host, 1 server + max 2 agents                              |
-| Credentials/polling           | service signing versus hash-only API tokens; multi-account polls TBD B+C+A          |
+| Credentials/polling           | service signing versus hash-only API tokens; agreed one process/host; separate credential/client per account; custody/assignment details B+C+A          |
 | Go learning                   | E CLI only; A types/explains agent Go; any Go change reviewed by A                  |
 
 ## 4. Documentation sharing

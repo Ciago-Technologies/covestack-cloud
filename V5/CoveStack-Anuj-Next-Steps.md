@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
+| Updated                 | **15 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -20,7 +20,7 @@ Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CO
 
 | Order | A work                                                  | Acceptance/review                                                     |
 | ----- | ------------------------------------------------------- | --------------------------------------------------------------------- |
-| 1     | Review local config/tests; schema and signed-poll scope | B+C+A credential-to-agent/account decision; no cross-account shortcut |
+| 1     | Review local config/tests; schema and signed-poll scope | Implement agreed one-process/per-account-client model after assignment/custody review; no cross-account shortcut |
 | 2     | Plan module layout and signer move into pkg/kanclient   | A+B+C review; move not performed now                                  |
 | 3     | Typed HTTP client and injected-transport tests          | Finite timeout, cancellation, no redirects, bounded body              |
 | 4     | Production heartbeat/poll/shutdown main                 | Real server/auth-smoke; advertise only installed reviewed kinds       |
@@ -54,7 +54,7 @@ Create one owned container-backed Droplet, inspect by approved labels before cre
 
 Epoch is the fence; convergence ack requires exact generation/owner/epoch and clears lease_owner plus lease_expires_at together, leaving epoch unchanged. Progress is separate and never changes acked_generation. A reviews agent integration; B owns SQL; C owns tests. Lifecycle success mapping uses existing contract strings only.
 
-One poll is scoped to the verified service credential account and assigned agent. The contract does not settle provisioning/selection for multi-account polls: B+C+A must decide before implementing that behavior.
+Agreed target: one agent process per physical host; separate service credential and authenticated polling context per assigned account. B owns server assignment validation; C credential provisioning/rotation/revocation; A isolated clients and shared bounded execution. Provisioning/storage details still need B+C+A review; no new wire fields.
 
 ## 5. ITISS parallel track
 

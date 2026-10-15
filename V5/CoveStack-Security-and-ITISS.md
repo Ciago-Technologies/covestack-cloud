@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
+| Updated                 | **15 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -49,7 +49,7 @@ Threats include compromised workload/agent and accidental operator mistakes. Sim
 | User tokens                 | api_tokens hash-only lookup, expiry/revocation and permissions        |
 | Service secret storage      | signing_credentials ciphertext/key version; service kind; custody B+C |
 
-Signing establishes authenticity/integrity, not encryption or resource authorization. TLS provides transport confidentiality; backend policy determines account access. A real store/bootstrap and running-server tests remain necessary. Each poll derives account scope from its verified service principal; trusted credential-to-agent assignment and multi-account polling remain open B+C+A. Never treat a label/caller-selected account as authorization.
+Signing establishes authenticity/integrity, not encryption or resource authorization. TLS provides transport confidentiality; backend policy determines account access. A real store/bootstrap and running-server tests remain necessary. Each poll derives account scope from its verified service principal; the agreed target is one process/host with separate service credentials and polling contexts per account; B validates stored assignments, C reviews secure provisioning/custody/revocation, A implements isolated clients. Never treat a label/caller-selected account as authorization.
 
 ## 4. Host and workload authority
 

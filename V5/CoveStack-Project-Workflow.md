@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
+| Updated                 | **15 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -46,7 +46,7 @@ E has weekly Go-learning reviews: W1 basics/cobra/three-OS builds; W2 HTTP/JSON/
 
 CLI-first order: **droplet → vpc → k8s → db → bucket → stack**. Start the next production CLI service only after the previous service's failure test passes in CI. W3 K8s practice is mock-only.
 
-Auth, durable intent and signed agent scope precede real reconciliation. VPC is server-owned; compute network attachment needs coordinated contract review B+A. A credential scopes one poll to its account; the physical agent's multi-account polling/provisioning model remains B+C+A decision. Do not bypass that decision with caller-selected account parameters.
+Auth, durable intent and signed agent scope precede real reconciliation. VPC is server-owned; compute network attachment needs coordinated contract review B+A. Agreed target: one agent process per physical host; separate service credential and authenticated polling context per assigned account. B owns server assignment validation; C credential provisioning/rotation/revocation; A isolated clients and shared bounded execution. Provisioning/storage details still need B+C+A review; no new wire fields. Do not bypass that decision with caller-selected account parameters.
 
 CLI, Terraform provider and Ansible inventory use only the authenticated API. CLI has no local DB and no Docker/k3d dependency; config is server URL/key ID/profile, secrets from env/keychain. Mutations send an idempotency key; create returns pending, --wait polls; get shows desired/converged generation, lease and observed state; list/get support -o json. No UI work during CORE-5.
 

@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
+| Updated                 | **15 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -46,13 +46,17 @@ Test 14 does not permit custom user CIDRs: overlap is exercised against allocato
 
 | Flow                 | Required invariant                                                                                                                                                        |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Claim                | Verified credential account/agent context, not caller-selected account; multi-account polling TBD B+C+A; SKIP LOCKED, bump epoch, reference 30-second lease               |
+| Claim                | Verified credential account/agent context, not caller-selected account; agreed separate account credentials/clients in one host process; assignment details B+C+A; SKIP LOCKED, bump epoch, reference 30-second lease               |
 | Acknowledge          | id, lease_owner, lease_epoch match AND generation = :gen; zero rows rejected; accepted ack clears lease_owner and lease_expires_at together, leaves lease_epoch unchanged |
 | Progress             | Separate guarded statement; never touches acked_generation                                                                                                                |
 | Expiry               | Epoch is the fence; expiry predicate decision remains with B                                                                                                              |
 | Idempotent create    | Account/key reservation, resource, operation/event and response in ONE transaction                                                                                        |
 | Fingerprint mismatch | Same key and different normalized request body: 422                                                                                                                       |
 | Retry                | Refresh/resume durable operation, not duplicate runtime create                                                                                                            |
+
+### 3.1 Account-context acceptance — extends existing tests
+
+C owns these cases; they supplement existing numbers, not new service/test IDs. Test 3: account A credentials cannot fetch/report/ack B work, including forged resource IDs; server checks assignment as well as account. Test 6: revoke/fail one account context while another keeps polling; no credential fallback or cleanup from failed inventory. Tests 1–2: restart both contexts and reject stale epochs without duplicates. Test 10: accounts share the canonical host cap; concurrent third-cluster request is rejected under the DB lock. Add client-level tests for immutable credentials and correct request/response context routing. Agent compromise remains a trusted-host risk, not isolation solved by separate credentials.
 
 ## 4. CORE-5 live demo and recorded evidence
 

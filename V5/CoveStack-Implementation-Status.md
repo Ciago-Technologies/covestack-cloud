@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
+| Updated                 | **15 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -46,7 +46,7 @@ Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CO
 | Open item              | Required coordinated review                                                                   |
 | ---------------------- | --------------------------------------------------------------------------------------------- |
 | VPC/compute attachment | VPC server-owned, no contract kind; attachment schema/capability change B+A; state TBD with B |
-| Multi-account polling  | One credential-account poll; trusted agent lookup and multi-account credential model B+C+A    |
+| Multi-account polling  | Agreed one process/host and separate account credentials/clients; implementation Planned; assignment/custody details B+C+A    |
 | Stack                  | One fixed-sequence integration; missing states TBD with B; no invented DAG wire model         |
 | IDs/DTOs               | Internal uuid, CLI public_id, numeric /v2 provider_id; B+D finalize                           |
 | Credential custody     | Hash-only api_tokens; encrypted service-kind signing_credentials; B+C                         |

@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
+| Updated                 | **15 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -1829,7 +1829,7 @@ Token plaintext is returned only at authorized issuance, never stored/retrieved 
 
 | Flow               | Reference policy                                                                                                     |
 | ------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| Claim/ack          | READ COMMITTED plus row locks; account comes from verified service principal; assigned agent binding B+C+A finalizes |
+| Claim/ack          | READ COMMITTED plus row locks; account comes from verified service principal; one process/host, account-specific credentials/clients; B validates assignment, B+C+A finalize provisioning |
 | Two-cluster cap    | Per-canonical-agent advisory lock plus derived count within create transaction                                       |
 | Account share      | Account quota inside host cap; value TBD with B                                                                      |
 | IP/port allocation | Advisory/row lock or SERIALIZABLE; uniqueness/exclusion as final guard                                               |
@@ -1839,15 +1839,15 @@ Token plaintext is returned only at authorized issuance, never stored/retrieved 
 
 Agent host registry/fingerprint must be canonical across accounts; multiple aliases of one physical host cannot evade the two-cluster cap. Joining tenant resources to a global host does not authorize cross-account read/write. Startup/restart rebuilds port and IP knowledge from DB plus inspected owned execution objects.
 
-### 7.2 Claim — account scoping TBD (B+C+A)
+### 7.2 Claim — agreed account-scoped polling; assignment details B+C+A
 
 Read-only sources: contracts/examples/get-work-response-all-services.json, contracts/examples/get-work-response-k8s.json and contracts/internal-api.yaml. Work is assigned to the authenticated agent/account and advertised supportedKinds; server-owned buckets/groups are excluded. Both examples carry the same kan.io/account label. That label records ownership but is not authentication or permission to select an account. Example versions are fixtures, not a release pin.
 
 The GET work operation has no account selector. The current signing filter looks up X-Kan-Access-Key, validates a service credential and builds kan.principal from its accountId/accessKeyId/kind. The contract does not define a cross-account credential registry, account switching flow or an agent-ID wire field. The trusted agent assignment lookup behind that credential also needs B+C+A review.
 
-**One request is scoped to its verified credential account.** A global host/agent row does not authorize global work polling. For one physical agent serving multiple accounts, B+C+A must decide credential provisioning/selection and the polling model. Separate per-account authenticated polls are one possible model, not an approved implementation. Broader scope requires coordinated contract/security review; no wire field is invented here.
+**One request is scoped to its verified credential account.** Team-agreed target on 15 October 2026: one agent process per physical host, with separate service credentials and immutable authenticated client/polling contexts for each assigned account, sharing a bounded execution coordinator. A global host row never authorizes global work polling. B validates stored account/agent assignments; C owns credential provisioning/custody/rotation/revocation review; A implements isolated clients. Assignment lookup and credential delivery/storage details remain to be finalized B+C+A. This is a design decision, not a running feature; no new wire field is invented.
 
-Reference query below: **account scoping TBD**, not executable/migration-ready. Parameters named authenticated_account_id/authenticated_agent_id are server-side context derived and authorized before the query, never caller-provided query/body fields. validated_supported_kinds comes from reviewed installed capabilities/heartbeat and agent-owned contract kinds; no pending driver may be advertised. Owner authorization is separate from SKIP LOCKED.
+Reference query below follows the agreed account-scoped model; **assignment lookup/provisioning details remain TBD with B+C+A**. It is not executable/migration-ready. Parameters named authenticated_account_id/authenticated_agent_id are server-side context derived and authorized before the query, never caller-provided query/body fields. validated_supported_kinds comes from reviewed installed capabilities/heartbeat and agent-owned contract kinds; no pending driver may be advertised. Owner authorization is separate from SKIP LOCKED.
 
 ```sql
 BEGIN;
@@ -1991,7 +1991,7 @@ Do not infer schema from authentication record types, generated contract helpers
 | UUID generation and provider/public ID mapping                                                         | B+D                    |
 | Ciphertext keys/hash algorithm/custody                                                                 | B+C                    |
 | Lease expiry/renewal and observation ordering                                                          | B+A                    |
-| Multi-account polling and authenticated credential-to-agent/account binding; claim account scoping TBD | B+C+A                  |
+| Account-scoped model agreed; finalize credential provisioning/custody and trusted credential-to-agent assignment | B+C+A                  |
 | Unauthenticated audit: nullable reference option versus separate security-events table/access          | B+C                    |
 | MinIO admin credential custody, rotation and private server-to-MinIO path                              | B+C                    |
 | Retention/backup storage format                                                                        | B+A                    |

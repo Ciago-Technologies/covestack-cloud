@@ -29,6 +29,7 @@
 - Kubernetes required: max 2 clusters per host, 1 server + max 2 agents each.
 - Contract-first: lifecycle-rules.json 1.1.0; missing strings TBD with B.
 - Signing credentials use service kind; API tokens are hash-only.
+- Agreed: one agent process/host; separate credential/client/poll context per account; assignment/custody details B+C+A.
 - Acknowledgment requires exact generation, owner and epoch; progress never acks.
 - Deadline Monday 25 January 2027; planning date 14 October 2026.
 - Do not delete requirements; preserve moved text with a relocation record.

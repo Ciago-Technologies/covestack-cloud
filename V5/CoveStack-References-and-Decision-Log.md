@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
+| Updated                 | **15 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -40,7 +40,7 @@ Links are carried from earlier documents; no network access or source revalidati
 | ----------------------------------------------------------- | ---------------------------------------------------------------------- |
 | Go module layout and signer move                            | A+B+C; shared client imports and CLI boundary                          |
 | CLI/agent boundary                                          | A/E with B+C; dependency check and real auth                           |
-| Credential-account/agent assignment and multi-account polls | B+C+A; provisioning/selection model; no new wire fields silently       |
+| Credential-account/agent assignment and multi-account polls | Agreed one process/host, separate account credentials/clients; B+C+A finalize provisioning/custody/assignment; no new wire fields       |
 | k3d+k3s tested pair and flags                               | A+B+C; one-day AlmaLinux host spike                                    |
 | K8s port range/release and kubeconfig delivery              | B+A+C; reserve before create; cleanup; scoped export                   |
 | Subnet pool and VPC/compute attachment                      | B+A; C allocator; route overlap and coordinated contract review        |

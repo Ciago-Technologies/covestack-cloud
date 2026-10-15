@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
+| Updated                 | **15 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -87,6 +87,23 @@ Go/cobra CLI / optional thin Terraform provider
 | Java bucket/VPC reconcile | Server-owned desired records and allocator                    | Not new bucket/VPC agent kinds              |
 
 CLI, Terraform provider and Ansible inventory talk **ONLY to the authenticated API**; none import or call Docker/k3d. Ansible Part 1 is the operator installation playbook, a distinct infrastructure activity. Only two workload drivers are planned: generic container and k3d. PostgreSQL/MinIO processes use container image/env/volume/labels/health; network execution is a helper inside it.
+
+### 2.1 Agreed host/account agent model — Planned
+
+Team agreement recorded on 15 October 2026; this is a target design, not acceptance evidence.
+
+| Boundary | Required behavior | Owner |
+|---|---|---|
+| Deployment | One kan-agent process per physical host; start with one assigned account, then prove two | A |
+| Authentication | Separate service credential and immutable signed HTTP client/polling context per assigned account; no global credential/account selector | A; C security |
+| Assignment | Server validates credential account and stored agent assignment on work, observations and inventory | B; C tests |
+| Host identity | All account contexts map to one canonical physical-host identity; DB enforces max 2 clusters across accounts | B; A integration |
+| Scheduling | Shared bounded execution; per-resource serialization, account-context binding and bounded per-account scheduling | A |
+| Account failures | Backoff/cancel rejected/revoked account context; no fallback credential, cross-account work, cleanup inference or stopping healthy contexts | A; C tests |
+| Credential lifecycle | Protected operator-controlled delivery/storage, rotation and revocation; no CLI user-token reuse; never mutate shared client credentials | C policy; B server; A loader |
+| Trust boundary | One agent controls host runtime and holds assigned secrets; this is not hostile-tenant process isolation | C+A |
+
+Provisioning transport, secret storage mechanism, reload/rotation policy and credential-to-agent lookup must be finalized B+C+A before that integration. Do not invent APIs, wire fields, database tables or secret paths. Separate account clients may share a safe transport, never mutable credential state. Start with single-account lifecycle/failure evidence, then add the second account. Any new protocol fields need coordinated schema, fixtures and generated outputs.
 
 ## 3. State and reconciliation
 
@@ -205,7 +222,7 @@ Detailed design is preserved in [Extended Roadmap](CoveStack-Extended-Roadmap.md
 | k3d+k3s pinned pair, API-port range, kubeconfig delivery                       | A+B+C            |
 | Subnet pool, Java allocator and compute attachment                             | B+A; C allocator |
 | MinIO scoped/admin credential model, custody, rotation and server network path | B+C              |
-| Credential-to-agent/account binding and multi-account polling                  | B+C+A            |
+| Account-scoped clients in one process/host; assignment/custody details                  | B+C+A            |
 | Backup storage format and retention                                            | B+A              |
 | ID mapping and missing contract vocabulary                                     | B+D              |
 

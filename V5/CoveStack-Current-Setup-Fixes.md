@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
+| Updated                 | **15 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -101,7 +101,7 @@ The 38 baseline audit IDs remain review inputs. Their older target dates are sup
 | CORE-5/cross-cutting item | Required review                                                                                                   |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | VPC/IPAM                  | C Java allocator; B SQL; A helper; ten IP allocations/ten account VPCs; no custom CIDR                            |
-| Polling                   | Verified credential account scope; assignment/multi-account model TBD B+C+A                                       |
+| Polling                   | Agreed one process/host; separate credential/client per account; assignment/custody detail B+C+A                                       |
 | Stack                     | One fixed template, idempotent children and retained data; no DAG engine                                          |
 | CLI/optional Terraform    | E thin API client/provider; D Java fixtures; A Go review; no runtime imports                                      |
 | Installer                 | A Part 1; checksum/vault/no_log/lint and second run changed=0                                                     |

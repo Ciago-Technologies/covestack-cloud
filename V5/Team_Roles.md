@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
+| Updated                 | **15 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -66,7 +66,7 @@ C owns every acceptance test from day 1, including tests 1–15 and E1–E8. Imp
 | Audit                          | Unauthenticated event option and operator-only access reviewed B+C   |
 | MinIO administration           | Custody, rotation and server-to-MinIO private path decided B+C       |
 
-Multi-account agent polling and credential-to-agent assignment remain B+C+A decisions; an ownership label is not authentication. Extended domain/metadata/automation policies remain in the roadmap.
+Agreed target: one agent process per physical host; separate service credential and authenticated polling context per assigned account. B owns server assignment validation; C credential provisioning/rotation/revocation; A isolated clients and shared bounded execution. Provisioning/storage details still need B+C+A review; no new wire fields. An ownership label is not authentication. Extended domain/metadata/automation policies remain in the roadmap.
 
 ## 5. Provider-facing integration — D
 
