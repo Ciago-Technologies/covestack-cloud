@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
+| Updated                 | **15 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -59,6 +59,16 @@ This directory contains the reviewed CORE-5 plan, acceptance/schema references a
 | [CoveStack-References-and-Decision-Log.md](CoveStack-References-and-Decision-Log.md)             | References, Assumptions and Decisions                                |
 | [CoveStack-Resource-Services.md](CoveStack-Resource-Services.md)                                 | Resource Specifications and Service Behavior                         |
 | [CoveStack-API-and-Compatibility.md](CoveStack-API-and-Compatibility.md)                         | API Boundaries and Compatibility Matrix                              |
+
+### 3.1 HLD and LLD entry points
+
+| View | Authoritative section | What was clarified |
+|---|---|---|
+| HLD | [Main design 2.2–2.3](DocsV5-DO_Team.md#22-hld--control-execution-and-data-paths) | Control/data paths, network prerequisite, shared MinIO and failure/capacity boundaries |
+| LLD | [Main design 3.1](DocsV5-DO_Team.md#31-lld--mutation-sequence-and-contract-gate) and [Schema 7](CoveStack-Database-Schema.md#7-concurrency-and-reference-queries) | Claims/expiry, runtime exclusion, scheduled drift/health, network execution and bootstrap |
+| Proof | [Acceptance variants](CoveStack-AntiWrapper-Acceptance.md#32-hldlld-regression-variants--existing-test-numbers) | Additional scenarios under existing tests 1–15 |
+
+All are target design. New wire schemas, secret custody, measured values and actual runtime tests remain required; documentation does not promote a service to Gates passed.
 
 ## 4. Reading order and teammate sharing
 

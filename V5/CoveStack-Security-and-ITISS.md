@@ -51,6 +51,14 @@ Threats include compromised workload/agent and accidental operator mistakes. Sim
 
 Signing establishes authenticity/integrity, not encryption or resource authorization. TLS provides transport confidentiality; backend policy determines account access. A real store/bootstrap and running-server tests remain necessary. Each poll derives account scope from its verified service principal; the agreed target is one process/host with separate service credentials and polling contexts per account; B validates stored assignments, C reviews secure provisioning/custody/revocation, A implements isolated clients. Never treat a label/caller-selected account as authorization.
 
+### 3.1 Claim authority and runtime safety
+
+Signed request identity does not establish a current work claim. Validate account/assignment, target generation, epoch and DB-clock expiry for renew/report/ack, using reviewed claim correlation schemas. New claim/renew/inspection/network fields and route names remain TBD with B+D/A/C. Reject expired renewal instead of reviving a lost claim.
+
+DB fencing does not prevent a stale Docker/k3d side effect. Require OS host exclusion, per-resource serialization and proof old backend work settled before takeover. Unknown outcomes block mutation; no blind retry/delete. One compromised privileged host remains outside tenant isolation. C tests this separately from rejected acknowledgments under existing test 2.
+
+Shared MinIO bootstrap uses protected operator host-secret references, never admin values in work. Tenant S3 and admin operations may share the API listener; enforce policy/custody, not a fictional separate-port security boundary. Default VPC setup and narrow S3 routes must not expose control-plane DB/cache/daemon or console. Java bucket reconstruction cannot recover lost object bytes.
+
 ## 4. Host and workload authority
 
 A normal privileged Docker daemon is powerful. A service user with socket access may effectively control the host. Removing root from the agent process does not remove the authority of that socket. [Docker security](https://docs.docker.com/engine/security/).

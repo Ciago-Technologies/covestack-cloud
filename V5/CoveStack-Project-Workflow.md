@@ -20,8 +20,8 @@ Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CO
 
 | Period                 | Work                                                                                                                                                                                                                  | Acceptance evidence                                                                                |
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| 14 Oct–31 Oct 2026     | B: server main and migrations from schema; C: auth lookup; A: agent main/signed poll loop, plan signer move to pkg/kanclient; schema review B+C+A                                                                     | Auth-smoke against real server; clean-DB migration                                                 |
-| 1 Nov–20 Nov 2026      | A: container driver, proposed ownership labels, reconcile, leases/fencing; E: CLI skeleton and droplet; one-day K8s host spike                                                                                        | Real container create/delete through CLI → API                                                     |
+| 14 Oct–31 Oct 2026     | B: server main and migrations from schema; C: auth lookup; A: signed client/main, host exclusion and early capacity spike; B+D/A/C claim/network protocol review; plan signer move; schema review B+C+A                                                                     | Auth-smoke against real server; clean-DB migration                                                 |
+| 1 Nov–20 Nov 2026      | A: container driver, labels, reconcile/inspection, host exclusion; B/C default-VPC prerequisite; E: CLI skeleton/droplet; early one-day K8s host spike at first host preparation                                                                                        | Real container create/delete through CLI → API                                                     |
 | 21 Nov–5 Dec 2026      | C: tests 1–6 in CI and Java VPC allocator; E: vpc CLI                                                                                                                                                                 | Tests green; ten parallel IP allocations in one VPC; ten accounts create VPCs without CIDR overlap |
 | 6 Dec–20 Dec 2026      | A: k3d driver; B: port reservations/quota; scoped kubeconfig; C: tests 7–10; E: k8s CLI                                                                                                                               | Crash recovery; tenant denial; clean deletion; third cluster rejected                              |
 | 21 Dec 2026–5 Jan 2027 | PostgreSQL and MinIO process on generic container driver; Java bucket/credential reconcile; restore; db/bucket CLI; D: /v2 subset; Terraform Droplet/K8s only if ahead; SSH key injection and reviewed SSH base image | Delete data, restore known rows/checksum; cross-account bucket key denied                          |
@@ -50,6 +50,14 @@ Auth, durable intent and signed agent scope precede real reconciliation. VPC is 
 
 CLI, Terraform provider and Ansible inventory use only the authenticated API. CLI has no local DB and no Docker/k3d dependency; config is server URL/key ID/profile, secrets from env/keychain. Mutations send an idempotency key; create returns pending, --wait polls; get shows desired/converged generation, lease and observed state; list/get support -o json. No UI work during CORE-5.
 
+### 4.1 Runtime prerequisites and early HLD spike
+
+CLI delivery order does not postpone runtime dependencies. The first real Droplet needs the default-VPC claim/execution path; freeze that reviewed protocol before workload-driver dispatch. Shared MinIO bootstrap is one operator-owned process/volume, separate from tenant bucket children. Claim/report/renewal schemas and default-network execution are early B+D+A/C work, not late patches.
+
+Run the one-day AlmaLinux/k3d capacity spike at first host preparation, before committing to the combined deployment shape. It measures all platform dependencies and bounded workload combinations, not only cluster idle RAM. Revalidate in November as integration changes; the early result does not claim a completed driver. The 2-cluster cap remains an upper limit; admission may reject earlier under measured CPU/memory/disk constraints.
+
+The previous last-resort cuts of the installer/stack are superseded: both remain required under current scope, and tests 1–15 are never cut. If required work still cannot meet the deadline, report unmet gates and seek an explicit revised SRS; no mentor approval or scope change is assumed here.
+
 ## 5. Daily engineering workflow
 
 | Step           | Expected artifact                                      |
@@ -69,7 +77,7 @@ Standup: last accepted result, today's acceptance target and current dependency.
 | Situation                          | Response                                                                                                                        |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | Extended work competes with CORE-5 | Cut the entire extended track first                                                                                             |
-| Still late after that cut          | Cut Ansible Part 1 only as last resort, then Terraform K8s resource, then stack template; record revised acceptance with mentor |
+| Still late after that cut | Cut optional Terraform K8s resource, then the rest of optional Terraform; preserve required CORE-5 services, fixed stack/test 15, Ansible Part 1 and security/recovery |
 | CORE-5 service or tests late       | Never cut a CORE-5 service or tests 1–15; relabel honestly and report unresolved target                                         |
 | A one week behind any checkpoint   | Stop all extended work                                                                                                          |
 | After 10 January 2027              | No new CORE-5 features; repair, verification and evidence only                                                                  |

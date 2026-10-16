@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
+| Updated                 | **15 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -25,6 +25,12 @@ Use authoritative current contract vocabulary, not new enums copied from this do
 **Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
 
 Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
+
+### 1.1 LLD runtime and data dependencies
+
+[Main HLD/LLD](DocsV5-DO_Team.md#22-hld--control-execution-and-data-paths) and [schema concurrency](CoveStack-Database-Schema.md#7-concurrency-and-reference-queries) define the target protocol. Current claim/renew/report encoding and separate network control need coordinated contract review before mutations. Every nonterminal converged resource remains due for leased periodic inspection; a health observation does not acknowledge a new generation. Host exclusion and uncertain-operation handling supplement the DB epoch fence.
+
+The account default VPC must converge before workload attachment. One operator-owned shared MinIO process/volume is bootstrapped separately from tenant buckets; generic container execution uses only approved host-secret references, never admin values in work. The fixed stack creates a scoped bucket, not a MinIO server. Actual retention/readback, not metadata reconstruction, proves object persistence.
 
 ## 2. Droplets / compute instances
 
@@ -64,7 +70,7 @@ Reserve only necessary ports, not the whole NodePort range. Define the advertise
 
 Tests 7–10: exactly one cluster after crash; other-account kubeconfig 404 and absent from ordinary views; clean owned deletion; third cluster rejected. Reserve API port before create; release only after cleanup. Ensure finds half-create by approved labels and finishes or recreates under the same deterministic name. Node-pool changes go through reconcile within node limits, not independent manual commands. Driver calls k3d CLI, not library.
 
-8 GB host; 0.5–1 GB/cluster is an **unverified estimate, confirm in K8s host spike**. One-day November spike covers AlmaLinux cgroup v2, SELinux, firewalld and RAM with one tested pair. [Main Kubernetes ownership table](DocsV5-DO_Team.md#52-kubernetes--planned-required) defines platform-owned logic.
+8 GB host; 0.5–1 GB/cluster is an **unverified estimate, confirm in K8s host spike**. An early one-day spike, revalidated in November, covers AlmaLinux cgroup v2, SELinux, firewalld and RAM with one tested pair. [Main Kubernetes ownership table](DocsV5-DO_Team.md#52-kubernetes--planned-required) defines platform-owned logic.
 
 ## 4. Managed PostgreSQL
 

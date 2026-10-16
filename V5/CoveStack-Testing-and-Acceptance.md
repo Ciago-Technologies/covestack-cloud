@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
+| Updated                 | **15 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -49,6 +49,12 @@ Authentication/replay, invalid inputs, actual readiness, retained data and migra
 **Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
 
 Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
+
+### 3.1 HLD/LLD review coverage
+
+C extends existing tests 1–15 using [the canonical variant matrix](CoveStack-AntiWrapper-Acceptance.md#32-hldlld-regression-variants--existing-test-numbers). Include current-claim wire validation/renewal, paused runtime worker/uncertain k3d child, post-convergence drift, fresh leased health completion, default-network-before-workload, shared MinIO bootstrap/object retention and deleting-cluster quota accounting. Do not infer runtime exclusion from a stale DB ack rejection or source-file presence.
+
+An outage assertion means no new action is admitted after authorization is unavailable; an already submitted backend request may settle and must be inspected. Unknown outcomes fail closed, not automatic retry. Periodic repair leaves desired generation unchanged when intent did not change. Prototype the host/backend uncertain-operation boundary before claiming G2.
 
 ## 4. Extended acceptance — relocated
 

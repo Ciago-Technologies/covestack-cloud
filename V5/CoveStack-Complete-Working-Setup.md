@@ -155,7 +155,7 @@ The planned production agent must load settings once, reuse a finite-timeout/no-
 | 1        | Single AlmaLinux lab VM; private control-plane PostgreSQL 17/Valkey | Resource budget and protected listeners                     |
 | 2        | Java auth/core, signed Go agent, thin CLI                           | Real auth; tests 1–6 through API                            |
 | 3        | Server-owned VPC/IPAM and container-driver network helper           | Test 14; network attachment schema decision B+A             |
-| Before 4 | One-day K8s host spike in November                                  | cgroup v2, SELinux, firewalld, RAM; one tested k3d+k3s pair |
+| Before 4 | Early one-day K8s host spike; repeat integration check in November                                  | cgroup v2, SELinux, firewalld, RAM; one tested k3d+k3s pair |
 | 4        | Required k3d driver, reserved API port, scoped kubeconfig           | Tests 7–10; hard cap 2 clusters                             |
 | 5        | PostgreSQL and MinIO on generic container driver                    | Tests 11–13; server-side bucket/credential rebuild          |
 | 6        | One fixed-sequence Postgres + MinIO + app Droplet stack             | Test 15; partial failure/retry; no DAG engine               |
@@ -163,9 +163,17 @@ The planned production agent must load settings once, reuse a finite-timeout/no-
 
 ### 8.1 K8s host spike prerequisite
 
-One day in November, before installation step 4: test AlmaLinux cgroup v2, SELinux and firewalld; record RAM with one and two clusters and cleanup results. The **0.5–1 GB per cluster is an unverified estimate, confirm in K8s host spike**. Hard cap: 2 clusters/host; each 1 server + max 2 agents. Record one tested/pinned k3d+k3s pair, API-port range and every CLI flag against that version. Fixtures are not release pins.
+One day at first host preparation, before committing driver capacity and before installation step 4; revalidate in November: test AlmaLinux cgroup v2, SELinux and firewalld; record the combined Java/DB/cache/MinIO/application RAM/CPU/disk plus one and two clusters and cleanup results. The **0.5–1 GB per cluster is an unverified estimate, confirm in K8s host spike**. Hard cap: 2 clusters/host; each 1 server + max 2 agents. Record one tested/pinned k3d+k3s pair, API-port range and every CLI flag against that version. Fixtures are not release pins.
 
 The k3d driver shells out to the CLI, not the library. After a crash, Ensure finds a half-created cluster using the proposed reserved-label contract, then finishes it or deletes/recreates under the same deterministic name. Third cluster request needs an explicit documented quota error; its wire value remains TBD with B. Kubeconfig export is separately authorized and absent from list/get/observations.
+
+### 8.1.1 Startup, claim protocol and shared storage prerequisites
+
+Do not launch multiple agent processes for different accounts. A holds an OS host exclusion lock, uses per-resource serialization and recovers outstanding children/backend requests before mutations. Losing a DB lease or timing out does not prove a Docker/k3d request stopped; uncertain outcomes block conflicting work until proven settled. No local lock file is desired-state authority. The reviewed claim/renew/report protocol must exist before mutation; current 1.1.0 does not encode the full fence exchange.
+
+Default-VPC intent and the separate signed network-control exchange must converge before Droplet/DB attachment. Provision one operator-owned shared MinIO process/volume from durable platform-owned intent; install protected host secret references out of band. Java needs reviewed private administration connectivity; tenant apps get explicit scoped S3 access, not root keys or console access. The stack creates a tenant bucket in shared MinIO and never owns that process. No bootstrap command/path is asserted until actually added and tested.
+
+Periodic inspection is DB scheduled after convergence and uses fresh claims; health completion does not advance acked_generation. Test drift removal, expired renewal, stale inspection and host takeover, not only initial create/ack. Preserve reservations while cluster/network cleanup is pending.
 
 ### 8.2 Ansible install playbook — Part 1
 

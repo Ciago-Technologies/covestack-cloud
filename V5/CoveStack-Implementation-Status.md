@@ -58,6 +58,20 @@ Lifecycle contract stays **1.1.0**. It supplies existing kinds/states; missing e
 
 Extended route/hostname, metadata, health freshness, domain and broader automation decisions remain in the roadmap; their prior design requirements are preserved there, not promoted by this register.
 
+### 3.1 Architecture review dispositions — design only
+
+| Gap | Resolved target | Still required before acceptance |
+|---|---|---|
+| Fence wire gap | Correlated claim, renewal, health/progress/convergence and DB-clock expiry | B+D/A/C schemas/fixtures/generated outputs and implementation |
+| Runtime side effects | Host exclusion, serialization, uncertain-action fail-closed takeover | A/C paused-worker and child/backend recovery evidence |
+| Drift/health after ack | Scheduled fresh inspection claims; no health acknowledgment | B scheduler/query and A client/tests with C |
+| VPC execution/order | Separate signed network control; default network before first attachment | B+D/A/C schema, allocator and bridge integration |
+| MinIO ownership/bootstrap | One operator-owned process; Java tenant buckets; private administration and host secret references | B+C/A bootstrap, storage/path/custody and restore tests |
+| Scope contradiction | Preserve fixed stack/test 15 and Part 1 installer; cut extended/optional provider work | Workflow/SRS consistency and actual evidence |
+| Capacity | Early combined-host spike; count cap is upper bound, not RAM proof | Measured admitted workload combinations |
+
+HLD and LLD are specified in the main design and schema; their presence does not close implementation gates. Key custody, encoding names, intervals, pool and tested versions remain decisions, not invented facts.
+
 ## 4. Update and freeze procedure
 
 Record revision/PR, environment, exact test results and constraints. Use only Planned, In progress, Gates passed or Extended track. A mock/source file is not service gate evidence. Promote a service only when G1–G4 all pass; cite acceptance test numbers and CI evidence. At freeze, relabel any CORE-5 service missing a gate honestly and list the missing evidence. Never write that all services are complete.

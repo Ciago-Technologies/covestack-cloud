@@ -39,6 +39,18 @@ A writes and can explain all agent Go. AI-generated code is reference only: A ty
 
 Source presence is not Gates passed. Follow the dated [workflow](CoveStack-Project-Workflow.md).
 
+### 2.1 HLD/LLD work allocation
+
+| Owner | Added architecture-review implementation duties |
+|---|---|
+| A | OS host exclusion; child/backend settlement and serialized execution; claim renewals; periodic drift/health loop; network-control client/helper; early total-host capacity spike |
+| B | Claim/scheduling/renew/report transactions and next inspection deadline; network row leases/default-network dependency; shared MinIO runtime/bootstrap ownership and stack bucket references |
+| C | Test stale runtime takeover separately from DB fencing; health/drift cases; network-before-workload, shared object retention and private admin policy; all acceptance stays C-owned |
+| D | Coordinated claim/renew/inspection/network exchange schemas, DTO mappings and negative fixtures with B/C/A; no new names outside review; no Go |
+| E | Pending/wait/error handling through API; no direct network/runtime bootstrap; unchanged thin CLI/provider boundary |
+
+Read [main HLD/LLD](DocsV5-DO_Team.md#22-hld--control-execution-and-data-paths) before first mutation. Protocol encoding, secret mechanism and tested intervals remain implementation gates; architecture text is not evidence. Default-network runtime work is an early prerequisite, even though CLI vpc follows droplet.
+
 ## 3. Java core and contracts — B
 
 | Duty                                     | Acceptance evidence                                                                      |

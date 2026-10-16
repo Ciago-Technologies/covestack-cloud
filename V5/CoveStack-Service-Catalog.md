@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
+| Updated                 | **15 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -23,6 +23,10 @@
 **Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
 
 Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
+
+### 1.1 HLD/LLD dependency interpretation
+
+Default private networking precedes workload execution; CLI delivery order is not permission to skip that dependency. Shared MinIO is one operator-owned runtime, with per-account buckets/credentials reconciled in Java. The fixed stack's storage child is a bucket, never ownership of the shared process. Claims require reviewed correlation/renewal schemas, and periodic inspections repair converged drift without changing requested intent. Runtime exclusion is separate from database epoch fencing. See [HLD/LLD](DocsV5-DO_Team.md#22-hld--control-execution-and-data-paths).
 
 ## 2. Extended track and optional future work — relocation index
 

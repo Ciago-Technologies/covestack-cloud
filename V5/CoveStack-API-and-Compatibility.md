@@ -35,6 +35,26 @@ GET work/known-ids scopes are authenticated agent/account plus advertised suppor
 
 Actual request/response shapes remain in `contracts/internal-api.yaml`. V5 does not replace them or certify running controllers. New fields/routes require reviewed schemas, examples and tests.
 
+### 2.1 Required protocol work before mutation — LLD contract gate
+
+Contract 1.1.0 remains unchanged. The shapes currently define generation and observedAt, but not a complete claim/renewal correlation or standalone VPC execution exchange. The target protocol must provide the following semantics; **all new route/header/field/error names and missing enums are TBD with B+D, reviewed by A+C**. No table entry below is an invented wire string.
+
+| Exchange | Required semantics / negative evidence |
+|---|---|
+| Claim acquisition/delivery | /work remains read-only candidate discovery, including auth-smoke; a separate signed idempotent mutation binds account/host/resource/generation/epoch/expiry; candidate data alone is not authority |
+| Renewal | Same authenticated assignment, owner/epoch/generation; unexpired by DB clock; loss/change/revocation rejected; no expired-claim revival |
+| Convergence report | Echo reviewed claim correlation; current generation/readiness; DB expiry/fence validation; atomic ack and lease release |
+| Progress/inspection report | Distinguish leased attempt progress, healthy inspection completion and actual convergence; health null-generation payload alone is not sufficient correlation |
+| Scheduled inspection | Fresh claim even after acked_generation equals generation; stale result cannot overwrite a new generation; no health acknowledgment |
+| Network control | Separate signed internal exchange for server-owned VPC intent/claim/renew/report; no fake VPC /work kind or bucket overload |
+| Generic runtime mapping | Reviewed operator-only image/volume/host-secret references for shared MinIO; no root/admin secret values in work |
+
+Keep GET work/known-ids non-mutating. Candidate discovery does not reserve a lease or authorize execution. Claim/renew/report mutations need stable request-idempotency semantics; retry signs fresh bytes/nonce but reuses the same logical request key. Lost claim response must not bump epochs again or reserve additional work on replay. Exact encoding remains TBD with B+D/A/C.
+
+Implement together: reviewed schemas/source generator inputs, positive/negative fixtures, generated outputs, Java DTO/controllers and Go client. Freeze the correlated design before using multiple workers or runtime mutations. Current signing scopes authenticate a request; they do not substitute for claim possession. Lifecycle 1.1.0 vocabulary stays authoritative; message-schema/version coordination does not follow from documentation version V5.
+
+B owns assignment, claim transactions, schedule and DB predicates. D owns DTO/schema alignment. A owns client correlation, renewals and runtime exclusion. C owns expiry/stale/cross-account and uncertain-side-effect tests. The HLD/LLD is in [Main design](DocsV5-DO_Team.md#31-lld--mutation-sequence-and-contract-gate) and [Schema concurrency](CoveStack-Database-Schema.md#7-concurrency-and-reference-queries).
+
 ## 3. CORE-5 management models
 
 | Model              | Required semantics                                                                                     |

@@ -49,7 +49,7 @@ Test 14 does not permit custom user CIDRs: overlap is exercised against allocato
 | Claim                | Verified credential account/agent context, not caller-selected account; agreed separate account credentials/clients in one host process; assignment details B+C+A; SKIP LOCKED, bump epoch, reference 30-second lease               |
 | Acknowledge          | id, lease_owner, lease_epoch match AND generation = :gen; zero rows rejected; accepted ack clears lease_owner and lease_expires_at together, leaves lease_epoch unchanged |
 | Progress             | Separate guarded statement; never touches acked_generation                                                                                                                |
-| Expiry               | Epoch is the fence; expiry predicate decision remains with B                                                                                                              |
+| Expiry | Renewal, reports and ack require current epoch/generation and unexpired claim by DB clock; runtime exclusion is separate from DB fencing |
 | Idempotent create    | Account/key reservation, resource, operation/event and response in ONE transaction                                                                                        |
 | Fingerprint mismatch | Same key and different normalized request body: 422                                                                                                                       |
 | Retry                | Refresh/resume durable operation, not duplicate runtime create                                                                                                            |
@@ -57,6 +57,24 @@ Test 14 does not permit custom user CIDRs: overlap is exercised against allocato
 ### 3.1 Account-context acceptance — extends existing tests
 
 C owns these cases; they supplement existing numbers, not new service/test IDs. Test 3: account A credentials cannot fetch/report/ack B work, including forged resource IDs; server checks assignment as well as account. Test 6: revoke/fail one account context while another keeps polling; no credential fallback or cleanup from failed inventory. Tests 1–2: restart both contexts and reject stale epochs without duplicates. Test 10: accounts share the canonical host cap; concurrent third-cluster request is rejected under the DB lock. Add client-level tests for immutable credentials and correct request/response context routing. Agent compromise remains a trusted-host risk, not isolation solved by separate credentials.
+
+### 3.2 HLD/LLD regression variants — existing test numbers
+
+| Existing test | Additional exact target | Owner |
+|---|---|---|
+| 1 | After initial convergence, remove the test container; periodic inspection repairs it with unchanged desired generation and exactly one owned runtime | C; A+B integration |
+| 2 | Expired renew/ack rejected; pause the old runtime worker or leave a child/API action unresolved; a new worker must not start conflicting mutation until prior execution settles | C; A+B |
+| 3 | Correct account but wrong assigned agent/claim rejected; user input cannot select another account's network or runtime | C; B+D+A |
+| 5 | After ack releases lease, fresh inspection updates health without changing acked_generation; delayed old inspection cannot overwrite a newer desired generation | C; B+A |
+| 6 | With server down before dispatch, no new mutations start; already submitted backend action may settle and must be inspected before retry; a failed inventory never means delete | C; A |
+| 7 | Kill main while k3d child is active; preserve operation exclusion and recover without a competing create/delete; explicit uncertain outcome blocks unsafe takeover | C; A |
+| 9–10 | Deleting/partially created clusters retain API-port and host-cap reservations until verified cleanup; third cluster cannot bypass capacity during deletion | C; B+A |
+| 11 | Default VPC converges before DB attachment; backup/key recovery is measured; shared-host backup limits are stated | C; B+A |
+| 12–13 | Shared MinIO bootstrap/secret references and private administration verified; Java rebuilds policy after restart; known objects still readable from retained data | C; B+A |
+| 14 | Standalone VPC creation/restart/deletion reaches network helper through reviewed signed exchange; stale network claim rejected; deletion with attached/reserved workload denied; network-only API form is not enough | C; B+D+A |
+| 15 | First stack automatically ensures default VPC, DB, tenant bucket in shared MinIO and app; retry no duplicates; deleting stack cannot delete shared MinIO process or another account's bucket | C; B+E+A |
+
+These are targets, not passing results. Do not add E9 or renumber 1–15/E1–E8. OS exclusion, backend settlement and DB epoch fencing are different evidence; a rejected DB acknowledgment alone does not prove runtime exclusion. No test asserts strict exactly-once execution across arbitrary failures. Under tests 2/4/6, assert GET work/known-ids/auth-smoke changes no lease; duplicate same-key claim after lost response returns the same epoch/result, not a second resource or revived expired lease.
 
 ## 4. CORE-5 live demo and recorded evidence
 
@@ -67,7 +85,7 @@ Live highlights: tests 1, 3, 4 and the CLI get view showing desired versus conve
 | Question                                 | Honest answer — target, not current claim                                                                                       |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | 1. Crash mid-create?                     | DB intent survives. Ensure inspects deterministic owned identity before another create; test 1 must prove one container.        |
-| 2. Two agents?                           | Lease epoch changes on reclaim. An old owner/epoch acknowledgment is rejected; test 2 proves it.                                |
+| 2. Two agents?                           | Lease epoch changes on reclaim. An old owner/epoch acknowledgment is rejected; host exclusion separately blocks competing runtime mutation. Test 2 covers both.                                |
 | 3. Why not just Docker?                  | Docker is execution. Our target is account-scoped DB intent, fencing and crash-safe lifecycle; claim evidence only after gates. |
 | 4. Why not just k3d?                     | k3d executes a cluster request. Our target adds tenancy, port reservation, quotas, reconciliation and scoped kubeconfig.        |
 | 5. Why not containers for data services? | Execution is reused. Our target adds volume ownership, measured restore and per-account storage credentials.                    |
