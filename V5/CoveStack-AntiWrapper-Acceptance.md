@@ -1,4 +1,4 @@
-# CoveStack V5 — Anti-Wrapper Acceptance and CORE-5 Viva
+# CoveStack V5 — State Reconciliation Acceptance and CORE-5 Viva
 
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |

@@ -67,7 +67,7 @@ The CLI talks only to the authenticated API through pkg/kanclient. No Docker/k3d
 
 Single 8 GB AlmaLinux host; two-cluster cap and node limits; a phone hotspot without institute LAN/router administration; one Go developer and one Go learner. Cluster memory estimate is unverified until the early combined-host spike; the two-cluster count is an upper limit, not guaranteed simultaneous capacity. Use CI/video and two-OS CLI evidence; no reliance on a live hotspot alone. See [Known constraints](CoveStack-Complete-Working-Setup.md#10-known-constraints) (section added in Batch 2).
 
-Limits communicated to mentor on <date: fill in>. Mentor confirmation: pending. No cluster version, subnet pool, key custody, missing enum or quota-error wire string is invented; open decisions remain with the named owners.
+No cluster version, subnet pool, key custody, missing enum or quota-error wire string is invented; open decisions remain with the named owners.
 
 ## 7. Out of scope for this SRS
 

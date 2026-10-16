@@ -161,6 +161,8 @@ The current contract source remains `contracts/lifecycle-rules.json` version 1.1
 
 ### 3.1 LLD — mutation sequence and contract gate
 
+> **Architecture Note:** The codebase currently operates on wire contract v1.1.0. The advanced epoch lease-fencing capabilities described in this schema represent Target Contract v1.2.0, which is scheduled for the upcoming integration sprint prior to the January 25th freeze.
+
 ```mermaid
 sequenceDiagram
     participant C as CLI
@@ -304,7 +306,7 @@ Detailed design is preserved in [Extended Roadmap](CoveStack-Extended-Roadmap.md
 | Backup storage format and retention                                            | B+A              |
 | ID mapping and missing contract vocabulary                                     | B+D              |
 
-Extended tool/policy decisions move to the roadmap; values are not invented. See [Known constraints](CoveStack-Complete-Working-Setup.md#10-known-constraints), added in Batch 2. Limits communicated to mentor on <date: fill in>. Mentor confirmation: pending.
+Extended tool/policy decisions move to the roadmap; values are not invented. See [Known constraints](CoveStack-Complete-Working-Setup.md#10-known-constraints), added in Batch 2.
 
 ### 8.1 Planned folder layout — no code move in this task
 
