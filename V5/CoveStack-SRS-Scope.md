@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **15 October 2026**                                                     |
+| Updated                 | **20 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -54,6 +54,12 @@ Stack demo: test **15** proves one-command provisioning, recorded partial failur
 The fixed stack's MinIO component is a scoped bucket in one shared operator-owned process; it does not create another server. Ensure the default VPC before DB/app attachment. Periodic drift repair, leased health inspection, expired-claim rejection and runtime execution exclusion supplement existing tests 1–15. These are correctness details of the same five services, not new services or requirement IDs.
 
 The stack/test 15 and Ansible Part 1 remain required. Cut optional Terraform and deferred work first; any reduction of required acceptance needs an explicit revised SRS, never an assumed confirmation. Existing wire contract 1.1.0 still needs coordinated message-schema work before fenced execution is possible.
+
+### 4.2 User experience evidence — Planned
+
+The same five deliverables must be usable through the authenticated API/CLI: a Droplet runs a reviewed app; an authorized Kubernetes export permits a bounded workload; PostgreSQL returns actual rows and restores known data; object storage preserves exact bytes under scoped credentials; VPC/IPAM provides tested intended connectivity and isolation. Test 15 connects the app to its database and bucket, rather than merely creating child records.
+
+Extend existing tests 1–15 with two-account same-name isolation and truthful generation/freshness/error inspection. A teammate must reproduce installation and the application/recovery walkthrough. See [experience assertions](CoveStack-AntiWrapper-Acceptance.md#33-user-experience-assertions--planned-existing-tests) and [fixed stack](CoveStack-Stack-Templates.md#21-usable-application-and-recovery-walkthrough--planned). No new services, test IDs or wire fields are introduced; exact API mappings and access/secret delivery require owner review.
 
 ## 5. Gates and CLI boundary
 

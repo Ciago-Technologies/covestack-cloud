@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **15 October 2026**                                                     |
+| Updated                 | **20 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -24,6 +24,12 @@ Start from the [V5 index and teammate reading order](README.md#4-reading-order-a
 | 8     | [Status](CoveStack-Implementation-Status.md)      | No service promoted from source presence                   |
 
 Then read assigned schema/API/Go/security guides from the index. Clone the entire repository. Java developers work in kan-server; A works in kan-agent/pkg/kanclient; E in planned cmd/covestack and later thin provider. Git pushes repository commits, not into a service folder.
+
+### 1.1 What we are building for users — Planned
+
+A team can create account-isolated local environments and understand recovery when something fails. Success means a usable application and tested boundaries, not a count of API handlers. Our existing fixed stack must run an app that uses PostgreSQL and a scoped bucket; Kubernetes must yield a usable cluster. Another account must be denied, and an agent restart must not duplicate resources.
+
+Before your slice, read the [experience assertions](CoveStack-AntiWrapper-Acceptance.md#33-user-experience-assertions--planned-existing-tests) and [stack walkthrough](CoveStack-Stack-Templates.md#21-usable-application-and-recovery-walkthrough--planned). Agree interface details with the named owners, implement a small end-to-end path, and attach actual evidence. No service is promoted until its gates pass; CLI first, with no extra service scope.
 
 ## 2. Branch workflow
 

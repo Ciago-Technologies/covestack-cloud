@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **15 October 2026**                                                     |
+| Updated                 | **20 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -92,6 +92,20 @@ Append-only DB permissions reduce accidental alteration but do not justify a tam
 ## 6. Vulnerability and incident work
 
 Record scanner/tool/input versions, findings, severity, exploitability context, remediation and verified exceptions. Scanner success is not proof of isolation. Revoke a test credential, investigate sanitized logs and restore normal operation in a controlled exercise. Alert/metrics and public-edge scenarios remain preserved in the roadmap.
+
+### 6.1 Cloud-lab operating exercise — Planned
+
+A owns the installer, operating notes and sanitized ITISS evidence; C owns acceptance tests. B owns persisted policy/state and D reviews API mappings. Demonstrate configured controls and actual traffic, not only screenshots or container labels.
+
+| Exercise | Evidence to collect | Existing acceptance |
+| --- | --- | --- |
+| Install on a clean supported host | Teammate follows instructions; versions/checksums, readiness and second playbook run changed=0 | Ansible Part 1 |
+| Separate two accounts | Same-name resource lookup, denied credentials and private-network reachability matrix | Tests 3, 8, 11, 12, 14 |
+| Diagnose an agent outage | Sanitized status/error timeline, last observation and safe recovery without duplicate workloads | Tests 1, 5–7 |
+| Recover application data | Known rows before deletion, backup identity/checksum, restore result and measured recovery time | Test 11; fixed-stack context test 15 |
+| Clean up safely | Owned inventory, declared retained data and no unrelated deletion | Tests 9 and 15 |
+
+These are exercises for existing CORE-5 and installer commitments, not a fault-injection product or claims of VM-strength isolation. Document privileges, residual risks and unresolved decisions. Never include live credentials or kubeconfigs in evidence.
 
 ## 7. ITISS package for mentor review
 

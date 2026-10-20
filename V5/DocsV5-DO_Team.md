@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **15 October 2026**                                                     |
+| Updated                 | **20 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -21,6 +21,19 @@ CORE-5 is the SRS/deliverable scope. CLI is the first interface; no UI work duri
 | Workloads need scoped connectivity       | Account-owned private network and credentials  | Tests 11–14                        |
 | Failures cause uncertain state           | Desired/observed state and durable operations  | Restart without duplication        |
 | Infrastructure needs credible evaluation | ITISS configuration, tests and runbooks        | Clean install and measured restore |
+
+### Intended user experience — Planned
+
+CoveStack targets a local cloud lab for teams: account-isolated environments with explainable recovery. This is a product focus, not a claim of uniqueness against other platforms or current implementation. Adopt scenario-first contracts, capability limits, public-endpoint tests and reproducible installation from the LocalCloud handbook; do not import its service catalogue into CORE-5.
+
+| Experience | Implementation target | Evidence and owner |
+| --- | --- | --- |
+| Shared host, separate accounts | Same friendly resource name in two accounts; separate ownership, credentials and private networks | Tests 3, 8, 11–14; C owns tests; B/D API, A runtime |
+| Explainable recovery | Authenticated get exposes desired/converged generation, lease, observed freshness and sanitized last error; never infer health from old convergence | Tests 1, 2, 5–7; B/D API, E CLI, A observations, C tests |
+| Usable environment | Fixed stack connects app Droplet to PostgreSQL and a scoped bucket through documented endpoints and secret references | Test 15 plus tests 11–14; B records, A execution, E CLI, C tests |
+| Operable cloud lab | Teammate installs cleanly, runs the example, diagnoses an outage and restores known data | Ansible Part 1 and test 11; A ITISS/installer, C evidence review |
+
+These refine existing acceptance, not additional services or new test numbers. Exact API fields, output spelling, endpoint delivery, image and secret references require B+D/C+A/E review before code; no wire fields are introduced here. See [experience assertions](CoveStack-AntiWrapper-Acceptance.md#33-user-experience-assertions--planned-existing-tests) and [stack walkthrough](CoveStack-Stack-Templates.md#21-usable-application-and-recovery-walkthrough--planned).
 
 ### 1.1 Why this is not a wrapper
 
