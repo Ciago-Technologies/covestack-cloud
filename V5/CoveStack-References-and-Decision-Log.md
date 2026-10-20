@@ -18,7 +18,7 @@
 | Old team guides/archives        | Historical design and findings                          |
 | Mentor rubric                   | External acceptance requirement; obtain current version |
 
-No official C-DAC marks allocation or no-coding rule is assumed. Planning date is 14 October 2026; deadline is Monday, 25 January 2027. Limits communicated to mentor on <date: fill in>. Mentor confirmation: pending.
+No official C-DAC marks allocation or no-coding rule is assumed. Planning date is 14 October 2026; deadline is Monday, 25 January 2027.
 
 ## 2. Primary source links
 

@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **15 October 2026**                                                     |
+| Updated                 | **20 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -55,6 +55,12 @@ The fixed stack's MinIO component is a scoped bucket in one shared operator-owne
 
 The stack/test 15 and Ansible Part 1 remain required. Cut optional Terraform and deferred work first; any reduction of required acceptance needs an explicit revised SRS, never an assumed confirmation. Existing wire contract 1.1.0 still needs coordinated message-schema work before fenced execution is possible.
 
+### 4.2 User experience evidence — Planned
+
+The same five deliverables must be usable through the authenticated API/CLI: a Droplet runs a reviewed app; an authorized Kubernetes export permits a bounded workload; PostgreSQL returns actual rows and restores known data; object storage preserves exact bytes under scoped credentials; VPC/IPAM provides tested intended connectivity and isolation. Test 15 connects the app to its database and bucket, rather than merely creating child records.
+
+Extend existing tests 1–15 with two-account same-name isolation and truthful generation/freshness/error inspection. A teammate must reproduce installation and the application/recovery walkthrough. See [experience assertions](CoveStack-AntiWrapper-Acceptance.md#33-user-experience-assertions--planned-existing-tests) and [fixed stack](CoveStack-Stack-Templates.md#21-usable-application-and-recovery-walkthrough--planned). No new services, test IDs or wire fields are introduced; exact API mappings and access/secret delivery require owner review.
+
 ## 5. Gates and CLI boundary
 
 **Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
@@ -67,7 +73,7 @@ The CLI talks only to the authenticated API through pkg/kanclient. No Docker/k3d
 
 Single 8 GB AlmaLinux host; two-cluster cap and node limits; a phone hotspot without institute LAN/router administration; one Go developer and one Go learner. Cluster memory estimate is unverified until the early combined-host spike; the two-cluster count is an upper limit, not guaranteed simultaneous capacity. Use CI/video and two-OS CLI evidence; no reliance on a live hotspot alone. See [Known constraints](CoveStack-Complete-Working-Setup.md#10-known-constraints) (section added in Batch 2).
 
-Limits communicated to mentor on <date: fill in>. Mentor confirmation: pending. No cluster version, subnet pool, key custody, missing enum or quota-error wire string is invented; open decisions remain with the named owners.
+No cluster version, subnet pool, key custody, missing enum or quota-error wire string is invented; open decisions remain with the named owners.
 
 ## 7. Out of scope for this SRS
 

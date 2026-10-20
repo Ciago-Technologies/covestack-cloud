@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **15 October 2026**                                                     |
+| Updated                 | **20 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -71,6 +71,19 @@ The previous last-resort cuts of the installer/stack are superseded: both remain
 | Record         | Feature matrix, evidence and known limitations updated |
 
 Standup: last accepted result, today's acceptance target and current dependency. A blocker lasting a working day triggers pairing or reassignment, not silent schedule drift. Do not force-push teammates' branches or bypass policy to meet a gate.
+
+### 5.1 Experience checkpoints — Planned, within existing dates
+
+| Existing checkpoint | Required user experience | Owner and review |
+| --- | --- | --- |
+| First Droplet / tests 1–6 | Useful app response, two-account same-name denial, crash/restart and explainable get output | A/B/D/E; C owns tests |
+| VPC / test 14 | Allocation races plus actual intended connectivity and cross-account network denial | C allocator/tests, A execution, B records |
+| Kubernetes / tests 7–10 | Scoped kubeconfig runs a bounded workload and returns its result | A/B/D/E; C tests |
+| PostgreSQL / MinIO / tests 11–13 | Actual row and exact-byte workflows; restore known rows and retain objects across restart | A/B; C tests |
+| Fixed stack / test 15 | App uses both dependencies; partial-failure retry preserves identities | B/A/E; C tests |
+| Freeze / installer | Teammate follows clean-host walkthrough; records versions, access path, failure diagnosis and restore | A installer/ITISS; C reviews evidence |
+
+For every slice, document inputs/outputs, capability limits, unsupported behavior, readiness, retry, cleanup and retained data before implementation. Test through the authenticated API/CLI and real runtime when promised; record unit, integration and runtime evidence separately. This adds no services, schedule extension or test IDs. See [experience assertions](CoveStack-AntiWrapper-Acceptance.md#33-user-experience-assertions--planned-existing-tests).
 
 ## 6. Scope and gate failure policy
 

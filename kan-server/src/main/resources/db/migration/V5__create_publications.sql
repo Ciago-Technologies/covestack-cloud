@@ -1,0 +1,22 @@
+CREATE TABLE publications (
+    id uuid NOT NULL,
+    account_id uuid NOT NULL,
+    resource_id uuid NOT NULL,
+    domain_id uuid NULL,
+    load_balancer_id uuid NULL,
+    hostname text NOT NULL,
+    upstream_port integer NOT NULL,
+    generation bigint NOT NULL DEFAULT 1,
+    status text NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    row_version bigint NOT NULL DEFAULT 0,
+    PRIMARY KEY (id),
+    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE RESTRICT,
+    UNIQUE (account_id, id),
+    FOREIGN KEY (account_id, resource_id) REFERENCES resources(account_id, id) ON DELETE RESTRICT,
+    UNIQUE (hostname),
+    CHECK (upstream_port BETWEEN 1 AND 65535),
+    CHECK (generation > 0),
+    CHECK (status IN ('new', 'provisioning', 'active', 'deleting', 'deleted', 'error'))
+);

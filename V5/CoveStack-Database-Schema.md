@@ -1840,6 +1840,8 @@ Token plaintext is returned only at authorized issuance, never stored/retrieved 
 
 ## 7. Concurrency and reference queries
 
+> **Architecture Note:** The codebase currently operates on wire contract v1.1.0. The advanced epoch lease-fencing capabilities described in this schema represent Target Contract v1.2.0, which is scheduled for the upcoming integration sprint prior to the January 25th freeze.
+
 ### 7.1 Locking and quota
 
 | Flow               | Reference policy                                                                                                     |

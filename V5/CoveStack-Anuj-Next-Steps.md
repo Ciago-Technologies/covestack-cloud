@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **15 October 2026**                                                     |
+| Updated                 | **20 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -43,6 +43,20 @@ Acquire host OS exclusion, serialize resource mutations, retain child-operation 
 Default VPC execution is needed for the first real Droplet. Add periodic inspection of converged rows, using fresh claims and no health acknowledgment. Repair drift with unchanged desired generation; stale inspection cannot overwrite newer intent. For MinIO, execute one operator-owned shared process/volume from reviewed intent/host secret references; Java owns tenant buckets and the stack owns a bucket child, not the shared process. Preserve the fixed stack/test 15 and installer; optional/extended work is cut first.
 
 These are Planned implementation duties. [HLD](DocsV5-DO_Team.md#22-hld--control-execution-and-data-paths) and [LLD](CoveStack-Database-Schema.md#7-concurrency-and-reference-queries) define the precise dependencies and failure evidence.
+
+### 2.2 User experience responsibilities — Planned
+
+Your immediate milestone remains one-account signed communication, no-work handling, bounded retries and clean shutdown against the real server. Add execution only after reviewed claim/network schemas. These experience checks accompany the existing order; do not start extended features to satisfy them.
+
+| When | Your work | Pairing/evidence |
+| --- | --- | --- |
+| Container reconciliation | Run a reviewed app; preserve resource identity across restart; emit bounded sanitized observations/errors with freshness | B/D API and E display; C tests 1–6 |
+| Network helper | Execute allocated network attachments; prove intended app/DB paths and cross-account denial | C allocator/tests, B records; test 14 |
+| Kubernetes driver | Ensure usable scoped API access; deploy/read a bounded test workload after recovery | B/D/E integration; C tests 7–10 |
+| Persistence and stack | Preserve volumes; app reads/writes DB and object bytes; help restore known data | B owns bucket reconcile/stack records; C tests 11–15; E CLI |
+| Installer and ITISS | Teammate clean-host walkthrough, outage timeline, traffic matrix and measured restore | C reviews sanitized evidence; Ansible Part 1 |
+
+You do not take over CLI output, SQL, bucket administration or the acceptance suite. Agree image, endpoint/secret delivery and API representation with their owners. See [experience assertions](CoveStack-AntiWrapper-Acceptance.md#33-user-experience-assertions--planned-existing-tests).
 
 ## 3. Client rules
 

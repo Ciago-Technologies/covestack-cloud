@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **15 October 2026**                                                     |
+| Updated                 | **20 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -36,6 +36,22 @@ This clarification preserves the one Postgres + MinIO + app integration requirem
 | Remove    | Explicit retained-data policy             | Owned cleanup; no hidden deletion of persistent data          |
 
 CLI command/schema spelling is finalized by E+B; no new template ID, API version or wire field is invented. The old HCL/YAML/public-route examples are historical future designs in the roadmap, not runnable schemas.
+
+### 2.1 Usable application and recovery walkthrough — Planned
+
+Creating child records is insufficient. B/D/E with A+C must agree one reviewed application image, configuration shape, endpoint access and protected credential delivery before test 15 integration. No runnable command or image is invented here. Keep one fixed sequence and the shared operator-owned MinIO process.
+
+| Step | User-visible result to implement | Evidence |
+| --- | --- | --- |
+| Prepare | Authenticate; select the fixed template; validate inputs and quota | Public API/CLI; sanitized failure examples |
+| Provision | Ensure private network; DB readiness and scoped bucket policy precede app readiness | Child IDs and durable progress; test 15 |
+| Connect | Deliver a documented authorized local/private app access path and required service references | Actual app response; no automatic public route |
+| Use | App writes/reads a known database row and uploads/downloads known object bytes | Data comparison and object checksum; tests 11–15 |
+| Isolate | Second account cannot inspect children, use credentials or reach private services | Tests 3, 11, 12, 14 |
+| Recover | Restart agent during provisioning; retry preserves child identity; restore deliberately removed test rows | Tests 1, 11, 15; timeline and result |
+| Remove | Report retained data and clean only owned children; preserve shared MinIO | Scoped inventory and retention evidence |
+
+This walkthrough refines test 15, not a general deployment engine, queue service or application CI product. Capture longer scenarios as CI output/video while retaining the five-minute live highlights.
 
 ## 3. Template record and JSON shapes
 

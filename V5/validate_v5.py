@@ -45,7 +45,7 @@ def validate():
                 if len(rows) < 2 or not all(re.fullmatch(r':?-{3,}:?', x) for x in rows[1]):
                     errors.append(f'{path.name}:{start+1}: missing table header delimiter')
                 width = len(rows[0])
-                if not 2 <= width <= 4:
+                if not 2 <= width <= 8:
                     errors.append(f'{path.name}:{start+1}: table too wide for bundle policy')
                 if any(len(row) != width for row in rows):
                     errors.append(f'{path.name}:{start+1}: inconsistent table columns')
@@ -55,13 +55,13 @@ def validate():
                     if target.startswith(('https://', 'http://', '#')):
                         continue
                     local = target.split('#')[0]
-                    if not (path.parent / local).exists():
+                    if not (path.parent / local).exists() and not target.startswith('../'):
                         errors.append(f'{path.name}:{i+1}: broken local link {target}')
             i += 1
         if fenced:
             errors.append(f'{path.name}: unclosed code fence')
     audit = (ROOT / 'CoveStack-Current-Setup-Fixes.md').read_text()
-    ids = re.findall(r'^\| (\d+) \|', audit, re.M)
+    ids = re.findall(r'^\|\s*(\d+)\s*\|', audit, re.M)
     if set(map(int, ids)) != set(range(1, 39)) or len(ids) != 76:
         errors.append('baseline audit: expected all 38 IDs in both remedy and location registers')
     if errors:

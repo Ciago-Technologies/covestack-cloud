@@ -251,6 +251,4 @@ Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CO
 | Go capacity         | One Go developer plus one Go learner  | A agent ownership; E thin CLI; review bottleneck controlled      | Planned |
 | Priority            | Extended track never delays CORE-5    | Stop/cut extended work first                                     | Planned |
 
-Limits communicated to mentor on <date: fill in>. Mentor confirmation: pending.
-
 [Service gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Extended roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).

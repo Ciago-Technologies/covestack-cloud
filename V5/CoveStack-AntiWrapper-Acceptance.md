@@ -1,9 +1,9 @@
-# CoveStack V5 — Anti-Wrapper Acceptance and CORE-5 Viva
+# CoveStack V5 — State Reconciliation Acceptance and CORE-5 Viva
 
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **15 October 2026**                                                     |
+| Updated                 | **20 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -75,6 +75,22 @@ C owns these cases; they supplement existing numbers, not new service/test IDs. 
 | 15 | First stack automatically ensures default VPC, DB, tenant bucket in shared MinIO and app; retry no duplicates; deleting stack cannot delete shared MinIO process or another account's bucket | C; B+E+A |
 
 These are targets, not passing results. Do not add E9 or renumber 1–15/E1–E8. OS exclusion, backend settlement and DB epoch fencing are different evidence; a rejected DB acknowledgment alone does not prove runtime exclusion. No test asserts strict exactly-once execution across arbitrary failures. Under tests 2/4/6, assert GET work/known-ids/auth-smoke changes no lease; duplicate same-key claim after lost response returns the same epoch/result, not a second resource or revived expired lease.
+
+### 3.3 User experience assertions — Planned, existing tests
+
+C owns these public API/CLI integration assertions under existing tests 1–15. Direct helper calls, schema presence and successful process startup do not establish a usable service. Record revision, environment, expected/actual result and sanitized evidence; no new requirement IDs or wire strings.
+
+| Existing test | Additional experience assertion | Implementation pairing |
+| --- | --- | --- |
+| 3 | Two accounts can use the same friendly resource name; list/get/delete remain scoped; foreign IDs return 404 without leakage | B/D/E with C |
+| 1, 2, 5, 6 | During controlled crash/outage, get distinguishes desired/converged revision and observation freshness, with sanitized error; old observations never imply fresh health; no secret values | B/D/E and A with C |
+| 7–10 | Authorized export yields usable kubeconfig; deploy a bounded test workload and read its result; denial and cleanup still pass | A/B/D/E with C |
+| 11 | Connect using scoped credentials; write/read known rows; remove test rows, restore and compare canonical dataset/checksum | A/B with C |
+| 12, 13 | Upload/download exact bytes with scoped credentials; restart MinIO and verify retained object checksum; other-account key denied | B and A with C |
+| 14 | In addition to allocation races, prove intended same-account app/DB connectivity and cross-account network denial using actual traffic; control-plane ports remain inaccessible | C allocator, A helper, B records |
+| 15 | One fixed stack yields an app that writes/reads PostgreSQL and uploads/downloads an object; retry a partial failure without duplicate children; deletion follows retention policy | B/A/E with C |
+
+Use a reviewed app image and documented app invocation/access path. The local or private endpoint need not be internet reachable; public exposure stays in the extended roadmap. Capability help must state actual limits and reject unsupported options; B/D/E agree response mappings, not invented wire values. A clean-host teammate walkthrough is installer evidence, not a new service gate.
 
 ## 4. CORE-5 live demo and recorded evidence
 
