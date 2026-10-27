@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **20 October 2026**                                                     |
+| Updated                 | **27 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -30,6 +30,12 @@ Then read assigned schema/API/Go/security guides from the index. Clone the entir
 A team can create account-isolated local environments and understand recovery when something fails. Success means a usable application and tested boundaries, not a count of API handlers. Our existing fixed stack must run an app that uses PostgreSQL and a scoped bucket; Kubernetes must yield a usable cluster. Another account must be denied, and an agent restart must not duplicate resources.
 
 Before your slice, read the [experience assertions](CoveStack-AntiWrapper-Acceptance.md#33-user-experience-assertions--planned-existing-tests) and [stack walkthrough](CoveStack-Stack-Templates.md#21-usable-application-and-recovery-walkthrough--planned). Agree interface details with the named owners, implement a small end-to-end path, and attach actual evidence. No service is promoted until its gates pass; CLI first, with no extra service scope.
+
+### 1.2 Start the first integration together — Planned
+
+Read [Anuj's single-account checklist](CoveStack-Anuj-Next-Steps.md#23-first-milestone-decision--single-account-communication-planned). B supplies the real server and trusted account/agent assignment; C provisions the dedicated service key and owns integration checks; A reuses signing/config and builds one-account communication. D reviews any new schema; E continues thin CLI learning.
+
+First target: signed read-only GET /internal/v1/agent/work returns 200 [] with empty capabilities; temporary outage/restart recovers with backoff, invalid authentication stops safely and Ctrl+C cancels promptly. localhost:4700 is the documented same-host development origin, not a running-server claim. Selected timeout/poll defaults are in the checklist. No container execution or success acknowledgment until reviewed claim/network schemas and an actual driver exist. Missing server prerequisites remain B+C dependencies; they are not resolved by this documentation.
 
 ## 2. Branch workflow
 
