@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **15 October 2026**                                                     |
+| Updated                 | **27 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -147,6 +147,16 @@ unset KAN_ACCESS_KEY KAN_SECRET_KEY KAN_SERVER_URL KAN_RULES_PATH
 Source only your trusted file. Real server-side credentials are required. Expected smoke statuses are valid 200, replay 401, invalid MAC 401, preserved valid request 200 and nonce tampering 401. A mocked handler test is not this deployment test.
 
 The planned production agent must load settings once, reuse a finite-timeout/no-redirect client, handle shutdown, heartbeat/poll, inspect ownership and reconcile installed supported kinds. Publish an actual main command only with reviewed build/runtime evidence. Agreed target: one agent process per physical host; separate service credential and authenticated polling context per assigned account. B owns server assignment validation; C credential provisioning/rotation/revocation; A isolated clients and shared bounded execution. Provisioning/storage details still need B+C+A review; no new wire fields. Do not add caller-selected account wire fields.
+
+### 7.1 Single-account starting configuration — Planned
+
+Use the [first milestone decision](CoveStack-Anuj-Next-Steps.md#23-first-milestone-decision--single-account-communication-planned) as the communication checklist. Same-host development origin is http://localhost:4700 from the current contract, not evidence that a server is running; localhost means the agent's own host/network namespace. Remote server access requires verified HTTPS. Do not bypass the existing origin validation for a LAN address.
+
+C provisions one dedicated service credential; B validates its stored account/agent assignment; A loads the existing KAN_* environment variables. Issue by protected channel, restrict local secret-file readers, never commit or log secrets, and use separate verifier key custody. The loader does not auto-discover secret files. Credential issuance/rotation is server administration, not agent self-enrollment or a shared development default.
+
+The initial client uses a 10-second request timeout, 5-second normal polling base with bounded jitter and temporary-failure backoff from 1 second to a 30-second cap. These are selected starting defaults requiring test evidence, not new environment variables or wire fields. Valid 429 Retry-After handling stays cancellable; 401/403 stops the account loop. Each retry is freshly signed. No-work is 200 []; malformed responses are errors. Start with empty capabilities and no execution; agree truthful required heartbeat version values before sending heartbeat. No production-agent command is asserted until A adds and verifies the entry point.
+
+B+C+A record actual server readiness, issuance/assignment and live smoke results before calling this milestone verified. Remaining claim/renew/report schema work blocks runtime execution, not reading existing signing code or developing isolated transport tests.
 
 ## 8. Target environment installation sequence
 

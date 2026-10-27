@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
+| Updated                 | **27 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -17,6 +17,12 @@
 | B/C/D                | Java/SQL/policy/schema/API roles                                                        | D writes no Go                                 |
 
 **AI-generated code is reference only: A types and can explain agent Go.** Any Go change needs A review; pkg/kanclient needs A+B+C; k3d driver A+B+C; schema B+C+A. The module layout and signer move are planned decisions, not changes in this task.
+
+### 1.1 A's first implementation milestone — Planned
+
+A starts with [single-account signed communication](CoveStack-Anuj-Next-Steps.md#23-first-milestone-decision--single-account-communication-planned), not multi-account concurrency or Docker execution. Reuse current config/sigv1/auth-smoke, agree module layout, then implement bounded HTTP polling, no-work decoding, retries and cancellation. Same-host contract origin is localhost:4700; no-work is 200 []; remote access requires verified HTTPS. Initial capabilities are empty; required heartbeat versions must be truthful.
+
+Selected starting defaults are 10-second requests, 5-second polling base and temporary-failure backoff from 1 to 30 seconds with bounded jitter. Honor valid 429 retry guidance and stop the account loop on 401/403; fresh signature each attempt, no redirects or credential logs. C owns real-server acceptance; B supplies boot/assignment, C credentials and D schema alignment. These agent defaults do not automatically become CLI/provider retry policy; E reviews those separately. New claim/lease/report fields still require coordinated contract work before execution.
 
 ## 2. E's four-week learning plan
 

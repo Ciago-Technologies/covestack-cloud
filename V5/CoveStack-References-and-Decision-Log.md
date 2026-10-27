@@ -3,7 +3,7 @@
 | Document control        | Value                                                                   |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **15 October 2026**                                                     |
+| Updated                 | **27 October 2026**                                                     |
 | Submission deadline     | **Monday, 25 January 2027**                                             |
 | Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
 | Status                  | Target design and implementation guidance; not a completion certificate |
@@ -52,6 +52,21 @@ Links are carried from earlier documents; no network access or source revalidati
 | ITISS coding ownership                                      | Ask mentor in writing; if disallowed, named agent developer/handover   |
 
 No versions, CIDRs, quota-error wire names or confirmations are chosen here. Extended proxy/health/cooldown/storage/identity/domain/tunnel decisions live only in the roadmap; old G0 schedule wording is superseded by the workflow.
+
+### Single-account client starting decision — 27 October 2026
+
+**Status: Planned.** Selected by the project owner as the starting implementation plan; not evidence of B+C review, a running endpoint or service gates. Authoritative detail: [Anuj's first milestone](CoveStack-Anuj-Next-Steps.md#23-first-milestone-decision--single-account-communication-planned).
+
+| Decision | Selected target | Still needs implementation / evidence |
+| --- | --- | --- |
+| Initial scope | One account, dedicated service credential, one agent process; no execution | B trusted assignment, C secure provisioning, A client |
+| Existing contract | Local development origin localhost:4700; signed read-only GET /internal/v1/agent/work; 200 [] when empty | B server boot, valid/revoked-key integration tests with C+A |
+| Client policy | 10-second timeout, 5-second polling base; bounded jitter; 1-to-30-second temporary backoff; 429 Retry-After; 401/403 stops account loop | A implements; B+C review timing, parsing and error behavior using real server |
+| Capability honesty | Empty supportedKinds until tested driver; truthful required heartbeat versions | Heartbeat readiness and version source A+B+C; no placeholder Docker version |
+| Safety boundary | Fresh signature per attempt; no redirects, secrets in logs, direct DB or claim via GET | A transport/cancellation tests and C real-server verification |
+| Execution prerequisite | Separate idempotent claim, renewal and guarded reports; exact generation/owner/epoch and expiry | B+D+A/C coordinated schemas/fixtures; no invented next wire version |
+
+These operational defaults are not pinned tool versions or protocol constants. Final key custody, assignment lookup/provisioning, response bounds, jitter bounds and release timing validation remain named review items. No new code/config option or wire field is introduced by this decision.
 
 ### 3.1 HLD/LLD review decisions — target resolution
 

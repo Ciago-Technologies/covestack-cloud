@@ -52,34 +52,34 @@ Operation states: queued, running, completed, failed, cancelled. Mail states: qu
 
 ### 2.2 Authority, identifiers and report semantics — Planned
 
-| Concern | Authoritative rule | Implementation consequence |
-| --- | --- | --- |
-| IDs | Internal UUID; prefixed public_id for CLI; numeric provider_id for supported /v2 mappings | B+D finalize uniqueness, allocation and DTO mapping; no text ULID replacement or assumed UUID-to-number conversion |
-| Identity | Accounts own resources; users join through memberships | Do not hide RBAC in accounts JSON or confuse a user with an account |
-| Credentials | Bearer tokens are hash-only; service signing secrets are encrypted with key version | C+B finalize custody/rotation; do not combine both into one recoverable access_keys table |
-| Writes | Java validates requests and commits all platform DB changes | Agent submits authenticated reports, not direct SQL writes; separate columns do not by themselves prevent stale writes |
-| Intent | generation identifies accepted desired state/spec | Relevant mutation increments generation and schedules work atomically; row_version is optimistic concurrency, not a lease fence |
-| Observation | observed/observed_at describe inspected runtime evidence | observed_generation follows the reviewed report contract; freshness is separate from revision equality |
-| Convergence | acked_generation records accepted kind-specific successful convergence | Only exact current claim/generation plus readiness may advance it; progress/health never acknowledges success |
-| Work ownership | Account/agent assignment and live lease owner/epoch fence reports | One host process uses separate account credentials/clients; OS exclusion also protects actual runtime mutation |
-| Retry | Caller key identifies an intended request; fingerprint detects a changed request | Do not generate the logical key solely from the body hash; identical intentional requests can use different keys |
+| Concern        | Authoritative rule                                                                        | Implementation consequence                                                                                                      |
+| -------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| IDs            | Internal UUID; prefixed public_id for CLI; numeric provider_id for supported /v2 mappings | B+D finalize uniqueness, allocation and DTO mapping; no text ULID replacement or assumed UUID-to-number conversion              |
+| Identity       | Accounts own resources; users join through memberships                                    | Do not hide RBAC in accounts JSON or confuse a user with an account                                                             |
+| Credentials    | Bearer tokens are hash-only; service signing secrets are encrypted with key version       | C+B finalize custody/rotation; do not combine both into one recoverable access_keys table                                       |
+| Writes         | Java validates requests and commits all platform DB changes                               | Agent submits authenticated reports, not direct SQL writes; separate columns do not by themselves prevent stale writes          |
+| Intent         | generation identifies accepted desired state/spec                                         | Relevant mutation increments generation and schedules work atomically; row_version is optimistic concurrency, not a lease fence |
+| Observation    | observed/observed_at describe inspected runtime evidence                                  | observed_generation follows the reviewed report contract; freshness is separate from revision equality                          |
+| Convergence    | acked_generation records accepted kind-specific successful convergence                    | Only exact current claim/generation plus readiness may advance it; progress/health never acknowledges success                   |
+| Work ownership | Account/agent assignment and live lease owner/epoch fence reports                         | One host process uses separate account credentials/clients; OS exclusion also protects actual runtime mutation                  |
+| Retry          | Caller key identifies an intended request; fingerprint detects a changed request          | Do not generate the logical key solely from the body hash; identical intentional requests can use different keys                |
 
 ### 2.3 Workflow-to-schema coverage — Planned
 
 These are requirements for the existing CORE-5 and cross-cutting workflow, not extra services. C owns acceptance tests; B owns SQL, D DTO alignment, A agent execution, E API-only CLI. Only two drivers exist: generic container and k3d; network execution is a container-driver helper.
 
-| Workflow | Durable records | Required effect and evidence |
-| --- | --- | --- |
-| Authenticate and assign | accounts, users, account_members, agents, api_tokens, signing_credentials | Verified identity and server-owned assignments; single-account client first, multiple contexts later |
-| Submit/retry a request | resources, operations, idempotency_keys, resource_events, audit_log | Atomic intent/result; same key returns original result; changed body rejected; tests 3–5 |
-| Reconcile a Droplet | resources, droplets, volumes when needed | Approved image runs a usable app; inspect before create; restart without duplicates; tests 1–6 |
-| Default private network | subnet_pool, vpcs, ip_allocations | Network converges before attachment; allocation races and actual isolation pass test 14 |
-| Provision Kubernetes | resources, k8s_clusters, port_allocations, account_quotas | 1 server plus at most 2 agents; max 2 clusters/host; scoped kubeconfig deploys a workload; tests 7–10 |
-| Operate PostgreSQL | resources, db_instances, volumes, backups, restore_jobs | Scoped private SQL access, real rows, persistent data and measured restore; test 11 |
-| Operate object storage | Shared operator compute intent/volume; tenant resources, buckets, bucket_credentials | Java reconciles bucket policy; exact object bytes survive process restart; tests 12–13 |
-| Fixed application stack | stack_templates, stack_template_versions, stacks, stack_resources | One fixed sequence; app uses DB and bucket; retry preserves child identity; test 15 |
-| Inspect and diagnose | Scoped resource/operation/event records and observation timestamps | CLI displays intent, convergence, freshness and sanitized errors from API; stale evidence is not current health |
-| Install and recover | Forward migrations, protected DB/key backups and operating evidence | Ansible Part 1 clean-host install; teammate walkthrough and recovery; no extra installer/CLI/provider/UI tables |
+| Workflow                | Durable records                                                                      | Required effect and evidence                                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| Authenticate and assign | accounts, users, account_members, agents, api_tokens, signing_credentials            | Verified identity and server-owned assignments; single-account client first, multiple contexts later            |
+| Submit/retry a request  | resources, operations, idempotency_keys, resource_events, audit_log                  | Atomic intent/result; same key returns original result; changed body rejected; tests 3–5                        |
+| Reconcile a Droplet     | resources, droplets, volumes when needed                                             | Approved image runs a usable app; inspect before create; restart without duplicates; tests 1–6                  |
+| Default private network | subnet_pool, vpcs, ip_allocations                                                    | Network converges before attachment; allocation races and actual isolation pass test 14                         |
+| Provision Kubernetes    | resources, k8s_clusters, port_allocations, account_quotas                            | 1 server plus at most 2 agents; max 2 clusters/host; scoped kubeconfig deploys a workload; tests 7–10           |
+| Operate PostgreSQL      | resources, db_instances, volumes, backups, restore_jobs                              | Scoped private SQL access, real rows, persistent data and measured restore; test 11                             |
+| Operate object storage  | Shared operator compute intent/volume; tenant resources, buckets, bucket_credentials | Java reconciles bucket policy; exact object bytes survive process restart; tests 12–13                          |
+| Fixed application stack | stack_templates, stack_template_versions, stacks, stack_resources                    | One fixed sequence; app uses DB and bucket; retry preserves child identity; test 15                             |
+| Inspect and diagnose    | Scoped resource/operation/event records and observation timestamps                   | CLI displays intent, convergence, freshness and sanitized errors from API; stale evidence is not current health |
+| Install and recover     | Forward migrations, protected DB/key backups and operating evidence                  | Ansible Part 1 clean-host install; teammate walkthrough and recovery; no extra installer/CLI/provider/UI tables |
 
 VPCs have no lifecycle-contract kind; their separate signed execution protocol is TBD with B+A/D/C. Server-owned buckets never become agent bucket work. Terraform remains optional and limited to Droplet/Kubernetes; no new template engine, queue or application-CI service is added.
 
@@ -367,22 +367,22 @@ All are **Planned**. B owns schema; C reviews tenancy/secrets and owns tests; A 
 | Tenancy          | account_id NOT NULL                                                                                                                                                                                                                                                   |
 | PK               | `PRIMARY KEY (id)`                                                                                                                                                                                                                                                    |
 | FK               | `FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE RESTRICT`; `FOREIGN KEY (account_id, resource_id) REFERENCES resources(account_id, id) ON DELETE RESTRICT`; `FOREIGN KEY (account_id, retry_of) REFERENCES operations(account_id, id) ON DELETE RESTRICT` |
-| Unique/exclusion | `UNIQUE (account_id, id)`; `UNIQUE (provider_id)` |
+| Unique/exclusion | `UNIQUE (account_id, id)`; `UNIQUE (provider_id)`                                                                                                                                                                                                                     |
 | CHECK            | `CHECK (status IN ('queued', 'running', 'completed', 'failed', 'cancelled'))`; `CHECK (requested_generation > 0)`                                                                                                                                                     |
 | Indexes          | `CREATE INDEX operations_resource ON operations(account_id, resource_id, created_at);`                                                                                                                                                                                |
 
-| Column                 | Type / null / default                 | Purpose                                                  |
-| ---------------------- | ------------------------------------- | -------------------------------------------------------- |
-| `id`                   | `uuid`; NOT NULL                      | Application-supplied identity; UUID strategy B finalizes |
-| `provider_id` | `bigint`; NULL; UNIQUE when present | Numeric /v2 action identifier; allocation and required mappings B+D |
-| `account_id`           | `uuid`; NOT NULL                      | Account boundary; explicit FK                            |
-| `resource_id`          | `uuid`; NOT NULL                      | resource id                                              |
-| `status`               | `text`; NOT NULL                      | status                                                   |
-| `requested_generation` | `bigint`; NOT NULL                    | requested generation                                     |
-| `retry_of`             | `uuid`; NULL                          | retry of                                                 |
-| `created_at`           | `timestamptz`; NOT NULL DEFAULT now() | UTC creation                                             |
-| `updated_at`           | `timestamptz`; NOT NULL DEFAULT now() | UTC last write; append-only records unchanged            |
-| `row_version`          | `bigint`; NOT NULL DEFAULT 0          | Optimistic concurrency                                   |
+| Column                 | Type / null / default                 | Purpose                                                             |
+| ---------------------- | ------------------------------------- | ------------------------------------------------------------------- |
+| `id`                   | `uuid`; NOT NULL                      | Application-supplied identity; UUID strategy B finalizes            |
+| `provider_id`          | `bigint`; NULL; UNIQUE when present   | Numeric /v2 action identifier; allocation and required mappings B+D |
+| `account_id`           | `uuid`; NOT NULL                      | Account boundary; explicit FK                                       |
+| `resource_id`          | `uuid`; NOT NULL                      | resource id                                                         |
+| `status`               | `text`; NOT NULL                      | status                                                              |
+| `requested_generation` | `bigint`; NOT NULL                    | requested generation                                                |
+| `retry_of`             | `uuid`; NULL                          | retry of                                                            |
+| `created_at`           | `timestamptz`; NOT NULL DEFAULT now() | UTC creation                                                        |
+| `updated_at`           | `timestamptz`; NOT NULL DEFAULT now() | UTC last write; append-only records unchanged                       |
+| `row_version`          | `bigint`; NOT NULL DEFAULT 0          | Optimistic concurrency                                              |
 
 ### 4.9 resource_events
 
@@ -2036,16 +2036,16 @@ A conflicting inserter waits for the transaction outcome, then reads the stored 
 
 ### 7.4.1 Transaction boundaries and relational integrity — Planned
 
-| Flow | Transaction and validation before external execution |
-| --- | --- |
-| Resource create/update | Bind verified account; validate kind/spec and secret references; reserve idempotency; lock quota/host as needed; persist resource, kind row, operation and event together |
-| DigitalOcean action | Allocate numeric operations.provider_id for exposed /v2 actions in that transaction; preserve it across retries; action type/timestamps and public-ID non-reuse policy remain B+D decisions |
-| Claim | GET /work stays read-only; separate reviewed mutation reserves claim idempotency and lease atomically; never run backend commands inside the transaction |
-| Kubernetes create/delete | Under canonical host lock count live plus provisioning/deleting reservations across accounts; reserve API port before create; retain port/quota until owned cleanup is confirmed |
-| Network attachment | Verify account, host, subnet containment and matching live IP allocation; resource kind/host must agree with VPC; prevent network teardown while attachments/reservations remain |
-| Secret retrieval | Authorize separate delivery for DB credentials, S3 keys and kubeconfig; never cache plaintext in idempotency response_body, events, spec or observed |
-| Stack progression | Persist each child binding before advancing; one stack cannot create duplicate children for a role on retry; wait for real dependency readiness |
-| Event linkage | An event's operation must refer to that same resource/account; composite account FKs alone do not guarantee same-resource linkage; B chooses extra constraint or transactional validation |
+| Flow                     | Transaction and validation before external execution                                                                                                                                        |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Resource create/update   | Bind verified account; validate kind/spec and secret references; reserve idempotency; lock quota/host as needed; persist resource, kind row, operation and event together                   |
+| DigitalOcean action      | Allocate numeric operations.provider_id for exposed /v2 actions in that transaction; preserve it across retries; action type/timestamps and public-ID non-reuse policy remain B+D decisions |
+| Claim                    | GET /work stays read-only; separate reviewed mutation reserves claim idempotency and lease atomically; never run backend commands inside the transaction                                    |
+| Kubernetes create/delete | Under canonical host lock count live plus provisioning/deleting reservations across accounts; reserve API port before create; retain port/quota until owned cleanup is confirmed            |
+| Network attachment       | Verify account, host, subnet containment and matching live IP allocation; resource kind/host must agree with VPC; prevent network teardown while attachments/reservations remain            |
+| Secret retrieval         | Authorize separate delivery for DB credentials, S3 keys and kubeconfig; never cache plaintext in idempotency response_body, events, spec or observed                                        |
+| Stack progression        | Persist each child binding before advancing; one stack cannot create duplicate children for a role on retry; wait for real dependency readiness                                             |
+| Event linkage            | An event's operation must refer to that same resource/account; composite account FKs alone do not guarantee same-resource linkage; B chooses extra constraint or transactional validation   |
 
 Kind tables must match resources.kind, not merely reference an owned resource. Enforce discriminator, host/port allocation and IP-reference consistency through reviewed relational constraints and/or locked Java transactions; section 12 tracks the exact encoding. CORE-5 node_count is total nodes, 1–3 with exactly one server. If deferred k8s_node_pools is introduced, its agent count must equal node_count minus one; do not maintain conflicting counts.
 
@@ -2077,7 +2077,7 @@ Retention defaults are TBD with B+A. Keep referenced data under RESTRICT until p
 
 ## 9. Migration policy
 
-Flyway is declared. The repository currently contains V5__create_publications.sql and V6__create_domains.sql, but no foundational accounts/resources migrations were found; these files are not evidence of a bootstrappable or applied schema. V5 requires accounts(id) and resources(account_id, id); V6 requires accounts(id). An empty-database migration run is therefore blocked until B supplies the reviewed prerequisites. Never edit an applied migration. B first determines applied history; then plans forward-only prerequisites/changes and expand/contract for breaking changes, with restore notes. CI must apply the approved chain to empty PostgreSQL 17 and run C's schema tests. Extended SQL already exists in the default Flyway location: documentation cannot make it conditionally excluded. B must decide the migration-location/release policy before CORE-5 packaging; no file is moved or migration rewritten here. This task creates no SQL/migration file.
+Flyway is declared. The repository currently contains V5**create_publications.sql and V6**create_domains.sql, but no foundational accounts/resources migrations were found; these files are not evidence of a bootstrappable or applied schema. V5 requires accounts(id) and resources(account_id, id); V6 requires accounts(id). An empty-database migration run is therefore blocked until B supplies the reviewed prerequisites. Never edit an applied migration. B first determines applied history; then plans forward-only prerequisites/changes and expand/contract for breaking changes, with restore notes. CI must apply the approved chain to empty PostgreSQL 17 and run C's schema tests. Extended SQL already exists in the default Flyway location: documentation cannot make it conditionally excluded. B must decide the migration-location/release policy before CORE-5 packaging; no file is moved or migration rewritten here. This task creates no SQL/migration file.
 
 ### 9.1 Migration order — proposal, B finalizes
 
@@ -2115,15 +2115,15 @@ These support [CORE-5 tests 1–15](CoveStack-AntiWrapper-Acceptance.md). Layer 
 
 ### 10.1 End-to-end workflow evidence — existing tests 1–15
 
-| Scenario | Required assertion |
-| --- | --- |
-| Account lab | Same friendly name can exist in separate accounts; API, credentials, kubeconfig and intended network paths remain scoped |
-| Resource transaction | Failure rolls back idempotency/resource/child/operation/event together; same-key retries reuse the result; distinct keys are not body-hash-deduplicated |
-| Truthful get | Desired and acknowledged revisions, observation time and sanitized errors remain distinguishable; progress is not convergence and old evidence is not fresh health |
-| Kubernetes | Host reservations enforce 2-cluster cap; 1 server plus max 2 agents; usable scoped kubeconfig deploys a bounded workload; failed cleanup retains quota and ports |
-| Data services | Actual SQL rows and exact object bytes survive promised restarts; backup restore verifies canonical rows/checksum, not just dump-file checksum |
-| Fixed stack | App uses DB and bucket through authorized references; retry preserves child bindings; retained data/shared MinIO survive scoped deletion |
-| Relational linkage | Wrong kind child, wrong-host reservation, mismatched IP and event-operation resource linkage are rejected by finalized constraints/transactions |
+| Scenario             | Required assertion                                                                                                                                                 |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Account lab          | Same friendly name can exist in separate accounts; API, credentials, kubeconfig and intended network paths remain scoped                                           |
+| Resource transaction | Failure rolls back idempotency/resource/child/operation/event together; same-key retries reuse the result; distinct keys are not body-hash-deduplicated            |
+| Truthful get         | Desired and acknowledged revisions, observation time and sanitized errors remain distinguishable; progress is not convergence and old evidence is not fresh health |
+| Kubernetes           | Host reservations enforce 2-cluster cap; 1 server plus max 2 agents; usable scoped kubeconfig deploys a bounded workload; failed cleanup retains quota and ports   |
+| Data services        | Actual SQL rows and exact object bytes survive promised restarts; backup restore verifies canonical rows/checksum, not just dump-file checksum                     |
+| Fixed stack          | App uses DB and bucket through authorized references; retry preserves child bindings; retained data/shared MinIO survive scoped deletion                           |
+| Relational linkage   | Wrong kind child, wrong-host reservation, mismatched IP and event-operation resource linkage are rejected by finalized constraints/transactions                    |
 
 These refine existing gates rather than declare passing results. C records real API/CLI and backend evidence; A provides agent/installer/ITISS observations, B SQL, D mappings and E CLI. See [experience assertions](CoveStack-AntiWrapper-Acceptance.md#33-user-experience-assertions--planned-existing-tests).
 
@@ -2131,18 +2131,18 @@ These refine existing gates rather than declare passing results. C records real 
 
 Inspection snapshot: 23 October 2026. File presence does not establish application boot, applied Flyway history or a live schema. No database was queried. Java uses JDBC; no JPA entities or repositories were found.
 
-| Existing source | Actual definitions | Target difference / required review |
-| --- | --- | --- |
-| V5__create_publications.sql | publications: id, account_id, resource_id, domain_id, load_balancer_id, hostname, upstream_port, generation, status, created_at, updated_at, row_version | Target adds tenant-composite domain/LB FKs and nonnegative row_version; existing file has neither; dependencies accounts/resources missing |
-| V6__create_domains.sql | domains: id, account_id, hostname, claim_generation, status, created_at, updated_at, row_version | Target nonnegative row_version is absent in file; hostname normalization/reassignment requires transactional policy |
-| V6__create_domains.sql | domain_verifications: id, account_id, domain_id, claim_generation, method, proof_ref, verified_at, created_at, updated_at, row_version | Composite account/domain FK exists; target row_version guard absent; current-claim binding and positive proof generation need B+C review |
-| Layer 1 reference | All 32 Layer 1 table specs are proposed; foundational migration files were not found | Keep target; deliver staged migrations and runtime tests; no live/core schema claim |
+| Existing source               | Actual definitions                                                                                                                                       | Target difference / required review                                                                                                        |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| V5\_\_create_publications.sql | publications: id, account_id, resource_id, domain_id, load_balancer_id, hostname, upstream_port, generation, status, created_at, updated_at, row_version | Target adds tenant-composite domain/LB FKs and nonnegative row_version; existing file has neither; dependencies accounts/resources missing |
+| V6\_\_create_domains.sql      | domains: id, account_id, hostname, claim_generation, status, created_at, updated_at, row_version                                                         | Target nonnegative row_version is absent in file; hostname normalization/reassignment requires transactional policy                        |
+| V6\_\_create_domains.sql      | domain_verifications: id, account_id, domain_id, claim_generation, method, proof_ref, verified_at, created_at, updated_at, row_version                   | Composite account/domain FK exists; target row_version guard absent; current-claim binding and positive proof generation need B+C review   |
+| Layer 1 reference             | All 32 Layer 1 table specs are proposed; foundational migration files were not found                                                                     | Keep target; deliver staged migrations and runtime tests; no live/core schema claim                                                        |
 
-| Existing SQL vocabulary | Interpretation |
-| --- | --- |
-| publications.status: new, provisioning, active, deleting, deleted, error | Existing local SQL values; not lifecycle-rules.json publication wire states |
-| domains.status: pending, verified, failed | Existing local SQL values; not lifecycle-contract domain states |
-| domain_verifications.method: dns-01 | Existing local SQL constraint; DNS challenge format, resolver behavior and expiry are still B+C decisions |
+| Existing SQL vocabulary                                                  | Interpretation                                                                                            |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| publications.status: new, provisioning, active, deleting, deleted, error | Existing local SQL values; not lifecycle-rules.json publication wire states                               |
+| domains.status: pending, verified, failed                                | Existing local SQL values; not lifecycle-contract domain states                                           |
+| domain_verifications.method: dns-01                                      | Existing local SQL constraint; DNS challenge format, resolver behavior and expiry are still B+C decisions |
 
 Appendix A now quotes these existing local constraints rather than obsolete TBDs for the same columns. This does not authorize new work kinds/messages, claim feature readiness or resolve missing desired/observed generation fields for extended reconciliation. Keep every target table; no drop or rename is proposed. Differences require B-reviewed future migrations after checking applied history, never silent edits to applied files.
 
@@ -2170,15 +2170,15 @@ The root Kan Cloud simple guide PDF is explanatory historical input, not the mig
 
 ### 12.1 Remaining workflow decisions before executable migrations
 
-| Decision | Owner / acceptance condition |
-| --- | --- |
-| Foundational migration chain and already-numbered extended files | B; inspect applied history; empty PostgreSQL 17 migration test with C |
-| Numeric action ID, action type/timestamps and identity retention | B+D; /v2 DTO and retry mapping without invented action enums |
-| Creation-time endpoint and credential-reference readiness | B+D+A/C; real provisioning with no fake endpoint/secret |
-| Durable claim/attempt correlation and observation ordering | B+A+D/C; paused worker, restart and out-of-order reports rejected |
-| Network allocation/attachment and node-count consistency | B+C+A; locked validation/constraints plus real traffic and quota tests |
-| Extended hostname normalization, current proof and reassignment | B+C; canonical uniqueness, no stale verified tenant routing, E6 |
-| Extended route readiness and generation acknowledgment | B+A+C/D; final schema/message changes and E5; current SQL is only a partial model |
+| Decision                                                         | Owner / acceptance condition                                                      |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| Foundational migration chain and already-numbered extended files | B; inspect applied history; empty PostgreSQL 17 migration test with C             |
+| Numeric action ID, action type/timestamps and identity retention | B+D; /v2 DTO and retry mapping without invented action enums                      |
+| Creation-time endpoint and credential-reference readiness        | B+D+A/C; real provisioning with no fake endpoint/secret                           |
+| Durable claim/attempt correlation and observation ordering       | B+A+D/C; paused worker, restart and out-of-order reports rejected                 |
+| Network allocation/attachment and node-count consistency         | B+C+A; locked validation/constraints plus real traffic and quota tests            |
+| Extended hostname normalization, current proof and reassignment  | B+C; canonical uniqueness, no stale verified tenant routing, E6                   |
+| Extended route readiness and generation acknowledgment           | B+A+C/D; final schema/message changes and E5; current SQL is only a partial model |
 
 Documentation version V5 is not wire version 1.1.0 or an approved next wire version. Existing architecture-note scheduling elsewhere is a planning statement, not a coordinated schema release. New messages require reviewed schemas, fixtures and generated outputs before the agent uses them.
 
@@ -2517,13 +2517,13 @@ ALTER TABLE metadata_identities ADD CHECK (row_version >= 0);
 
 ### domains
 
-| Property           | Reference specification                                                                                                                                                                                                              |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Purpose            | Extended track owned domain claim                                                                                                                                                                                                    |
-| Owner / layer      | B/C; Layer 2                                                                                                                                                                                                                         |
-| Status             | Extended track                                                                                                                                                                                                                       |
+| Property           | Reference specification                                                                                                                                                                                                          |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Purpose            | Extended track owned domain claim                                                                                                                                                                                                |
+| Owner / layer      | B/C; Layer 2                                                                                                                                                                                                                     |
+| Status             | Extended track                                                                                                                                                                                                                   |
 | PK/FK/unique/CHECK | `PRIMARY KEY (id)`; `FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE RESTRICT`; `UNIQUE (account_id, id)`; `UNIQUE (hostname)`; `CHECK (claim_generation > 0)`; `CHECK (status IN ('pending', 'verified', 'failed'))` |
-| Indexes            | PK/unique indexes; tuning B finalizes                                                                                                                                                                                                |
+| Indexes            | PK/unique indexes; tuning B finalizes                                                                                                                                                                                            |
 
 | Column             | Type / null / default                 | Purpose                                                  |
 | ------------------ | ------------------------------------- | -------------------------------------------------------- |
@@ -2562,13 +2562,13 @@ ALTER TABLE domains ADD CHECK (row_version >= 0);
 
 ### domain_verifications
 
-| Property           | Reference specification                                                                                                                                                                                                                                                                                                  |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Purpose            | Extended track proof bound to current claim revision                                                                                                                                                                                                                                                                     |
-| Owner / layer      | B/C; Layer 2                                                                                                                                                                                                                                                                                                             |
-| Status             | Extended track                                                                                                                                                                                                                                                                                                           |
+| Property           | Reference specification                                                                                                                                                                                                                                                                |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Purpose            | Extended track proof bound to current claim revision                                                                                                                                                                                                                                   |
+| Owner / layer      | B/C; Layer 2                                                                                                                                                                                                                                                                           |
+| Status             | Extended track                                                                                                                                                                                                                                                                         |
 | PK/FK/unique/CHECK | `PRIMARY KEY (id)`; `FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE RESTRICT`; `UNIQUE (account_id, id)`; `FOREIGN KEY (account_id, domain_id) REFERENCES domains(account_id, id) ON DELETE RESTRICT`; `UNIQUE (domain_id, claim_generation)`; `CHECK (method = 'dns-01')` |
-| Indexes            | PK/unique indexes; tuning B finalizes                                                                                                                                                                                                                                                                                    |
+| Indexes            | PK/unique indexes; tuning B finalizes                                                                                                                                                                                                                                                  |
 
 | Column             | Type / null / default                 | Purpose                                                  |
 | ------------------ | ------------------------------------- | -------------------------------------------------------- |
@@ -2611,13 +2611,13 @@ ALTER TABLE domain_verifications ADD CHECK (row_version >= 0);
 
 ### publications
 
-| Property           | Reference specification                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Purpose            | Extended track sole route-intent authority                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| Owner / layer      | B/A/C; Layer 2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| Status             | Extended track                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Property           | Reference specification                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Purpose            | Extended track sole route-intent authority                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Owner / layer      | B/A/C; Layer 2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Status             | Extended track                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | PK/FK/unique/CHECK | `PRIMARY KEY (id)`; `FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE RESTRICT`; `UNIQUE (account_id, id)`; `FOREIGN KEY (account_id, resource_id) REFERENCES resources(account_id, id) ON DELETE RESTRICT`; `FOREIGN KEY (account_id, domain_id) REFERENCES domains(account_id, id) ON DELETE RESTRICT`; `FOREIGN KEY (account_id, load_balancer_id) REFERENCES load_balancers(account_id, id) ON DELETE RESTRICT`; `UNIQUE (hostname)`; `CHECK (upstream_port BETWEEN 1 AND 65535)`; `CHECK (generation > 0)`; `CHECK (status IN ('new', 'provisioning', 'active', 'deleting', 'deleted', 'error'))` |
-| Indexes            | PK/unique indexes; tuning B finalizes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Indexes            | PK/unique indexes; tuning B finalizes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
 | Column             | Type / null / default                 | Purpose                                                  |
 | ------------------ | ------------------------------------- | -------------------------------------------------------- |
@@ -2826,7 +2826,7 @@ WHERE p.account_id = :account_id
 
 Existing publication/domain SQL is partial relative to the extended workflow. Before rendering an authorized route, Java must validate canonical hostname uniqueness, owned live target, current domain account/claim_generation proof and the target's reachable upstream. Invalidate verification and disable the old route atomically on reassignment; stale resolver results cannot verify a newer claim. proof_ref references protected challenge material; challenge values, secrets and DNS credentials never enter ordinary resource observations/logs.
 
-The target publications.domain_id and load_balancer_id composite FKs are future constraints, absent from V5__create_publications.sql. B+C/D choose the valid resource-kind/target model for Droplet versus Kubernetes application endpoints and the LB relationship; resource_id alone does not identify a Kubernetes Service/Ingress or port-forward. A cluster API port is never an application upstream. Upstream endpoint, TLS references, route observation/converged generation, deletion/cleanup retention and hostname reuse all need finalized persisted shapes and coordinated execution messages; no field name or tunnel choice is invented here.
+The target publications.domain_id and load_balancer_id composite FKs are future constraints, absent from V5\_\_create_publications.sql. B+C/D choose the valid resource-kind/target model for Droplet versus Kubernetes application endpoints and the LB relationship; resource_id alone does not identify a Kubernetes Service/Ingress or port-forward. A cluster API port is never an application upstream. Upstream endpoint, TLS references, route observation/converged generation, deletion/cleanup retention and hostname reuse all need finalized persisted shapes and coordinated execution messages; no field name or tunnel choice is invented here.
 
 A sole status/generation column does not prove route convergence or satisfy G1–G4. E5/E6 must demonstrate route removal, protected management ports and proof invalidation in actual execution. No Nginx reconciler, DNS verifier, tunnel, public certificate or runtime capability is established by these CREATE TABLE statements.
 
