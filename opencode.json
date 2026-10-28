@@ -1,0 +1,28 @@
+{
+  "mcp": {
+    "git": {
+      "type": "local",
+      "command": ["uvx", "mcp-server-git"]
+    },
+    "filesystem": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem", "."]
+    },
+    "sqlite": {
+      "type": "local",
+      "command": ["npx", "-y", "mcp-server-sqlite-npx", "data/covestack_state.db"]
+    },
+    "sequential-thinking": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "memory": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-memory"]
+    },
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "-y", "@playwright/mcp"]
+    }
+  }
+}
