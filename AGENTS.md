@@ -34,3 +34,12 @@
 - Deadline Monday 25 January 2027; planning date 14 October 2026.
 - Do not delete requirements; preserve moved text with a relocation record.
 - No commit, push, network or installs; stop after each batch for review.
+
+## Mandatory task handoff — checkpoint.md
+
+- Root checkpoint.md is the single canonical AI-agent task handoff. Read it and AGENTS.md before each task; verify current files/git status rather than trusting stale notes. Do not create competing checkpoint/handoff files.
+- After every task, before the final response, update checkpoint.md in place, including documentation-only tasks, reviews and investigations. For long tasks, also checkpoint meaningful milestones before stopping, handing off or approaching context limits. This maintenance is authorized within ordinary task scope unless the latest user instruction explicitly prohibits edits or checkpoint changes; then report that the handoff was not updated.
+- Record the task/objective and authorization, approach and important decisions, files changed or inspected, actual result, tests/checks with commands/results and evidence scope, unresolved risks/dependencies, remaining work and exact next action with file paths. Include branch/revision and commit/push status when checked; never invent results or remote state.
+- State progress as concrete verified steps versus pending steps. If reporting a percentage, define its checklist/denominator; never guess project completion or confuse task progress with service Gates passed. Label historical evidence, mocks, unverified claims and blocked work explicitly.
+- Keep the current summary and next-step instructions coherent: replace stale statements, preserve still-relevant requirements/decisions and retain a concise dated task record. Do not append contradictory snapshots or duplicate the full conversation. Include enough context for another agent to continue without chat history.
+- Never store secrets, tokens, private configuration contents or sensitive logs in checkpoint.md. Preserve unrelated user changes. The checkpoint does not override contracts, source/CI evidence, user instructions or GitHub's live issue status, and does not authorize the next implementation task or a commit/push.
