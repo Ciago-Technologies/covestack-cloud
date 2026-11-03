@@ -79,7 +79,7 @@ func New(cfg config.Config) (*Client, error) {
 	}
 	ip := net.ParseIP(u.Hostname())
 	local := strings.EqualFold(u.Hostname(), "localhost") || (ip != nil && ip.IsLoopback())
-	if u.Scheme != "https" && !(u.Scheme == "http" && local) {
+	if u.Scheme != "https" && (u.Scheme != "http" || !local) {
 		return nil, errors.New("server requires HTTPS outside localhost")
 	}
 	if cfg.AccessKey == "" || cfg.SecretKey == "" ||
@@ -99,7 +99,7 @@ func New(cfg config.Config) (*Client, error) {
 
 // GetWork performs one read-only signed GET. A non-nil empty slice represents
 // 200 []; all failures return nil plus an error. No retries, claims or acks occur.
-func (c *Client) GetWork(ctx context.Context) ([]Resource, error) {
+func (c *Client) GetWork(ctx context.Context) (work []Resource, err error) {
 	req, err := sigv1.NewSignedRequest(ctx, http.MethodGet, c.workURL,
 		c.accessKey, c.secretKey, nil, "", &c.rules)
 	if err != nil {
@@ -110,7 +110,12 @@ func (c *Client) GetWork(ctx context.Context) ([]Resource, error) {
 	if err != nil {
 		return nil, fmt.Errorf("work request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil && err == nil {
+			work = nil
+			err = fmt.Errorf("close work response: %w", closeErr)
+		}
+	}()
 	if resp.StatusCode != http.StatusOK {
 		return nil, &HTTPError{StatusCode: resp.StatusCode, RetryAfter: resp.Header.Get("Retry-After")}
 	}

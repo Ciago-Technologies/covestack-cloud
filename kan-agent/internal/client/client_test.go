@@ -51,7 +51,9 @@ func TestSignedNoWorkAndFreshNonce(t *testing.T) {
 			t.Error("nonce not fresh")
 		}
 		previous = nonce
-		fmt.Fprint(w, "[]")
+		if _, err := fmt.Fprint(w, "[]"); err != nil {
+			t.Error(err)
+		}
 	}))
 	defer server.Close()
 	c := testClient(t, server.URL)
@@ -84,7 +86,11 @@ func TestWorkResponseValidation(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { fmt.Fprint(w, tc.body) }))
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if _, err := fmt.Fprint(w, tc.body); err != nil {
+					t.Error(err)
+				}
+			}))
 			defer server.Close()
 			work, err := testClient(t, server.URL).GetWork(context.Background())
 			if (err != nil) != tc.wantError {
@@ -109,7 +115,11 @@ func TestHTTPFailuresAndRedirect(t *testing.T) {
 				w.Header().Set("Location", destination.URL)
 				w.Header().Set("Retry-After", "12")
 				w.WriteHeader(status)
-				fmt.Fprint(w, "do-not-log-this-secret")
+				if status != http.StatusNoContent {
+					if _, err := fmt.Fprint(w, "do-not-log-this-secret"); err != nil {
+						t.Error(err)
+					}
+				}
 			}))
 			defer server.Close()
 			_, err := testClient(t, server.URL).GetWork(context.Background())

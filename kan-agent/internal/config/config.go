@@ -65,7 +65,7 @@ func load(getenv func(string) string) (Config, error) {
 	host := strings.ToLower(u.Hostname())
 	ip := net.ParseIP(host)
 	local := host == "localhost" || (ip != nil && ip.IsLoopback())
-	if u.Scheme != "https" && !(u.Scheme == "http" && local) {
+	if u.Scheme != "https" && (u.Scheme != "http" || !local) {
 		return c, fmt.Errorf("KAN_SERVER_URL requires HTTPS outside localhost")
 	}
 	path := getenv("KAN_RULES_PATH")

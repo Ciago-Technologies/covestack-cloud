@@ -39,7 +39,9 @@ func runWithClient(client *http.Client) error {
 		if err != nil {
 			return fmt.Errorf("%s: %w", name, err)
 		}
-		response.Body.Close()
+		if err := response.Body.Close(); err != nil {
+			return fmt.Errorf("%s: close response body: %w", name, err)
+		}
 		if response.StatusCode != want {
 			return fmt.Errorf("%s: status %d, expected %d", name, response.StatusCode, want)
 		}
