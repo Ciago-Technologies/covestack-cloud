@@ -30,7 +30,7 @@ Driver inspect/create/start/stop/delete/readiness must bind opaque provider task
 
 ## Fences and runtime exclusion
 
-DB claim includes current generation, owner, epoch and expiry using DB-authoritative time. Renew only a live unchanged claim. Progress/health cannot acknowledge; convergence requires actual kind readiness, exact current generation and claim, then releases owner+expiry together, retaining epoch. Stale/expired reports alter neither convergence nor fresh observations. Reference V5 query is not approved VM wire/schema.
+DB claim includes current generation, owner, epoch and expiry using DB-authoritative time. Renew only a current unchanged claim under the reviewed validity policy; B+C+A must finalize expiry/renewal acceptance consistently. Progress/health cannot acknowledge; convergence requires actual kind readiness, exact current generation and claim, then releases owner+expiry together, retaining epoch. Stale owner/epoch/generation reports alter neither convergence nor fresh observations; exact expiry predicates follow that explicitly agreed policy. The current V5 query remains a non-executable design, not approved VM wire/schema.
 
 DB epochs fence database writes; Incus/Docker/k3d do not automatically enforce CoveStack's epoch. Hold reviewed process/child-operation exclusion and serialize per-resource changes; after timeout, parent death or lost API response, inspect actual provider task before takeover. An expired SQL lease is not permission to issue conflicting backend commands. Block unknown outcomes rather than delete/create blindly.
 

@@ -1,91 +1,62 @@
-# Architecture transition notice — 4 November 2026
+# CoveStack V5 — Implementation Evidence and Missing Work
 
-> **Superseded design reference.** Active guidance: [platform implementation-status](../docs/platform/implementation-status.md). The signed client, startup and polling loop now exist; no execution driver, core migration chain or live VM acceptance is established. Historical checks stay dated.
->
-> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
+| Document control | Value |
+| --- | --- |
+| Updated | 4 November 2026 |
+| Authority | Detailed current product specification; aligned to the [canonical catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) and [product SRS](../docs/product/CoveStack-Product-SRS.md) |
+| Evidence | Target design, not a completion certificate; source and actual test results determine implementation status |
+| Compatibility | V5 is a documentation label; current wire contract remains 1.1.0; future fields/kinds/versions require coordinated review |
 
-Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); product scope is independent of historical academic CORE-5.
+## 1. Evidence policy
 
-<!-- Historical body preserved below; see supersession notice above. -->
+Snapshot: 4 November 2026. Source inspected read-only; no application/compiler/unit/runtime/infrastructure acceptance tests ran for this V5 alignment. Historical reports keep dates/scope; table categories describe actual component evidence, not service support. Product is Experimental and no supported production profile is established.
 
-# CoveStack V5 — Baseline Status, Missing Work and Contract Changes
+## 2. Source-confirmed status register
 
-| Document control        | Value                                                                   |
-| ----------------------- | ----------------------------------------------------------------------- |
-| Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **15 October 2026**                                                     |
-| Submission deadline     | **Monday, 25 January 2027**                                             |
-| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
-| Status                  | Target design and implementation guidance; not a completion certificate |
+| Feature | Current category | Source evidence | Evidence still required |
+| --- | --- | --- | --- |
+| Agent config/signing | Implemented — confirmed in code | config.Load, sigv1 rules/request/sign and test sources | Deployment credential/key/clock/TLS/replay integration |
+| Signed work client | Implemented — confirmed in code | internal/client.New/GetWork, status/error/response bounds | Real Java assigned-account response and secret-handling review |
+| Single-account poll/startup | Implemented — confirmed in code | internal/agent.Run and cmd/kan-agent/main.go; safely stops on returned work | Actual Java outage/recovery/auth-stop/signal evidence |
+| Lifecycle validation | Implemented — confirmed in code | Generated 1.1.0 catalogue and Go/Java validation helpers | VM/container schema compatibility; real service readiness enforcement |
+| Java auth/replay components | Partially Implemented | Filters/interfaces, ValkeyNonceStore and auth configuration | Concrete persistent KeyService/BearerTokenService, host assignment, runnable app/controllers |
+| Java control plane / DB foundation | Blocked | pom declares Java 25/Spring Boot 3.5.16/JDBC/Flyway; Boot repackage skip true | Entry point/configuration, scoped APIs, prerequisite migrations and empty DB acceptance |
+| SQL files | Partially Implemented | V5 publications, V6 domains exist | Not a working DB chain; accounts/resources prerequisites absent; no applied-history inspection |
+| VM Instance / Incus | Planned | New design decision only; no driver in source | Host spike, schemas, secure API driver and actual guest-kernel/failure acceptance |
+| App Container | Planned | Separate resource model only | Explicit resource/spec, restricted driver and trusted-workload acceptance |
+| Kubernetes | Planned | Contract/example kinds only | Real provider, capacity, scoped export, cleanup/workload evidence |
+| PostgreSQL / object-storage services | Planned | Target docs; platform dependency Compose is not a tenant service | Drivers, ownership/policy, data path/restore and secret custody |
+| VPC/IPAM | Planned | Prior reference design, no current VPC contract kind | VM/container network protocol/allocator/enforcement and collisions/traffic tests |
+| Capacity scheduler / reservations | Planned | Architecture/benchmark plan | Transactional admission, fresh host reports, exhaustion tests |
+| CLI / Terraform | Planned | No current CLI/provider module; Terraform deferred in environment | Reviewed module/API/auth boundary and lifecycle/JSON tests |
+| Backups/audit/installer/monitoring | Planned | Documentation and acceptance intent | Persisted implementation, real restore/privileges/clean install/freshness |
+| Optional Floci | Proposed | Product integration proposal only | Pinned external artifact/license/capability model, network/auth/cleanup tests |
+| Customer advantage | Proposed | User hypotheses and competitor research | Interviews, pilots and comparison of actual recurring workflows |
 
-## 1. Snapshot interpretation
+## 3. What the agent actually does
 
-The inspected working tree contains local configuration changes and existing security/lifecycle libraries. This document does not verify a new build or live deployment. **Documentation V5 describes the target, not the state of implementation.** Verify current PR/CI status before onboarding another developer.
+cmd/kan-agent loads environment config and creates signed bounded HTTP client/loop under signal cancellation. GET work returning [] is no work. Any returned resource work stops with ErrWorkAvailable: no claim, execution, acknowledgement, deletion or reconciliation. Retry covers selected HTTP statuses/timeouts, not all transport failures; real Java outage/assignment/credential and multi-account independence need evidence. Current principal fields do not establish trusted host assignment.
 
-| Component                | Inspected evidence                    | Next verification                            |
-| ------------------------ | ------------------------------------- | -------------------------------------------- |
-| Go config                | Loader/tests exist locally            | Review/commit and pinned toolchain           |
-| Signing                  | Rules/request/signer and shared tests | Real server/store acceptance                 |
-| Lifecycle                | Source/generator/helpers and fixtures | Wire into runtime services/drivers           |
-| Agent command            | Auth-smoke exists                     | Production client/main/polling               |
-| Java auth                | Filters/interfaces/stores scaffold    | Real credentials/tokens and application boot |
-| Java packaging           | Boot plugin skip remains enabled      | Entry point then package/boot                |
-| Compose                  | Private Postgres/Valkey/Mailpit       | Actual configured readiness/restore          |
-| Public resource services | Contract/design records               | Gate evidence for real workflows             |
+## 4. Product and backend decisions
 
-Earlier local tests passed with Go 1.27.1; that is not pinned 1.27.2 evidence. V5 generation itself does not run Java/Go integration tests or inspect real secret values.
+VM Instance must be a true guest kernel; App Container separate trusted shared-kernel type. Incus/QEMU/KVM preferred evaluation; no driver exists. RustFS preferred Planned operator-managed service with Java account-owned bucket/key/policy reconcile, not MinIO selection or an implemented adapter. SeaweedFS/alternatives remain possible. Current wire 1.1.0 unchanged; future VM/type/claim/capacity/network schema is reviewed before execution.
 
-## 2. Planned work register
+Core catalogue includes more than runtimes: IAM/secrets/quotas/observability/logging/audit/recovery/interfaces and typed environments. Historical service counts/caps/dates do not limit product. Component tests do not demonstrate every foundation.
 
-| CORE-5 service     | Status  | Required evidence                                                 | Owner                            |
-| ------------------ | ------- | ----------------------------------------------------------------- | -------------------------------- |
-| Compute/Droplets   | Planned | G1–G4; tests 1–6                                                  | A+B; C tests; E CLI              |
-| Kubernetes         | Planned | G1–G4; tests 7–10; hard cap 2 clusters/host                       | A+B+D; C tests; E CLI            |
-| Managed PostgreSQL | Planned | G1–G4; test 11; backup/restore/scoped credentials/private network | A+B; C tests                     |
-| Object storage     | Planned | G1–G4; tests 12–13; Java recreates buckets after MinIO restart    | B+C server; A process            |
-| VPC/IPAM           | Planned | G1–G4; test 14; ten IP allocations and ten account VPCs           | C allocator; B records; A helper |
+## 5. Existing reports and environmental limits
 
-Cross-cutting status is Planned: authenticated CLI, Security, Recovery, optional Terraform Droplet/K8s, one stack integration (test 15), Ansible Part 1. None is a sixth service. Extended features remain [Extended track](CoveStack-Extended-Roadmap.md), not deliverables; optional future items are separate.
+Earlier Go race/vet/lint, Java tests and contract/dependency reports remain [dated toolchain evidence](../docs/development-toolchain-status.md), not fresh service acceptance. Manifest Go toolchain/CI pin was 1.27.2 while a historical environment reported 1.27.3; resolve availability/pin review separately, no silent upgrade. Java 25/Spring/JDBC/Flyway are actual source inputs. No live DB/applied migrations, runtime/socket/Incus/RustFS capability, remote CI/GitHub task or production host profile was established.
 
-**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
+Preserve current restricted sandbox policy: no Docker/Compose/k3d/S3 acceptance or new manifests, Terraform deferred and GitHub CLI unauthenticated in the recorded environment. VM host not probed/authorized here; documentation does not lift restrictions.
 
-Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
+## 6. First integration and status updates
 
-## 3. Contract and schema decision checklist
+B+C real Java foundation/credential provisioning/trusted assignment, D API/fixtures and A existing signed no-execution loop are the first shared checkpoint. E reviews thin client/module and learns with labelled mocks. Record issue/revision, commands/results, mock versus real scope, blocker/owner and next action. No guessed completion percentage or blanket all-services-complete claim. [Team checkpoint](../TEAM-FIRST-CHECKPOINT.md), [gates](CoveStack-Service-Gates.md), [fixes](CoveStack-Current-Setup-Fixes.md).
 
-| Open item              | Required coordinated review                                                                   |
-| ---------------------- | --------------------------------------------------------------------------------------------- |
-| VPC/compute attachment | VPC server-owned, no contract kind; attachment schema/capability change B+A; state TBD with B |
-| Multi-account polling  | Agreed one process/host and separate account credentials/clients; implementation Planned; assignment/custody details B+C+A    |
-| Stack                  | One fixed-sequence integration; missing states TBD with B; no invented DAG wire model         |
-| IDs/DTOs               | Internal uuid, CLI public_id, numeric /v2 provider_id; B+D finalize                           |
-| Credential custody     | Hash-only api_tokens; encrypted service-kind signing_credentials; B+C                         |
-| MinIO administration   | Server reconcile needs private administration path, custody and rotation B+C                  |
-| Unauthenticated audit  | Nullable reference option versus separate security events; final B+C decision                 |
-| Host/labels/ports      | Canonical physical agent; proposed reserved kan.* labels; port release after cleanup          |
+## 7. License and distribution
 
-Lifecycle contract stays **1.1.0**. It supplies existing kinds/states; missing enums are TBD with B. Any new message type needs coordinated schema, fixtures and generated outputs, not an isolated catalog edit. Flyway is declared but no migrations/entities/repositories were found; **no schema exists yet**. The markdown DDL is reference design, not executable or migration-ready. B finalizes staged migrations; this task creates none.
+Root LICENSE contains maintainer-approved official Apache License 2.0, SPDX Apache-2.0, for CoveStack-owned code/docs. Upstream licenses/notices, resolved dependency/image distribution and copied-reference provenance remain separate; no invented copyright holder or implied security certification. No runtime support follows from licensing.
 
-Extended route/hostname, metadata, health freshness, domain and broader automation decisions remain in the roadmap; their prior design requirements are preserved there, not promoted by this register.
+## Historical traceability
 
-### 3.1 Architecture review dispositions — design only
-
-| Gap | Resolved target | Still required before acceptance |
-|---|---|---|
-| Fence wire gap | Correlated claim, renewal, health/progress/convergence and DB-clock expiry | B+D/A/C schemas/fixtures/generated outputs and implementation |
-| Runtime side effects | Host exclusion, serialization, uncertain-action fail-closed takeover | A/C paused-worker and child/backend recovery evidence |
-| Drift/health after ack | Scheduled fresh inspection claims; no health acknowledgment | B scheduler/query and A client/tests with C |
-| VPC execution/order | Separate signed network control; default network before first attachment | B+D/A/C schema, allocator and bridge integration |
-| MinIO ownership/bootstrap | One operator-owned process; Java tenant buckets; private administration and host secret references | B+C/A bootstrap, storage/path/custody and restore tests |
-| Scope contradiction | Preserve fixed stack/test 15 and Part 1 installer; cut extended/optional provider work | Workflow/SRS consistency and actual evidence |
-| Capacity | Early combined-host spike; count cap is upper bound, not RAM proof | Measured admitted workload combinations |
-
-HLD and LLD are specified in the main design and schema; their presence does not close implementation gates. Key custody, encoding names, intervals, pool and tested versions remain decisions, not invented facts.
-
-## 4. Update and freeze procedure
-
-Record revision/PR, environment, exact test results and constraints. Use only Planned, In progress, Gates passed or Extended track. A mock/source file is not service gate evidence. Promote a service only when G1–G4 all pass; cite acceptance test numbers and CI evidence. At freeze, relabel any CORE-5 service missing a gate honestly and list the missing evidence. Never write that all services are complete.
-
-Keep pre-existing source changes separate from documentation review. Batch 3 topic guides now use CORE-5 or roadmap relocation pointers; historical text is preserved in the roadmap and does not override the SRS/gate register. Submission deadline: Monday, 25 January 2027.
-
-[Service gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Extended roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).
+The [previous body of this file](../docs/archive/V5-before-full-product-alignment-2026-11-04.md#v5-covestack-implementation-status) is preserved unchanged as historical reference, including earlier requirements/DDL/acceptance text. It is not current VM/RustFS setup guidance. Use this active body, the linked canonical domain specifications and [actual implementation evidence](CoveStack-Implementation-Status.md) for new work. No source, migrations, contracts, tests, configuration or runtime state is changed by this document.

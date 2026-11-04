@@ -1,108 +1,76 @@
-# Architecture transition notice — 4 November 2026
+# CoveStack V5 — Operations, Incident Handling and Verified Recovery
 
-> **Superseded design reference.** Active guidance: [platform installation-and-operations](../docs/platform/installation-and-operations.md). VM/guest-disk restore, backend task uncertainty, capacity reservations, upgrades and privileged host recovery now require explicit evidence.
->
-> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
+| Document control | Value |
+| --- | --- |
+| Updated | 4 November 2026 |
+| Authority | Detailed current product specification; aligned to the [canonical catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) and [product SRS](../docs/product/CoveStack-Product-SRS.md) |
+| Evidence | Target design, not a completion certificate; source and actual test results determine implementation status |
+| Compatibility | V5 is a documentation label; current wire contract remains 1.1.0; future fields/kinds/versions require coordinated review |
 
-Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); product scope is independent of historical academic CORE-5.
+## 1. Operational authority
 
-<!-- Historical body preserved below; see supersession notice above. -->
+DB intent is authority; provider objects/tasks and observed health are evidence to reconcile, not instructions to adopt/delete unrelated infrastructure. Service shutdown is not resource deletion. Operator must understand trust/capacity/retention and the actual supported subset/profile before executing runbooks. No full platform or production profile is established today.
 
-# CoveStack V5 — Operations, Failure Handling and Data Recovery
+## 2. Routine operations and failure handling
 
-| Document control        | Value                                                                   |
-| ----------------------- | ----------------------------------------------------------------------- |
-| Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **15 October 2026**                                                     |
-| Submission deadline     | **Monday, 25 January 2027**                                             |
-| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
-| Status                  | Target design and implementation guidance; not a completion certificate |
+| Operation/failure | Required behavior | Evidence to retain |
+| --- | --- | --- |
+| Control server down | No newly unauthorized mutation/claim; do not turn discovery failure into empty inventory | Actual outage/recovery and stale-status behavior |
+| Replay store down | Internal auth fails closed; no in-memory fallback | Real Valkey negative/outage tests, not mocked API calls alone |
+| Agent restart | Resolve current assignment/tasks and inspect owned objects before resume | No duplicate VM/cluster, retained data and stale-worker rejection |
+| Backend/task timeout | Keep intent/reservations, inspect accepted task/outcome, block conflict | Parent/child death/lost reply and actual safe takeover |
+| Disk/RAM pressure | Stop unsafe admission/updates; preserve existing owned workloads | Useful capacity/refusal and no reservation overspend |
+| Drift | Fresh authorized inspection repairs current intent or reports policy-limited failure | Same desired revision where spec unchanged; no false health/ack |
+| Maintenance/drain | Stop new admission, settle tasks, protect keys/data and record current assignments | Recoverable restart/re-entry; no unrelated cleanup |
+| Delete/retention | Authorized intent, reverse owned dependencies, preserve shared/retained objects | Actual teardown before live IP/port/capacity release |
 
-## 1. Operational principle
-
-**Preserve owned resources and persistent data during uncertainty.** A network outage, incomplete list or malformed work response is not deletion intent. Restart recovery inspects durable IDs and approved proposed-label contract before making changes. kan.* is not existing compatibility.
-
-| Event                       | Immediate behavior                                                             |
-| --------------------------- | ------------------------------------------------------------------------------ |
-| Server unreachable          | Pause new work; retain workloads                                               |
-| Agent stops                 | Create stays pending; bounded waits; no claimed convergence                    |
-| Replay store unavailable    | Reject affected authenticated requests safely                                  |
-| App fails                   | Report health/error; honor desired state                                       |
-| Extended operation failures | Prior route/config requirements relocated to roadmap; not CORE-5 release gates |
-
-### 1.1 LLD recovery boundaries
-
-DB claim expiry is required for renew/report/ack but is not backend fencing. Keep host process exclusion and per-resource serialization; child/backend actions may outlive main or a client timeout. Before takeover, settle old execution and inspect deterministic owned state. If the outcome remains uncertain, block conflicting mutation and require operator recovery; never delete/recreate just because the request timed out. Record durable attempt evidence before runtime invocation and settlement afterward; do not claim strict exactly-once execution.
-
-Post-convergence resources need DB-scheduled inspections with fresh claims; healthy completion releases/reschedules without changing acked_generation. User intent changes make inspection deadlines immediately eligible; stale health cannot overwrite newer intent. An outage prohibits new mutations, not the completion of an already submitted backend action.
-
-Default-VPC bridge execution precedes attachment. Shared MinIO bootstrap/process is operator-owned; bucket reconstruction is Java-owned. Stack deletion never removes the shared process. DB metadata can recreate policies/buckets but cannot restore lost object bytes; retain/recover volumes and verify known objects separately. Capacity and quota reservations remain held through uncertain deletion/cleanup.
-
-## 2. Routine operations
-
-| Procedure                | Required checks                                                    |
-| ------------------------ | ------------------------------------------------------------------ |
-| Startup                  | Secrets, versions, private listeners, schema and dependency health |
-| Deployment/update        | Reviewed image/config changes; health and compatibility            |
-| Shutdown                 | Drain/stop reviewed work; preserve volumes                         |
-| Key rotation             | Scoped replacement, revocation and tested rollback                 |
-| Extended edge procedures | Prior renewal/reload policy preserved in roadmap                   |
-| Resource deletion        | Owned dependency cleanup and explicit retention                    |
-
-Do not use `docker compose down -v` or blanket prune as a default repair. A workload's desired off state is different from an active workload crashing. Recovery must honor that distinction.
+DB epoch/generation rejects stale reports but does not cancel a running backend action automatically. No bulk name-prefix scan or partial known-IDs result authorizes GC; complete scoped inventory, exact ownership and reviewed grace are required.
 
 ## 3. Backup coverage
 
-| Data                     | Backup/recovery need                                                        |
-| ------------------------ | --------------------------------------------------------------------------- |
-| Control-plane PostgreSQL | Accounts, resource/action/stack records and ownership                       |
-| Workload PostgreSQL      | Database-consistent data backup                                             |
-| Object storage           | Objects plus policies/ownership references                                  |
-| Master secrets           | Protected key recovery distinct from DB backup                              |
-| Runtime config           | Account/private-network/cluster/volume records and tested version decisions |
-| Kubernetes               | Defined workload/data recovery; kubeconfig alone is not backup              |
+| Scope | Required protected recovery material | Actual restore assertion |
+| --- | --- | --- |
+| Control-plane DB | Consistent schema/state, identity/assignments, operations/tasks/reservations, policy and audit references | Restore isolated DB, verify owners/claims and reconcile provider inventory before mutation |
+| Master/credential custody | Reviewed protected key versions, revocation and bootstrap recovery | Authorized recovery/rotation; old revoked identity stays denied |
+| VM/volume | Backend-consistent guest disks/config/identity and required key/image provenance | Boot safe restored owned target, compare known file/application hash |
+| PostgreSQL workload | Consistent DB/role/config data and secret references | Restore expected rows/checksum, private access and foreign denial |
+| RustFS object service | Actual bytes/required versions/metadata plus needed policy/credential/key/config recovery | Isolated target, known bytes checksum, scoped key/deny and persistence after restart |
+| Templates/environments | Definition/input/secret refs, child/sharing/retention bindings | No duplicate child or deletion of shared infrastructure after resume |
 
-Filesystem image-capture limits are preserved in the roadmap. CORE-5 PostgreSQL backup must be database-consistent, with verified known rows/checksum. Control-plane DB backup and protected key recovery are separate necessities; record exactly what artifacts contain.
+A snapshot may not be an independent/app-consistent backup. A successful file write is not restore proof. Copying an unknown active object-store directory or assuming cross-provider encrypted formats are portable is not an approved backup method. Select consistent RustFS service recovery with B+C/A; a tool using RustFS as a backup destination is not evidence of backing up RustFS itself.
 
 ## 4. Restore exercise
 
-| Step                         | Evidence                                     |
-| ---------------------------- | -------------------------------------------- |
-| Seed known data              | Expected record/object/checksum              |
-| Take documented backup       | Time, source revision and protected artifact |
-| Prepare separate environment | Avoid destroying the current demo            |
-| Restore dependencies/keys    | Correct configuration and ownership          |
-| Restore data/state           | Verified DB/object access                    |
-| Reconcile workload identity  | No duplicates or cross-account rebinding     |
-| Verify app operation         | Defined usable result                        |
-| Measure                      | RPO/RTO and unresolved gaps                  |
+1. Identify exact owner/source/recovery artifact/version/consistency/key requirements; authorize safe target and capacity.
+2. Verify integrity/authenticity/access before touching data; reject corrupt/foreign/incompatible source.
+3. Restore into isolated network/identity target with protected keys; no overwriting unrelated production resources.
+4. Reconcile DB intent against actual provider tasks/objects before enabling new mutations.
+5. Verify guest/SQL/object known content, correct owned policy and foreign-access denial; record result/time/reviewer and failures.
+6. Recheck retained reservations, DNS/routes/credentials if applicable and safe cleanup of only disposable test data.
 
-RTO is time to the defined usable service. RPO describes data/time lost relative to the recovery event. A same-host restore does not prove host-loss recovery if all backups are on that host. State the scenario honestly.
+Recovery objectives/retention/timeouts require measurements and policy; no invented RPO/RTO or guarantee. Keep independent protected/off-host copies where host-loss recovery is required; same-host backup alone is not HA or disaster recovery.
 
-## 5. Idempotency and fencing
+## 5. Upgrade, rollback and installation
 
-| Scenario              | Rule                                                                                                           |
-| --------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Request response lost | Refresh durable operation before resubmitting                                                                  |
-| Agent retry           | Fresh signed request; mutation semantics agreed                                                                |
-| Worker duplicate      | Per-resource serialization and durable identity                                                                |
-| Old agent resumes     | Exact owner/epoch/generation ack predicate; old epoch rejected                                                 |
-| Accepted convergence  | Clear lease_owner and lease_expires_at together; keep epoch unchanged; progress never changes acked_generation |
-| Partial stack failure | Resume safe steps; do not erase persistent data                                                                |
-| IP/port reuse         | Release only after owned attachment/cluster cleanup; live partial uniqueness remains                           |
+Use exact signed/checksummed artifacts and compatible schema/agent/backend matrix. Never edit applied migrations or assume binary rollback works with an incompatible schema. Expand/contract plus restore-forward/isolated DB recovery need rehearsals. Driver/API changes preserve current work ownership; unknown capabilities/types fail before execution. Second operator clean/repeat install must be reproducible. Current Java foundation/VM/RustFS setup remains pending.
 
-## 6. Incident runbook outline
+## 6. Incident runbook
 
-Record symptom, time/commit/environment, affected accounts, observed state and safe containment. Restrict/revoke relevant credentials, preserve sanitized evidence, correct the cause, verify recovery, and write follow-up fixes. A reboot without diagnosis is not an incident report.
+| Step | Required action |
+| --- | --- |
+| Identify | Record sanitized revision/profile, affected account/resource/operation/host and actual freshness |
+| Contain | Revoke exposed credential, isolate approved management/runtime path, stop unsafe admission; preserve evidence |
+| Diagnose | Inspect authoritative assignment/claim/provider task without treating missing telemetry as deleted resource |
+| Recover | Use reviewed safe retry/restore; no fallback credentials, forced volume deletion or destructive broad cleanup |
+| Verify | Real service/data/traffic and denial checks, stale-worker safety and protected key handling |
+| Learn | Record root cause/fix/evidence and remaining limits; update issue/runbook, not past test history |
 
-## 7. CORE-5 release evidence
+Privileged host/agent compromise can defeat local trust boundaries; no tamper-proof audit claim. Security contact/response policy must be maintained rather than invented. Never use `down -v` or reset the DB to conceal an unresolved incident.
 
-Clean-VM install, tests 1–15, private administration, credential revocation and measured PostgreSQL restoration need actual results. Live demo highlights tests 1, 3, 4 and get view; remaining tests are CI/video. Keep backup recording for the phone hotspot; CLI cross-builds three targets and runs on two actual OSes. Public-edge/alert scenarios are preserved as extended targets in the roadmap.
+## 7. Evidence and owners
 
-Only two drivers: generic container and k3d. Java reconciles bucket/policy after MinIO restart; failed/partial work inventory never authorizes deletion. Agreed target: one agent process per physical host; separate service credential and authenticated polling context per assigned account. B owns server assignment validation; C credential provisioning/rotation/revocation; A isolated clients and shared bounded execution. Provisioning/storage details still need B+C+A review; no new wire fields. Retention defaults are TBD with B+A.
+A host/driver/installer/CI, B durable state/recovery, C security and all acceptance, D API semantics, E client diagnostics. Tests 1–15/E1–E8 and named VM/image/packet/capacity/key/DB/S3 recovery cases follow [acceptance](CoveStack-AntiWrapper-Acceptance.md). No old calendar/service-count constraint defines support; [gates](CoveStack-Service-Gates.md) and profile evidence do.
 
-**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
+## Historical traceability
 
-Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
-
-[Gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).
+The [previous body of this file](../docs/archive/V5-before-full-product-alignment-2026-11-04.md#v5-covestack-operations-and-recovery) is preserved unchanged as historical reference, including earlier requirements/DDL/acceptance text. It is not current VM/RustFS setup guidance. Use this active body, the linked canonical domain specifications and [actual implementation evidence](CoveStack-Implementation-Status.md) for new work. No source, migrations, contracts, tests, configuration or runtime state is changed by this document.

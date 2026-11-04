@@ -34,7 +34,7 @@ Do not run restricted Docker/Kubernetes/MinIO/Terraform/GitHub operations in the
 
 ## Documentation contribution rules
 
-Current architecture belongs in docs/platform. Keep V5 historical body and dated environment/checkpoint/test evidence intact; add explicit supersession or correction, never rewrite historical test outcomes. If a source feature changes, update implementation ledger, API compatibility, feature spec, readiness and affected operating/upgrade steps together. A release must not become production-supported through wording alone. Cite official sources for technical/competitor claims and distinguish absence of evidence from evidence of absence.
+Canonical shared architecture belongs in docs/product and docs/platform; updated V5 provides detailed aligned implementation/team guidance. Keep the historical V5 snapshot and dated environment/checkpoint/test evidence intact; update active requirements without rewriting historical outcomes. If a source feature changes, update implementation ledger, API compatibility, feature spec, readiness and affected operating/upgrade steps together. A release must not become production-supported through wording alone. Cite official sources for technical/competitor claims and distinguish absence of evidence from evidence of absence.
 
 ## License and contribution rights
 

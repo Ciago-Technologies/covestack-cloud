@@ -1,147 +1,91 @@
-# Architecture transition notice — 4 November 2026
+# CoveStack V5 — State Reconciliation Acceptance and Viva
 
-> **Superseded design reference.** Active guidance: [platform readiness](../docs/platform/readiness.md). Old container-specific assertions remain historical requirements needing VM mapping and additional container coverage, not proof of guest-kernel acceptance.
->
-> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
+| Document control | Value |
+| --- | --- |
+| Updated | 4 November 2026 |
+| Authority | Detailed current product specification; aligned to the [canonical catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) and [product SRS](../docs/product/CoveStack-Product-SRS.md) |
+| Evidence | Target design, not a completion certificate; source and actual test results determine implementation status |
+| Compatibility | V5 is a documentation label; current wire contract remains 1.1.0; future fields/kinds/versions require coordinated review |
 
-Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); product scope is independent of historical academic CORE-5.
+## 1. Scope and honest claims
 
-<!-- Historical body preserved below; see supersession notice above. -->
+Retained filename is a compatibility link; acceptance is about demonstrable ownership, state, isolation and recovery, not a slogan. A handler that directly runs a backend create or writes proxy config without durable intent, authorization, idempotency and safe retry does not meet this design. Existing signed no-execution client is useful source functionality, not VM/RustFS acceptance.
 
-# CoveStack V5 — State Reconciliation Acceptance and CORE-5 Viva
+Tests 1–15 and E1–E8 retain historical traceability labels. The **definitions below are current target assertions**; old definitions/results are in the historical snapshot and do not prove the VM/product tests pass. Prefix E is not a universal future-scope label: snapshot foundations and freshness are core requirements, while advanced policy/alerts remain classified separately.
 
-| Document control        | Value                                                                   |
-| ----------------------- | ----------------------------------------------------------------------- |
-| Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **20 October 2026**                                                     |
-| Submission deadline     | **Monday, 25 January 2027**                                             |
-| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
-| Status                  | Target design and implementation guidance; not a completion certificate |
+## 2. Product acceptance definitions
 
-## 1. Scope and wrapper definition
+| Test | Case | Exact assertion | Owner / execution | Schema or authority relied on |
+| --- | --- | --- | --- | --- |
+| 1 | VM interrupted create | Kill agent after backend accepts creation, before acknowledgement; restart inspects owned task and converges to exactly one real guest-kernel VM. Separate App Container variant remains required. | A+B; C tests; meaningful automated CI acceptance required, not run here | Owned resource/provider task binding, current generation and uniqueness; target schema review |
+| 2 | Fencing | A claims, lease expires, B claims; A convergence report is rejected by owner/epoch/exact generation. Unknown old runtime task blocks conflicting takeover until settled. | B+A; C tests; meaningful automated CI acceptance required, not run here | Atomic claim/epoch and fenced update predicate; DB fence is not backend fence |
+| 3 | Tenant denial | A cannot GET/DELETE/export B resource; foreign API returns 404 without existence leak. Add actual network/disk/storage denial. | C+B+D/A; meaningful automated CI acceptance required, not run here | Owner-scoped lookup and composite account references; project policy review |
+| 4 | Idempotency | Ten parallel same-key/same-body creates yield one resource/response; same key with different fingerprint returns reviewed mismatch (existing design 422), without a second resource. | B; C tests; meaningful automated CI acceptance required, not run here | Unique account/key and resource/operation/response in one transaction |
+| 5 | Stale generation | Report generation 3 after desired 4 cannot acknowledge 4 or replace newer observations; progress never advances acknowledged generation. | B+A; C tests; meaningful automated CI acceptance required, not run here | Exact-generation convergence plus independent observation ordering |
+| 6 | Control-plane outage | Agent cannot authorize new mutations/renewals when server unavailable; creates/deletes nothing new. Empty/error/partial discovery is never cleanup authority. | A+B; C tests; meaningful automated CI acceptance required, not run here | Stored assignment/claim and authorized mutation policy; no insecure fallback |
+| 7 | Kubernetes interrupted create | Kill agent during backend cluster create; restart finds owned partial task/cluster and converges to one cluster with usable API/workload. | A+B; C tests; meaningful automated CI acceptance required, not run here | Owned cluster/provider task and reserved API endpoint identity |
+| 8 | Kubernetes secret scoping | B cannot export A kubeconfig (404); kubeconfig absent from ordinary list/get/events/observations. | C+B+D/A; meaningful automated CI acceptance required, not run here | Owner-authorized secret export and protected reference |
+| 9 | Kubernetes cleanup | Delete removes only owned cluster containers/volumes/networks under retention; no owned execution leftovers or unrelated deletions. | A; C tests; meaningful automated CI acceptance required, not run here | Scoped complete backend inventory and confirmed cleanup before release |
+| 10 | Kubernetes capacity/quota | A request over the configured measured profile/account cluster/node capacity is explicitly rejected; admitted clusters unaffected and parallel requests cannot bypass reservation. | B+A; C tests; meaningful automated CI acceptance required, not run here | Host/account locked capacity and unique live ports; no fixed academic count |
+| 11 | PostgreSQL restore | Backup known rows, remove only test data, restore and compare expected rows/checksum; persistence survives restart and foreign account cannot reach/authenticate to A DB. | A+B; C tests; meaningful automated CI acceptance required, not run here | Owned volume/DB/secret/backup/restore records with verified recovery evidence |
+| 12 | RustFS tenant access | A key cannot list/read/write/delete B bucket or objects/admin; valid own bytes round-trip and key revoke/rotate behavior enforced. | B Java; C tests; A service; meaningful automated CI acceptance required, not run here | Account bucket/policy/credential binding and protected admin custody |
+| 13 | RustFS restart/reconcile | Restart provider and Java; existing bytes persist, Java restores missing intended bucket/policy/credential configuration from DB safely, without duplicates or resurrecting deleted intent. | B Java+A process; C tests; meaningful automated CI acceptance required, not run here | Durable operator volume and account bucket/key/policy intent; config rebuild is not byte restore |
+| 14 | Network/IPAM isolation | Ten IP allocations in one VPC have no duplicate; ten accounts create networks in parallel with no CIDR overlap. Foreign inspection/attach denied and forbidden packets actually fail. | C allocator+B SQL+A backend; meaningful automated CI acceptance required, not run here | Live allocation uniqueness/pool-overlap protection and owned attachments |
+| 15 | Environment partial retry | One authenticated request realizes usable app, SQL and RustFS bucket; failure is recorded; restart/retry reuses owned children; shared/retained dependencies survive deletion. | B+A+D/E; C tests; meaningful automated CI acceptance required, not run here | Stable environment/child/dependency/idempotency/reservation bindings |
 
-> **Wrapper definition:** A CLI/API handler that directly runs docker run, k3d cluster create or writes proxy configuration without persisted desired state fails this acceptance design. Execution belongs behind durable intent and reconciliation, not in user-interface handlers.
 
-**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
+## 3. Additional retained and cross-domain cases
 
-Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
+| Test | Case | Exact assertion | Owner | Schema / authority |
+| --- | --- | --- | --- | --- |
+| E1 | Autoscaling | Missing member replaced only under current min/max/cooldown and capacity; server unavailable causes no unauthorized scaling. | B coordinator+A runtime; C tests | Owned membership and authoritative policy/reservations |
+| E2 | Load balancing | Backend failure changes validated health/routing; missing derived proxy config is rebuilt from DB without exposing unrelated accounts. | D/B APIs+A runtime; C tests | Owned backends/health/route intent; derived config not authority |
+| E3 | Snapshot foundation | Create supported VM/volume recovery point, change test data, restore to safe new owned target and compare file hash; B cannot read A snapshot. | A+B; C tests | Owned recovery metadata, consistency/key/retention and target identity |
+| E4 | Guest metadata | Workload A cannot read B self-metadata through spoof/NAT/reused identity; no agent/cloud/DB/S3 secrets. | C policy+A delivery; B/D API | Current owned workload/interface/assignment identity; future schema review |
+| E5 | Publication | Unregistered hostname returns 404; delete removes owned route; private management port cannot be published through it; actual HTTPS path verified. | A+B+D; C tests | Approved durable publication/target/domain generation and allowed port |
+| E6 | Domains | Unverified hostname serves no workload; reassigned domain cannot serve previous tenant and previous proof is invalid. | C+B/D; A route | Owned domain claim generation/proof and route binding |
+| E7 | Observation freshness | Stop agent: UI/API becomes stale/unknown, never healthy from old desired state. If alerts are enabled, verify the policy event/delivery separately. | B+A/D/E; C tests | Ordered timestamped observations and freshness policy; alerts future where classified |
+| E8 | Ansible inventory | Bob inventory includes none of Alice resources; output from authenticated API/CLI JSON, never backend inventory or DB. | API consumer owner reviewed; C tests | User ownership/permission and sanitized stable API output |
 
-C owns ALL acceptance tests from day 1. The owner column also identifies implementation/pairing owners. All tests below are targets; no passing results are asserted.
 
-## 2. CORE-5 acceptance — SRS tests
+VM image provenance, guest readiness, unauthorized disk/NIC attachment, App Container shared-kernel privilege denial, actual allow/deny traffic, parallel physical admission, scoped membership/secret rotation, independent RustFS byte restore, control-plane DB/key restore and clean-install/upgrade/rollback require named domain tests as well. Do not squeeze every new product requirement into a legacy number and lose its assertion.
 
-| Test                    | Exact assertion                                                                                                                                          | Owner                                       | Runs in CI      | Schema constraint relied on                                       |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | --------------- | ----------------------------------------------------------------- |
-| 1 — Container crash     | Kill -9 agent after container create, before acknowledgment; restart: exactly one owned container and target convergence.                                | C owns tests; A/C pairing                   | Required target | Resource ID/name uniqueness; generation and fenced acknowledgment |
-| 2 — Fencing             | A claims; lease expires; B claims; A acknowledges: reject A without changing convergence.                                                                | C owns tests; B/C pairing                   | Required target | Lease owner/epoch match; expiry decision B                        |
-| 3 — Tenant              | A GET/DELETE on B resource returns 404; no side effect or existence leak.                                                                                | C owns tests; C pairing                     | Required target | Account predicates and composite ownership FKs                    |
-| 4 — Idempotency         | Same key ×10 parallel creates yields one resource/ID; different body with same key returns 422.                                                          | C owns tests; B/C pairing                   | Required target | Account/key PK, fingerprint, one transaction                      |
-| 5 — Stale generation    | Report generation 3 after desired generation 4: ignored; acknowledgment and current observed state unchanged.                                            | C owns tests; B/C pairing                   | Required target | Acknowledgment equality; separate guarded progress statement      |
-| 6 — Server down         | Stop server: agent creates and deletes nothing while disconnected.                                                                                       | C owns tests; A/C pairing                   | Required target | DB authoritative intent; no cleanup from failed poll              |
-| 7 — Kubernetes crash    | Kill -9 agent mid cluster create; restart: exactly one deterministic cluster and target convergence.                                                     | C owns tests; A/C pairing                   | Required target | Cluster identity, reserved port and proposed labels               |
-| 8 — Kubernetes tenant   | B fetches A kubeconfig: 404; kubeconfig absent from list/get/observations.                                                                               | C owns tests; C/D pairing                   | Required target | Account FK/predicate; kubeconfig reference only                   |
-| 9 — Kubernetes cleanup  | Delete cluster: no owned container, volume or network with kan.resource=<id> remains.                                                                    | C owns tests; A/C pairing                   | Required target | Proposed label contract and ownership inventory                   |
-| 10 — Kubernetes quota   | Third cluster on host: documented quota error; existing clusters unchanged.                                                                              | C owns tests; B/C pairing                   | Required target | Host cap transaction lock and derived count                       |
-| 11 — PostgreSQL restore | Back up known rows, delete test data, restore: rows and canonical dataset checksum match; B cannot reach A DB.                                           | C owns tests; A/B/C pairing                 | Required target | Owned volume/backup/credentials and private routing               |
-| 12 — MinIO tenant       | A access key on B bucket: denied; API requests for B resource by A return 404.                                                                           | C owns tests; C/B pairing                   | Required target | Scoped bucket credentials and account predicates                  |
-| 13 — MinIO rebuild      | Restart MinIO; Java server reconciles bucket and credential policy from DB rows, without duplicate or cross-account binding.                             | C owns tests; B/C pairing                   | Required target | storage.bucket is server-owned; ciphertext custody TBD B+C        |
-| 14 — VPC allocation     | 10 parallel IP allocations in one VPC: no duplicates; 10 accounts create VPCs concurrently: no CIDR overlap; A cannot see B network; no user CIDR input. | C owns tests; C/B; A network checks pairing | Required target | Subnet exclusion, live-IP uniqueness, one VPC/account             |
-| 15 — Stack              | One CLI command provisions PostgreSQL + MinIO + app Droplet; partial failure recorded; retry resumes without duplicate children.                         | C owns tests; B/C/E; A execution pairing    | Required target | Stack/role uniqueness and idempotent child records                |
+## 4. Reference concurrency design — proposal, B finalizes
 
-Test 14 does not permit custom user CIDRs: overlap is exercised against allocator/database proposals. Tests 11/12 include protocol/network denial alongside the account-scoped API 404 rule. K8s quota error name/status is **TBD with B+D**; do not invent an error wire string. Proposed `kan.account`, `kan.resource`, `kan.agent` labels need coordinated review; they are not present compatibility.
-
-## 3. Reference concurrency design
-
-**Reference design, B finalizes; not executable, not migration-ready.** Resources propose generation, acked_generation, lease_owner, lease_epoch, lease_expires_at and deleted_at. Exact schemas/SQL are in [Database Schema](CoveStack-Database-Schema.md).
-
-| Flow                 | Required invariant                                                                                                                                                        |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Claim                | Verified credential account/agent context, not caller-selected account; agreed separate account credentials/clients in one host process; assignment details B+C+A; SKIP LOCKED, bump epoch, reference 30-second lease               |
-| Acknowledge          | id, lease_owner, lease_epoch match AND generation = :gen; zero rows rejected; accepted ack clears lease_owner and lease_expires_at together, leaves lease_epoch unchanged |
-| Progress             | Separate guarded statement; never touches acked_generation                                                                                                                |
-| Expiry | Renewal, reports and ack require current epoch/generation and unexpired claim by DB clock; runtime exclusion is separate from DB fencing |
-| Idempotent create    | Account/key reservation, resource, operation/event and response in ONE transaction                                                                                        |
-| Fingerprint mismatch | Same key and different normalized request body: 422                                                                                                                       |
-| Retry                | Refresh/resume durable operation, not duplicate runtime create                                                                                                            |
-
-### 3.1 Account-context acceptance — extends existing tests
-
-C owns these cases; they supplement existing numbers, not new service/test IDs. Test 3: account A credentials cannot fetch/report/ack B work, including forged resource IDs; server checks assignment as well as account. Test 6: revoke/fail one account context while another keeps polling; no credential fallback or cleanup from failed inventory. Tests 1–2: restart both contexts and reject stale epochs without duplicates. Test 10: accounts share the canonical host cap; concurrent third-cluster request is rejected under the DB lock. Add client-level tests for immutable credentials and correct request/response context routing. Agent compromise remains a trusted-host risk, not isolation solved by separate credentials.
-
-### 3.2 HLD/LLD regression variants — existing test numbers
-
-| Existing test | Additional exact target | Owner |
-|---|---|---|
-| 1 | After initial convergence, remove the test container; periodic inspection repairs it with unchanged desired generation and exactly one owned runtime | C; A+B integration |
-| 2 | Expired renew/ack rejected; pause the old runtime worker or leave a child/API action unresolved; a new worker must not start conflicting mutation until prior execution settles | C; A+B |
-| 3 | Correct account but wrong assigned agent/claim rejected; user input cannot select another account's network or runtime | C; B+D+A |
-| 5 | After ack releases lease, fresh inspection updates health without changing acked_generation; delayed old inspection cannot overwrite a newer desired generation | C; B+A |
-| 6 | With server down before dispatch, no new mutations start; already submitted backend action may settle and must be inspected before retry; a failed inventory never means delete | C; A |
-| 7 | Kill main while k3d child is active; preserve operation exclusion and recover without a competing create/delete; explicit uncertain outcome blocks unsafe takeover | C; A |
-| 9–10 | Deleting/partially created clusters retain API-port and host-cap reservations until verified cleanup; third cluster cannot bypass capacity during deletion | C; B+A |
-| 11 | Default VPC converges before DB attachment; backup/key recovery is measured; shared-host backup limits are stated | C; B+A |
-| 12–13 | Shared MinIO bootstrap/secret references and private administration verified; Java rebuilds policy after restart; known objects still readable from retained data | C; B+A |
-| 14 | Standalone VPC creation/restart/deletion reaches network helper through reviewed signed exchange; stale network claim rejected; deletion with attached/reserved workload denied; network-only API form is not enough | C; B+D+A |
-| 15 | First stack automatically ensures default VPC, DB, tenant bucket in shared MinIO and app; retry no duplicates; deleting stack cannot delete shared MinIO process or another account's bucket | C; B+E+A |
-
-These are targets, not passing results. Do not add E9 or renumber 1–15/E1–E8. OS exclusion, backend settlement and DB epoch fencing are different evidence; a rejected DB acknowledgment alone does not prove runtime exclusion. No test asserts strict exactly-once execution across arbitrary failures. Under tests 2/4/6, assert GET work/known-ids/auth-smoke changes no lease; duplicate same-key claim after lost response returns the same epoch/result, not a second resource or revived expired lease.
-
-### 3.3 User experience assertions — Planned, existing tests
-
-C owns these public API/CLI integration assertions under existing tests 1–15. Direct helper calls, schema presence and successful process startup do not establish a usable service. Record revision, environment, expected/actual result and sanitized evidence; no new requirement IDs or wire strings.
-
-| Existing test | Additional experience assertion | Implementation pairing |
+| Flow | Required guard / transaction | Failure assertion |
 | --- | --- | --- |
-| 3 | Two accounts can use the same friendly resource name; list/get/delete remain scoped; foreign IDs return 404 without leakage | B/D/E with C |
-| 1, 2, 5, 6 | During controlled crash/outage, get distinguishes desired/converged revision and observation freshness, with sanitized error; old observations never imply fresh health; no secret values | B/D/E and A with C |
-| 7–10 | Authorized export yields usable kubeconfig; deploy a bounded test workload and read its result; denial and cleanup still pass | A/B/D/E with C |
-| 11 | Connect using scoped credentials; write/read known rows; remove test rows, restore and compare canonical dataset/checksum | A/B with C |
-| 12, 13 | Upload/download exact bytes with scoped credentials; restart MinIO and verify retained object checksum; other-account key denied | B and A with C |
-| 14 | In addition to allocation races, prove intended same-account app/DB connectivity and cross-account network denial using actual traffic; control-plane ports remain inaccessible | C allocator, A helper, B records |
-| 15 | One fixed stack yields an app that writes/reads PostgreSQL and uploads/downloads an object; retry a partial failure without duplicate children; deletion follows retention policy | B/A/E with C |
+| Claim | Trusted credential/host/account assignment, locked due resource, generation/owner/epoch/expiry; bump epoch atomically | Concurrent claims are distinct/exclusive under reviewed policy; arbitrary caller account parameter is not scope |
+| Convergence | Match owned resource, exact generation, owner and epoch; expiry check follows explicitly agreed policy | Old/future/stale report affects no convergence row; release lease_owner and lease_expires_at together, retain epoch |
+| Progress/health | Separate ordered observation/attempt statement; no acked_generation update | A healthy/progress report cannot acknowledge desired state |
+| Idempotent create | Same transaction: key/fingerprint, resource, operation/reservation/event and stored response | Same key ten callers one result; changed fingerprint rejected |
+| Unknown runtime outcome | Serialize resource/child operations and inspect provider task before takeover | No competing Incus/Docker/k3d mutation just because DB lease expired |
+| Delete/release | Complete owned inventory, confirmed teardown and retention policy | No unrelated cleanup; port/IP/disk remains reserved while outcome unknown |
 
-Use a reviewed app image and documented app invocation/access path. The local or private endpoint need not be internet reachable; public exposure stays in the extended roadmap. Capability help must state actual limits and reject unsupported options; B/D/E agree response mappings, not invented wire values. A clean-host teammate walkthrough is installer evidence, not a new service gate.
+These are not executable SQL, approved VM wire messages or proof the DB exists. [Schema/concurrency](CoveStack-Database-Schema.md), [API gap](CoveStack-API-and-Compatibility.md).
 
-## 4. CORE-5 live demo and recorded evidence
+## 5. Live demonstration and retained evidence
 
-Live highlights: tests 1, 3, 4 and the CLI get view showing desired versus converged generation, lease and observed state. Remaining tests are CI output/recorded video. Record a backup video; do not rely on hotspot access alone. CLI cross-build/run evidence uses two actual OSes, not compilation alone.
+Use real highlights only for behavior that exists: signed no-work/auth-stop and cancellation first; once APIs/runtime exist, demonstrate interrupted create, tenant denial, same-key retry and actual desired/observed freshness. Show remaining real runtime/failure/restore evidence from CI or a recorded exact-revision video. Never claim mocked or historical screenshots as new VM/RustFS tests. No dependency on phone hotspot alone; no fabricated CLI/Java startup command.
 
-## 5. CORE-5 viva questions
+## 6. Twelve viva questions — truthful answers
 
-| Question                                 | Honest answer — target, not current claim                                                                                       |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| 1. Crash mid-create?                     | DB intent survives. Ensure inspects deterministic owned identity before another create; test 1 must prove one container.        |
-| 2. Two agents?                           | Lease epoch changes on reclaim. An old owner/epoch acknowledgment is rejected; host exclusion separately blocks competing runtime mutation. Test 2 covers both.                                |
-| 3. Why not just Docker?                  | Docker is execution. Our target is account-scoped DB intent, fencing and crash-safe lifecycle; claim evidence only after gates. |
-| 4. Why not just k3d?                     | k3d executes a cluster request. Our target adds tenancy, port reservation, quotas, reconciliation and scoped kubeconfig.        |
-| 5. Why not containers for data services? | Execution is reused. Our target adds volume ownership, measured restore and per-account storage credentials.                    |
-| 6. Is a Droplet a VM?                    | No. CORE-5 compute is container-backed on one host. It has no independent-kernel VM boundary.                                   |
-| 7. A reads B kubeconfig?                 | API must return 404; kubeconfig stays out of list/get/observations. Test 8 supplies evidence.                                   |
-| 8. Server down?                          | Agent performs no new create/delete. No poll result means no authoritative deletion intent.                                     |
-| 9. Why only two clusters?                | The 8 GB single-host budget is constrained. The per-cluster estimate is unverified until the host spike.                        |
-| 10. Why no direct CLI DB access?         | Authenticated API centralizes policy/idempotency. CLI stores configuration only, not resource state.                            |
-| 11. Which services are Gates passed?     | None are promoted by this document. Inspect the current gate register and C's CI evidence.                                      |
-| 12. What is not implemented?             | This is target design, not a certificate. Missing gates and contract decisions are recorded explicitly.                         |
+| Question | Answer and evidence boundary |
+| --- | --- |
+| What if the agent crashes mid-create? | Target: inspect owned provider task and resume one resource. Current agent has no executor; real crash test remains pending. |
+| What if two agents act? | DB owner/epoch/generation guards plus host/runtime exclusion and unknown-task settlement are required. A DB fence alone does not stop a stale backend command. |
+| Why not directly use Docker? | Docker already supplies useful execution/network features. CoveStack must prove additional account/environment ownership, durable intent, admission and recovery workflow. |
+| Why not directly use Incus? | Incus already manages VMs/projects/network/storage. CoveStack is only valuable if its account/app/SQL/S3/recovery experience demonstrably reduces user work. |
+| Why not directly use k3d? | k3d provides cluster execution. Target platform adds owned API, safe operations/ports/capacity and scoped exports; tests must prove the integration. |
+| Is a compute instance a VM? | Product VM Instance must have a guest kernel. App Container is explicitly a different shared-kernel type; no VM driver is claimed today. |
+| Can A read B kubeconfig or storage? | Target: foreign export denied and scoped object/traffic tests fail access. Existing filters alone are not proof of full service isolation. |
+| What if the server is unavailable? | No new unauthorized runtime mutations. Current poll-loop no-execution guard remains; general transport retry behavior still needs integration review. |
+| How many VMs/clusters fit? | Measure the exact profile and reserve platform overhead; no old 8 GB/two-cluster assumption qualifies a production host. |
+| Why does the CLI not use the DB/backend directly? | Authenticated API centralizes ownership, transactions, admission and operations; direct access would bypass these boundaries. |
+| Which services have passed acceptance? | Use actual evidence ledger and CI/runtime artifacts. This document promotes none and establishes no supported production profile. |
+| What remains unimplemented? | Server foundation/credentials/assignment/claims, VM/runtime/data services and full clients require code and real evidence; see current status rather than a diagram. |
 
-## Appendix A. Extended track tests — not SRS acceptance
+G1: PostgreSQL desired state and generation are authoritative. G2: crash-safe inspection/reconciliation rebuilds state/config without duplicates. G3: account authorization denies foreign API resources (404 without existence leak) and actual traffic/storage boundaries are tested. G4: meaningful failure acceptance runs in CI on an authorized capable runner. **Acceptance Gates Passed** requires this evidence; **Supported** additionally needs a declared subset, qualified profile and maintenance policy.
 
-Extended features may be shown only as bonus after Gates passed. These tests do not enlarge the SRS.
+## Historical traceability
 
-| Test                   | Exact assertion                                                                                            | Owner                               | Runs in CI      | Schema constraint relied on                        |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------- | --------------- | -------------------------------------------------- |
-| E1 — ASG               | Delete an active desired member: replacement respects cooldown/min/max; server down: no scaling.           | C owns tests; B/C/A pairing         | Required target | Parent ownership and DB policy                     |
-| E2 — Load balancing    | Kill backend: health removes it; delete proxy config: regenerate from DB rows.                             | C owns tests; D/B/C/A pairing       | Required target | Owned backend FKs; observations are derived        |
-| E3 — Snapshot          | Snapshot, change file, restore new Droplet: original hash; B cannot read snapshot.                         | C owns tests; D/A/C pairing         | Required target | Account resource/image binding                     |
-| E4 — Metadata          | A cannot read B metadata; no agent/cloud secrets returned.                                                 | C owns tests; C/A/B pairing         | Required target | Bound self-identity                                |
-| E5 — Publication       | Unknown hostname: 404; resource deletion removes route; public route cannot reach private management port. | C owns tests; A/B/C pairing         | Required target | Unique owned hostname and approved resource        |
-| E6 — Domains           | Unverified domain serves nothing; reassignment never serves old tenant.                                    | C owns tests; C/B/A pairing         | Required target | Claim/verification revision binding                |
-| E7 — Monitoring        | Stop agent: display stale/unknown, never healthy; alert fires and is recorded.                             | C owns tests; C/B/A pairing         | Required target | Freshness thresholds TBD with B; recorded evidence |
-| E8 — Ansible inventory | Bob inventory contains none of Alice Droplets; inventory uses CLI JSON/API, never docker ps.               | C owns tests; E/C; A review pairing | Required target | API account predicate                              |
-
-React has an API-only read-only list/interface gate plus relevant account tests; it creates no tables. E1–E8 are the eight named extended acceptance tests, not nine separate service numbers.
-
-### Batch 2 checklist
-
-Batch 2 added the exact heading **## 10. Known constraints**. The [SRS constraint target](CoveStack-Complete-Working-Setup.md#10-known-constraints) now resolves; this checklist records the cross-link correction, not application acceptance.
-
-[Service gates](CoveStack-Service-Gates.md) · [Schema](CoveStack-Database-Schema.md) · [SRS](CoveStack-SRS-Scope.md) · [Extended roadmap](CoveStack-Extended-Roadmap.md) · [Go handover](CoveStack-Go-Handover.md).
+The [previous body of this file](../docs/archive/V5-before-full-product-alignment-2026-11-04.md#v5-covestack-antiwrapper-acceptance) is preserved unchanged as historical reference, including earlier requirements/DDL/acceptance text. It is not current VM/RustFS setup guidance. Use this active body, the linked canonical domain specifications and [actual implementation evidence](CoveStack-Implementation-Status.md) for new work. No source, migrations, contracts, tests, configuration or runtime state is changed by this document.

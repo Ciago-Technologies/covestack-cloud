@@ -1,128 +1,70 @@
-# Architecture transition notice — 4 November 2026
+# CoveStack V5 — Security Architecture and ITISS Evidence
 
-> **Superseded design reference.** Active guidance: [platform security](../docs/platform/security.md). VM escape/hypervisor/Incus privileged access are explicit threat boundaries. VM isolation is stronger, not absolute; containers retain shared-kernel restrictions.
->
-> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
+| Document control | Value |
+| --- | --- |
+| Updated | 4 November 2026 |
+| Authority | Detailed current product specification; aligned to the [canonical catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) and [product SRS](../docs/product/CoveStack-Product-SRS.md) |
+| Evidence | Target design, not a completion certificate; source and actual test results determine implementation status |
+| Compatibility | V5 is a documentation label; current wire contract remains 1.1.0; future fields/kinds/versions require coordinated review |
 
-Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); product scope is independent of historical academic CORE-5.
+## 1. Security and ITISS contribution
 
-<!-- Historical body preserved below; see supersession notice above. -->
+ITISS evidence is actual host/virtualization hardening, identity/replay/custody, private traffic enforcement, capacity admission, audited operations, incident handling and verified data recovery. A Go agent is a trusted privileged component, not a reason to replace infrastructure evidence with code volume. No course/mentor approval is assumed; clarify course-specific ownership expectations separately without constraining product architecture.
 
-# CoveStack V5 — Security, Infrastructure and ITISS Evidence
+## 2. Trust boundaries and threat model
 
-| Document control        | Value                                                                   |
-| ----------------------- | ----------------------------------------------------------------------- |
-| Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **20 October 2026**                                                     |
-| Submission deadline     | **Monday, 25 January 2027**                                             |
-| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
-| Status                  | Target design and implementation guidance; not a completion certificate |
-
-## 1. ITISS contribution
-
-A (Anuj) owns all agent/client/driver/reconcile Go, VM/infrastructure hardening, CI, Ansible Part 1 and ITISS evidence. C owns all acceptance tests from day 1 and reviews security; B owns SQL; D Java API mappings; E thin CLI. Extended infrastructure evidence is relocated to the roadmap. **This is a project work plan, not an official C-DAC grading rubric.** Confirm the institute's expectations with the mentor.
-
-| Domain                   | Deliverable                                          | Acceptance                                     |
-| ------------------------ | ---------------------------------------------------- | ---------------------------------------------- |
-| Linux/VM                 | Users, permissions, version baseline and services    | Clean install by teammate                      |
-| Network                  | Server-owned VPC allocator and private bridge policy | Test 14 plus allowed/denied paths              |
-| Identity                 | Roles and two-account action matrix                  | Every resource action scoped                   |
-| Hardening                | Privileges, capabilities, mounts and image review    | Actual configuration inspection                |
-| Communication            | Private signed agent path and protected API          | Real auth-smoke; no private credential leakage |
-| Vulnerability management | Scans, triage and remediation                        | Dated retest and residual risks                |
-| Evidence                 | Sanitized CI/logs, versions and failure timeline     | Tests 1–15; no mock promotion                  |
-| Recovery                 | Backups, restore and incident procedures             | Known data recovered separately                |
-
-## 2. Threat model
-
-| Threat                       | Required control/test                                      |
-| ---------------------------- | ---------------------------------------------------------- |
-| A operates on B's resource   | Object/action authorization in backend                     |
-| User key calls agent API     | Credential-kind separation                                 |
-| Signed replay                | Authenticate before atomic nonce claim                     |
-| Invalid MAC consumes nonce   | Valid preserved request still succeeds                     |
-| Agent takeover/host exposure | Trusted high-authority boundary; no workload daemon socket |
-| Network crossing             | Explicit Docker/Kubernetes routing tests                   |
-| Outage causes deletion       | Failed/partial inventory never authorizes cleanup          |
-
-Threats include compromised workload/agent and accidental operator mistakes. Simulate them only in the team's authorized lab. Object-level authorization is not replaced by random IDs, a login screen or firewall rules. [OWASP object authorization](https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/).
-
-## 3. Signing and user identity
-
-| Existing compatibility rule | Requirement                                                           |
-| --------------------------- | --------------------------------------------------------------------- |
-| `KAN1-HMAC-SHA256`          | Preserve current shared algorithm                                     |
-| Date/key/nonce/Host         | Required authenticated input                                          |
-| Body/path/raw query         | Exact bytes across client/proxy/server                                |
-| 1 MiB signed request body   | Enforce actual bytes, including chunked input                         |
-| Replay store                | Atomic authenticated claim; fail closed on unavailable store          |
-| User tokens                 | api_tokens hash-only lookup, expiry/revocation and permissions        |
-| Service secret storage      | signing_credentials ciphertext/key version; service kind; custody B+C |
-
-Signing establishes authenticity/integrity, not encryption or resource authorization. TLS provides transport confidentiality; backend policy determines account access. A real store/bootstrap and running-server tests remain necessary. Each poll derives account scope from its verified service principal; the agreed target is one process/host with separate service credentials and polling contexts per account; B validates stored assignments, C reviews secure provisioning/custody/revocation, A implements isolated clients. Never treat a label/caller-selected account as authorization.
-
-### 3.1 Claim authority and runtime safety
-
-Signed request identity does not establish a current work claim. Validate account/assignment, target generation, epoch and DB-clock expiry for renew/report/ack, using reviewed claim correlation schemas. New claim/renew/inspection/network fields and route names remain TBD with B+D/A/C. Reject expired renewal instead of reviving a lost claim.
-
-DB fencing does not prevent a stale Docker/k3d side effect. Require OS host exclusion, per-resource serialization and proof old backend work settled before takeover. Unknown outcomes block mutation; no blind retry/delete. One compromised privileged host remains outside tenant isolation. C tests this separately from rejected acknowledgments under existing test 2.
-
-Shared MinIO bootstrap uses protected operator host-secret references, never admin values in work. Tenant S3 and admin operations may share the API listener; enforce policy/custody, not a fictional separate-port security boundary. Default VPC setup and narrow S3 routes must not expose control-plane DB/cache/daemon or console. Java bucket reconstruction cannot recover lost object bytes.
-
-## 4. Host and workload authority
-
-A normal privileged Docker daemon is powerful. A service user with socket access may effectively control the host. Removing root from the agent process does not remove the authority of that socket. [Docker security](https://docs.docker.com/engine/security/).
-
-| Boundary          | Policy                                                            |
-| ----------------- | ----------------------------------------------------------------- |
-| User workload     | No host socket, broad mounts or unnecessary privilege             |
-| Platform agent    | Trusted, protected identity and restricted exposure               |
-| Lab host          | Dedicated VM boundary from personal machine                       |
-| Tenant containers | Not equivalent to independent VM isolation                        |
-| k3d nodes         | Special privileges reviewed; never generic tenant privilege grant |
-| Rootless option   | Evaluate feature compatibility and actual limitations             |
-
-Rootless compatibility and stronger workload isolation remain separate evaluated options. Former nested/VM-backed designs are Optional future work in the roadmap; CORE-5 Droplets are containers.
-
-## 5. Secrets and audit
-
-| Material               | Rule                                                            |
-| ---------------------- | --------------------------------------------------------------- |
-| Agent/signing keys     | Never ordinary resource responses or client logs                |
-| User DB/S3 credentials | Scoped issuance; separate authorized retrieval                  |
-| Kubeconfig             | Protected export and log redaction                              |
-| Terraform state        | Sensitive storage/access/backups/locking                        |
-| Audit records          | Actor, action, resource, result, request/time; protected writes |
-| Evidence               | Sanitized actual results; no secret dumps                       |
-
-MinIO administration is server-side; root/admin keys are distinct from tenant credentials. Custody, rotation and server-to-MinIO private path remain B+C decisions. The schema shows nullable audit_log.account_id as a proposed option for unauthenticated events; separate security events versus nullable audit remains B+C decision, with operator-only access and no tenant leak.
-
-Append-only DB permissions reduce accidental alteration but do not justify a tamper-proof audit claim. Record the trust model and administrator authority.
-
-## 6. Vulnerability and incident work
-
-Record scanner/tool/input versions, findings, severity, exploitability context, remediation and verified exceptions. Scanner success is not proof of isolation. Revoke a test credential, investigate sanitized logs and restore normal operation in a controlled exercise. Alert/metrics and public-edge scenarios remain preserved in the roadmap.
-
-### 6.1 Cloud-lab operating exercise — Planned
-
-A owns the installer, operating notes and sanitized ITISS evidence; C owns acceptance tests. B owns persisted policy/state and D reviews API mappings. Demonstrate configured controls and actual traffic, not only screenshots or container labels.
-
-| Exercise | Evidence to collect | Existing acceptance |
+| Threat | Target control | Required real/negative evidence |
 | --- | --- | --- |
-| Install on a clean supported host | Teammate follows instructions; versions/checksums, readiness and second playbook run changed=0 | Ansible Part 1 |
-| Separate two accounts | Same-name resource lookup, denied credentials and private-network reachability matrix | Tests 3, 8, 11, 12, 14 |
-| Diagnose an agent outage | Sanitized status/error timeline, last observation and safe recovery without duplicate workloads | Tests 1, 5–7 |
-| Recover application data | Known rows before deletion, backup identity/checksum, restore result and measured recovery time | Test 11; fixed-stack context test 15 |
-| Clean up safely | Owned inventory, declared retained data and no unrelated deletion | Tests 9 and 15 |
+| User impersonation or removed membership | Authenticate every management API; account/project/action authorization | Missing/expired/revoked credentials, role downgrade and owner race |
+| Forged agent or wrong assignment | Stored credential/host/account mapping, signed outbound requests, narrow dispatch | Wrong host/account/key denied; labels/caller selector cannot grant ownership |
+| Replay/tamper | Shared KAN1 canonicalization, MAC before nonce reservation, atomic Valkey TTL and safe clock policy | Signature vectors plus real replay/nonce-store outage and no poisoning |
+| Host/agent compromise | Dedicated hardened supported host, restricted sockets/devices, patch/update/secret policy | Access matrix/privilege inspection, verified updates and incident recovery |
+| VM escape/malicious image | Patched reviewed hypervisor/images/firmware, narrow devices/initialization | Actual guest boundary/provenance and denied host access; no absolute isolation guarantee |
+| Container escape | Trusted shared-kernel class, no privileged mode/socket/root mounts/broad devices | Runtime config inspection and real management/host denial |
+| Lateral movement/spoofing | Owned NIC/network/default-deny ingress/egress, management separation and guarded metadata | Actual forbidden packets, cross-runtime/restart/spoof cases |
+| Storage cross-account access | Owned volume/backup refs and scoped bucket policy/keys | Foreign disk attach/read/restore/object/admin access denied |
+| Credential leakage | Token hashes, protected recoverable keys/secret refs, least-privilege delivery/rotation | Redaction/ciphertext, revoke/rotate/restore and no logs/spec/query leaks |
+| Stale worker / uncertain side effect | Exact owner/epoch/generation guards and runtime exclusion/task inspection | Paused worker, lost response, parent/child death and no duplicate resource |
+| Denial of service | Physical/account reservations, bounded body/queue/timeout/rate policy | Parallel overspend, disk/RAM full, stale-host refusal and existing data retained |
+| Backup corruption/lost key | Protected independent copy, digest/authenticity, key recovery and rehearsal | Corrupt/foreign restore rejected; known data and policy actually recover |
+| Supply-chain compromise | Verified pinned artifacts/images, static/dependency/secret scans, SBOM/signatures/provenance | Tampered artifact rejected; exact distribution/notices/security evidence |
+| Audit forgery/disclosure | Append-only app roles, scoped sanitized event/log retention and external policy | App cannot rewrite audit/events; privileged admin risk remains explicit |
 
-These are exercises for existing CORE-5 and installer commitments, not a fault-injection product or claims of VM-strength isolation. Document privileges, residual risks and unresolved decisions. Never include live credentials or kubeconfigs in evidence.
+## 3. Identity, signing and secrets
 
-## 7. ITISS package for mentor review
+Internal service credentials and public user tokens have separate trust/lifecycle. Current HMAC signer/filter/rules exist; concrete issuance/store/host assignment/revocation integration is pending. Hash opaque API tokens; protect recoverable signing/DB/S3 keys with reviewed key version/custody. No default development key or caller-selected account authority. Signing is authenticity/integrity, not TLS, user RBAC, lease or encrypted data.
 
-Deliver threat model, diagrams, rule inventory, two-account matrix, actual reachability checks, configuration inspection, scan triage, outage timeline and restore evidence. Ask mentor in writing whether ITISS students may own Go agent/driver code; if not, name an agent developer and record handover. Confirmation is pending. AI-generated code is reference only; A types and can explain agent Go. E never takes agent/signing/drivers/reconcile ownership silently.
+Root/admin RustFS credentials stay operator/private Java administration; tenant keys only receive scoped policy. Actual revoke/rotate/restart/restore denial is mandatory. Mature secret/KMS provider selection and bootstrap/recovery are open; do not invent an unsafe homemade vault or pretend current keys already auto-rotate.
 
-**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
+## 4. Claims, fences and host execution
 
-Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
+Current 1.1.0 lacks the full reviewed advanced claim protocol. Future claim/renew/convergence enforce trusted assignment, exact generation, owner and epoch, with explicitly reviewed validity/expiry semantics. Progress does not acknowledge. DB fence is not a hypervisor fence: serialize host/resource/child actions and settle actual async backend task before takeover. Lease expiry never proves a subprocess/task stopped.
 
-[Gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).
+Only trusted agent/operator touches Incus/Docker APIs; tenants get no socket, host filesystem, arbitrary command, broad device or administration credential. Least-privilege service flags reduce exposure but cannot erase the authority of a privileged runtime. Review remote backend TLS/auth separately if needed.
+
+## 5. Network/data policy
+
+Default deny and explicit necessary ingress/egress; private addressing alone is not isolation. Verify VM-to-VM, VM/container/cluster, management/replay/control DB and provider admin routes. Guard NIC/IP spoofing, DNS rebinding/metadata paths and address reuse; no competing IP allocator. At-rest encryption is only claimed for a tested backend/key profile; backups and keys require protected independent recovery and retention/deletion policy.
+
+## 6. Logging, vulnerability and incident work
+
+Record actor/account/project/resource/operation/attempt/provider outcome with sanitized correlation. Unauthenticated events have no trusted account; nullable scope versus separate security events is B+C design. Hash chains alone are not tamper-proof against administrators. Preserve denied/admin/credential events; no secrets in payload/logs.
+
+Security issue triage needs severity, impact/version, owner, fix/retest and residual-risk disposition. Maintained disclosure contact/SLA/governance remain decisions; no invented email or certification. Apache-2.0 license does not certify security or relicense dependencies. [Threat model](../docs/platform/security.md), [recovery](CoveStack-Operations-and-Recovery.md).
+
+## 7. ITISS evidence package
+
+| Evidence | What to demonstrate | Owner / scope |
+| --- | --- | --- |
+| Host/runtime | Authorized compatible host, hypervisor/image trust, patch/privilege/socket inventory | A; C review; actual profile |
+| Network | Owned allocation, default deny and real allowed/forbidden packet traces | A+C/B; sanitized disposable tests |
+| Identity | Real signing/replay/revoke/assignment/auth-store outage | C+B+A; not unit mocks alone |
+| Capacity | Fresh host budget, quota/concurrency refusal and unknown-task reservations | B+A; C tests |
+| Recovery | Independent protected DB/key/VM/SQL/object restore with known content | A+B+C; actual safe target |
+| Operations | Clean install, repeatability, upgrade/rollback and incident explanation | A+B+C; no fictional runnable setup |
+
+Keep test revision/setup/results/limitations and explain failures honestly. Do not add a Labs/assignment/instructor-dashboard product or new deadline. A should understand and explain contributed agent Go; E remains CLI learner, D Java only. [Roles](Team_Roles.md), [team checkpoint](../TEAM-FIRST-CHECKPOINT.md).
+
+## Historical traceability
+
+The [previous body of this file](../docs/archive/V5-before-full-product-alignment-2026-11-04.md#v5-covestack-security-and-itiss) is preserved unchanged as historical reference, including earlier requirements/DDL/acceptance text. It is not current VM/RustFS setup guidance. Use this active body, the linked canonical domain specifications and [actual implementation evidence](CoveStack-Implementation-Status.md) for new work. No source, migrations, contracts, tests, configuration or runtime state is changed by this document.

@@ -1,51 +1,53 @@
-# Architecture transition notice — 4 November 2026
+# CoveStack V5 — CLI, Web Interface and Freshness-Aware Monitoring
 
-> **Superseded design reference.** Active guidance: [platform README](../docs/platform/README.md). Old container-Droplet architecture, two-driver ceiling, fixed sizing and delivery claims below are historical. The active platform docs define VM compute, a distinct App Container and evidence-based releases.
->
-> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
+| Document control | Value |
+| --- | --- |
+| Updated | 4 November 2026 |
+| Authority | Detailed current product specification; aligned to the [canonical catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) and [product SRS](../docs/product/CoveStack-Product-SRS.md) |
+| Evidence | Target design, not a completion certificate; source and actual test results determine implementation status |
+| Compatibility | V5 is a documentation label; current wire contract remains 1.1.0; future fields/kinds/versions require coordinated review |
 
-Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); product scope is independent of historical academic CORE-5.
+## 1. One authoritative state and clear maturity
 
-<!-- Historical body preserved below; see supersession notice above. -->
+CLI/API is the first target interface; an eventual React SPA uses the same authenticated APIs. There is no current public CLI/dashboard implementation established by source. UI is not authorization or a second database. Basic monitoring/health/logging/audit are core foundations; rich dashboards/tracing/prediction/alert rules are later extensions, not reasons to skip current diagnostics.
 
-# CoveStack V5 — React UI, CLI Parity and Monitoring
+## 2. CLI experience
 
-| Document control        | Value                                                                   |
-| ----------------------- | ----------------------------------------------------------------------- |
-| Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
-| Submission deadline     | **Monday, 25 January 2027**                                             |
-| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
-| Status                  | Target design and implementation guidance; not a completion certificate |
+Go/cobra thin client; endpoint/profile/key identifier config only, secrets protected separately. Mutations carry idempotency key. Create returns pending with durable ID; finite wait polls actual desired-versus-converged generation and fails truthfully on timeout/failure. All list/get offer stable JSON with scoped IDs, observation age and operation details. No runtime socket, platform DB or agent signing key for ordinary user access. Actual output schema/command names require API/module agreement; do not publish working commands before implementation.
 
-## 1. Single source of state
+## 3. UI screens and forms — future interface
 
-**Extended track — not in the SRS or deliverables.** Design details and acceptance are relocated to the [extended roadmap](CoveStack-Extended-Roadmap.md#10-react-ui). CORE-5 has priority; no capability is claimed here.
+| Screen | Target information / action | Security boundary |
+| --- | --- | --- |
+| Read-only list first | Scoped resources, operation and last observed freshness | Account/project authorization remains server-side |
+| Resource detail | Desired/converged state, owned dependencies, host/profile limits, sanitized events/logs | No ordinary secret/kubeconfig/admin endpoint disclosure |
+| Create form | Validated VM/container/cluster/network/database/storage options returned by capabilities | No unsupported backend knobs, host paths, arbitrary command or fabricated size choices |
+| Environment | Typed child readiness/failure and safe retry/retention | Shared resource reference is not permission to delete its owner |
+| Recovery/keys | Explicit authorized audited action and required warning about target/data effects | Secret export separate, no persistence in URLs, ordinary logs or browser storage |
 
-## 2. UI screens
+Start UI only after real authenticated list/get and truthful health exist. Form completeness does not establish resource support. Public application exposure is a separate future opt-in, never an automatic effect of a create form.
 
-**Extended track — not in the SRS or deliverables.** Design details and acceptance are relocated to the [extended roadmap](CoveStack-Extended-Roadmap.md#10-react-ui). CORE-5 has priority; no capability is claimed here.
+## 4. Metrics and health model
 
-## 3. Forms and secret handling
+| Signal | Authority / semantics |
+| --- | --- |
+| Desired revision | DB intent, not evidence the VM/service is healthy |
+| Convergence revision | Accepted successful readiness for a particular desired revision, not perpetual health |
+| Current health | Timestamped/ordered probe/provider observation with freshness budget |
+| Host capacity | Fresh compatible host observations plus durable reservations, never usage alone |
+| Logs/events | Scoped sanitized correlation of user/account/resource/operation/attempt/provider task |
+| Alerts | Policy-driven later delivery with durable event; no alerts already running is claimed |
 
-**Extended track — not in the SRS or deliverables.** Design details and acceptance are relocated to the [extended roadmap](CoveStack-Extended-Roadmap.md#10-react-ui). CORE-5 has priority; no capability is claimed here.
+Agent loss makes health stale/unknown rather than healthy; observation payload labels are not invented wire enums. Reject stale/future/out-of-order reports per approved protocol. Redact credentials, query strings, private configs and backend responses; retention/tenant logging access and volume limits require review.
 
-## 4. CLI behavior — CORE-5 interface
+## 5. Core versus advanced observability
 
-E owns the thin cobra CLI; A owns pkg/kanclient and reviews Go. CLI calls only the authenticated API, never Docker/k3d or the DB. Config: server URL/key ID/profile; secrets env/keychain; no local DB. Every mutation sends an idempotency key; create returns pending; --wait polls with finite timeout. Get shows desired/converged generation, lease and observed state; every list/get supports -o json.
+Basic host CPU/RAM/disk pressure, agent reachability, resource/service readiness, errors, operation events and useful logs belong with the lifecycle being built. Advanced dashboards, historical utilization, prediction, distributed tracing, richer alerting/notifications and external integrations need measured demand/storage/retention and secure provider choices. No collector/metrics database/alert tool is selected just by drawing a chart.
 
-Build order: droplet → vpc → k8s → db → bucket → stack; next production service starts only after the previous failure test passes in CI. W3 K8s learning is mock-only. No UI work during CORE-5. [Go handover](CoveStack-Go-Handover.md) defines E's plan; prior broader parity details remain in the roadmap.
+## 6. Acceptance
 
-## 5. Monitoring model
+Same account sees same real resource/operation across CLI/API/future UI; wrong account denied. JSON parsable and redacted; mutating retries one ID; create/wait never turns server failure into success. Stop agent and verify actual freshness changes (E7), retained stale report cannot make it fresh, and useful event/log errors contain no secrets. UI/server independently validate input and permission. No interface bypasses G1–G4/profile gates.
 
-**Extended track — not in the SRS or deliverables.** Design details and acceptance are relocated to the [extended roadmap](CoveStack-Extended-Roadmap.md#10-react-ui). CORE-5 has priority; no capability is claimed here.
+## Historical traceability
 
-## 6. User workflow acceptance
-
-**Extended track — not in the SRS or deliverables.** Design details and acceptance are relocated to the [extended roadmap](CoveStack-Extended-Roadmap.md#10-react-ui). CORE-5 has priority; no capability is claimed here.
-
-**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
-
-Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
-
-[Gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).
+The [previous body of this file](../docs/archive/V5-before-full-product-alignment-2026-11-04.md#v5-covestack-ui-cli-and-monitoring) is preserved unchanged as historical reference, including earlier requirements/DDL/acceptance text. It is not current VM/RustFS setup guidance. Use this active body, the linked canonical domain specifications and [actual implementation evidence](CoveStack-Implementation-Status.md) for new work. No source, migrations, contracts, tests, configuration or runtime state is changed by this document.

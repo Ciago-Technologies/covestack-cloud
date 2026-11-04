@@ -13,3 +13,7 @@
 | [Documentation-Before-Tables-2026-10-11.zip](Documentation-Before-Tables-2026-10-11.zip) | Earlier documentation snapshot before table formatting | Historical comparison only |
 
 The team/handoff ZIPs retain the deleted documents, with table-formatting differences from their prior Git revision. Their internal relative links describe the former layout and may not resolve when opened alone. Review unique technical notes against current code/contracts before reusing them. Actual wire behavior remains defined by contracts/; no archived example overrides it.
+
+## Full V5 pre-alignment snapshot
+
+[All 31 previous V5 bodies](V5-before-full-product-alignment-2026-11-04.md) preserve the original text, including old full schema DDL, audit IDs, dates and acceptance variants. [Current V5](../../V5/README.md) now contains fully updated detailed product guidance; use the snapshot only for traceability. Existing ZIP/HTML/PDF assets remain unchanged.

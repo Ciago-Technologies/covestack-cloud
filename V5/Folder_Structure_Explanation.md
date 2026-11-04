@@ -1,119 +1,62 @@
-# Architecture transition notice — 4 November 2026
-
-> **Superseded design reference.** Active guidance: [platform README](../docs/platform/README.md). Old container-Droplet architecture, two-driver ceiling, fixed sizing and delivery claims below are historical. The active platform docs define VM compute, a distinct App Container and evidence-based releases.
->
-> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
-
-Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); product scope is independent of historical academic CORE-5.
-
-<!-- Historical body preserved below; see supersession notice above. -->
-
 # CoveStack V5 — Folder and File Responsibilities
 
-| Document control        | Value                                                                   |
-| ----------------------- | ----------------------------------------------------------------------- |
-| Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
-| Submission deadline     | **Monday, 25 January 2027**                                             |
-| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
-| Status                  | Target design and implementation guidance; not a completion certificate |
+| Document control | Value |
+| --- | --- |
+| Updated | 4 November 2026 |
+| Authority | Detailed current product specification; aligned to the [canonical catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) and [product SRS](../docs/product/CoveStack-Product-SRS.md) |
+| Evidence | Target design, not a completion certificate; source and actual test results determine implementation status |
+| Compatibility | V5 is a documentation label; current wire contract remains 1.1.0; future fields/kinds/versions require coordinated review |
 
-## 1. Naming rules
+## 1. Names and present-versus-planned rule
 
-| Name                       | Meaning                                                  |
-| -------------------------- | -------------------------------------------------------- |
-| CoveStack                  | Product name; preserve capitalization                    |
-| `covestack-cloud`          | Repository slug                                          |
-| `kan-server`               | Existing Java server module                              |
-| `kan-agent`                | Existing Go agent module                                 |
-| `KAN_*`, `KAN1`, `X-Kan-*` | Existing configuration/signing compatibility identifiers |
-| V5                         | New documentation set; not a protocol bump               |
+Product name is CoveStack. Existing kan-server, kan-agent, Go module/Java package/KAN1/header identifiers remain compatibility names until coordinated change. VM Instance and App Container are product types, not permission to rename current wire kinds. A planned path is not a file that already exists.
 
-Do not rename module paths, packages, database identities as a documentation cleanup. Existing kan.io/* fixture labels are observations; kan.* is a proposed reserved-label contract, not existing compatibility. A technical rename needs a separate migration.
+## 2. Existing repository surfaces
 
-## 2. Existing tree
+| Path | Actual responsibility / evidence | Owner |
+| --- | --- | --- |
+| kan-agent/cmd/kan-agent/ | Existing config/client/cancellable polling entry point; returned work stops safely | A |
+| kan-agent/cmd/auth-smoke/ | Signing diagnostic and local verifier test; real Java proof separate | A; C acceptance |
+| kan-agent/internal/config/ | Environment/rules validation and credential-safe formatting | A |
+| kan-agent/internal/client/ | Bounded signed GET work client and HTTP/schema tests | A; B+C/D review |
+| kan-agent/internal/agent/ | No-execution polling/backoff/auth-stop/cancel and tests | A |
+| kan-agent/sigv1/ | Existing request/rules/signing/vector tests | A+C |
+| kan-agent/internal/lifecycle/ | Pure shared validator and generated catalogue/tests | A+B/C/D |
+| kan-server/src/main/java/.../auth/ | Existing auth/replay interfaces/filters/helpers, not full app server | C+B |
+| kan-server/src/main/java/.../contract/ | Java lifecycle helper and generated data | B+D/C |
+| kan-server/src/test/java/ | Existing Java unit/mock/vector tests | C; B/A/D inputs |
+| kan-server/src/main/resources/db/migration/ | Existing publication/domain SQL only; foundation prerequisites unresolved | B SQL; C+A/D review |
+| contracts/ | Authoritative base/lifecycle/signing, examples, generator/checkers and generated references | D+B+C; A consumer |
+| deploy/ | Dependency Compose/examples for platform DB/Valkey/Mailpit, not complete product | A infra; B/C |
+| .github/workflows/ | Current Go/Java/contract checks and secret scan | A; C acceptance |
+| docs/product/ and docs/platform/ | Canonical product/domain/evidence specifications | Team ownership per topic |
+| V5/ | Current detailed implementation/team documentation aligned with canonical specs | Team review; docs not runtime proof |
 
-```text
-covestack-cloud/
-  V5/                    new documentation set
-  docs/archive/          historical team/handoff ZIPs; not active setup
-  Version Docs/          archived copies and delivery patches
-  contracts/             authoritative wire/lifecycle fixtures
-  kan-server/            Java authentication/core libraries
-  kan-agent/             Go config/signing/lifecycle/smoke
-  deploy/                local infrastructure configuration
-  .github/workflows/     builds and secret scanning
-  agent/                 placeholder documentation
-  control-plane/         placeholder documentation
-```
+## 3. Planned layout — no creation/move in this task
 
-| Location                       | Current purpose                          | Rule                              |
-| ------------------------------ | ---------------------------------------- | --------------------------------- |
-| `kan-agent/internal/config`    | Local environment validation             | Never log credential fields       |
-| `kan-agent/sigv1`              | Shared rules and outgoing signing        | Preserve authenticated bytes      |
-| `kan-agent/internal/lifecycle` | Generated catalog and validation         | Edit generator source, not output |
-| `kan-agent/cmd/auth-smoke`     | Real-server signing checks               | Mock tests are separate evidence  |
-| `kan-server/.../auth`          | Authentication interfaces/filters        | Concrete stores still required    |
-| `kan-server/.../contract`      | Shared lifecycle helpers                 | Runtime integration is additional |
-| `contracts`                    | Schemas, vectors, generated-state inputs | Coordinated Go/Java changes       |
-| `deploy`                       | Private infra and secret templates       | Local secrets untracked           |
+| Target area | Purpose / decision before code |
+| --- | --- |
+| Shared Go API/client module | Reuse protected HTTP/signing where appropriate without confusing user and agent auth; module/import review A+B+C+E |
+| User CLI/provider | Thin API-only Go consumer and later optional provider; no runtime drivers/DB |
+| VM/App Container/k3d providers | Trusted execution interfaces, capabilities, owned inspection/task/readiness/conformance; A implementation |
+| Java app/controllers/repositories | Real authenticated resource/assignment/operations and SQL foundation under B/C/D |
+| Host/capacity/network/storage model | Assignment/reservations/attachments/traffic enforcement and recovery; no fixed two-driver ceiling |
+| Installer and future inventory | Operator installation versus account-scoped API inventory; actual service/artifact first |
 
-## 3. Planned implementation folders — no code moves
+Do not create guessed filenames/modules/migration numbers from this table. [Existing-code plan](../EXISTING-CODE-CHANGE-PLAN.md) deliberately maps actual present files; missing components get separately reviewed interfaces/paths.
 
-These are target folders, not source-presence or gate claims. This batch creates no directories, .gitkeep files, module files or code. Module layout and signer relocation need A+B+C review before implementation.
+## 4. Generated versus handwritten
 
-```text
-covestack-cloud/
-  contracts/                     existing authoritative fixtures
-  pkg/kanclient/                 planned signer + HTTP API client (A)
-  cmd/covestack/                 planned thin cobra CLI (E)
-  kan-agent/                     existing module; A container/k3d/reconcile
-  kan-server/                    existing Java module; B/C/D
-  terraform-provider-covestack/  planned thin provider (E, after CLI)
-  ansible/                       planned Part 1 site.yml/roles; inventory later
-  deploy/                        existing private infrastructure
-  docs/                          existing documentation
-```
+contracts/lifecycle-rules.json and internal-api.base.json drive generated internal-api.yaml, FROZEN-STATES.md, Go catalog_generated.go and Java LifecycleData.java. Change authoritative inputs/fixtures/consumers together when approved; do not hand-edit generated outputs. Signing rules/vectors remain shared. Compiled target/classes/jars and __pycache__ are build artifacts, not edit targets or fresh runtime proof.
 
-| Target area                  | Responsibility                                       | Boundary                                                                   |
-| ---------------------------- | ---------------------------------------------------- | -------------------------------------------------------------------------- |
-| pkg/kanclient                | Shared signer and HTTP API client; A owns changes    | Agent/CLI/provider import reviewed client; module layout TBD               |
-| cmd/covestack                | E cobra thin API client, JSON and packaging          | No Docker/k3d/DB; no local resource DB                                     |
-| kan-agent                    | A container driver, k3d driver and reconcile         | Docker network helper inside container driver; only two workload drivers   |
-| kan-server                   | B core/all SQL; C auth/tests/IPAM; D API/DTO         | Account predicates; bucket/credential reconcile in Java                    |
-| terraform-provider-covestack | E later thin API lifecycle layer                     | Optional Droplet/K8s only; A review                                        |
-| ansible                      | A Part 1 reviewed operator installer                 | roles/docker, infra, server, agent; no tenant inventory in CORE-5          |
-| Extended folders             | Read-only UI/inventory and proxy-config helpers      | Placement TBD; [roadmap](CoveStack-Extended-Roadmap.md), after entry gates |
-| Evidence                     | Sanitized tests, actual versions and restore results | No private keys/full tokens                                                |
+## 5. Secrets and data placement
 
-The former internal/client, kan-cli and separate network-driver layout are superseded by the reviewed shared-client/thin-CLI/two-driver target. No existing code is moved. Production agent entry point is a planned task, not a fictional startup instruction. Java migrations belong to B's later reviewed work; this docs task creates none.
+Real .env/deploy secrets/signing/master/private keys, credential kubeconfigs, Terraform state and raw sensitive logs never enter source/issues/ordinary docs. Protect provider/custody data and independent backups; reviewed runtime storage is not a random host directory supplied by tenant. Do not change ignore rules or delete volumes to hide setup errors. Keep versioned nonsecret examples accurate without fake executable credentials.
 
-## 4. Generated versus handwritten files
+## 6. Human and AI documentation flow
 
-| File group                           | How to update                                             |
-| ------------------------------------ | --------------------------------------------------------- |
-| `lifecycle-rules.json`               | Reviewed source-of-truth change                           |
-| `internal-api.base.json` / generator | Coordinated schema/description change                     |
-| Go/Java catalog outputs              | Regenerate together                                       |
-| `FROZEN-STATES.md` / API output      | Regenerate and compare                                    |
-| Signing vectors                      | Cross-language agreed fixture update                      |
-| V5 Markdown                          | Documentation edits; do not change runtime by implication |
+Starter.md: clone/branch/start. TEAM-FIRST-CHECKPOINT.md: owned shared tasks/board/acceptance. checkpoint.md: single AI continuity file. GitHub issues: live status. V5/catalogue/domain docs: current requirements; historical snapshot: old text only. The [V5 index](README.md) and [root documentation flow](../DOCUMENTATION-IMPLEMENTATION-FLOW.md) link the reading path. No obsolete-file deletion is implied by this map.
 
-## 5. Secrets and state placement
+## Historical traceability
 
-Runtime state belongs in PostgreSQL/approved durable stores, not a frontend local array or CLI-only file. CLI config contains server URL/key ID/profile only; secrets come from env or OS keychain. No client file becomes the resource registry.
-
-| Material                      | Placement/policy                                                         |
-| ----------------------------- | ------------------------------------------------------------------------ |
-| Local `.env` and secret files | Ignored deployment paths; restrictive permissions                        |
-| Master encryption key         | Restricted external secret mechanism; protected recovery copy            |
-| Terraform state               | Protected backend/local file with lock policy; contains sensitive values |
-| Kubeconfig                    | Authorized export; restrictive permissions; preserve existing config     |
-| Provider/tunnel credentials   | Operator-owned restricted secret store                                   |
-| Checked-in examples           | Placeholder/synthetic data only                                          |
-
-## 6. V5 document map
-
-Read the main design, SRS scope, service gates and acceptance first; then schema, workflow, roles, setup and Go handover. Topic guides now separate CORE-5 from roadmap pointers; preserved historical text must not override CORE-5. Do not copy archived patches over the current repository.
-
-[Service gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Extended roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).
+The [previous body of this file](../docs/archive/V5-before-full-product-alignment-2026-11-04.md#v5-folder-structure-explanation) is preserved unchanged as historical reference, including earlier requirements/DDL/acceptance text. It is not current VM/RustFS setup guidance. Use this active body, the linked canonical domain specifications and [actual implementation evidence](CoveStack-Implementation-Status.md) for new work. No source, migrations, contracts, tests, configuration or runtime state is changed by this document.

@@ -9,7 +9,7 @@ Updated: 4 November 2026. **Current maturity: Experimental. No supported product
 | Dimension | Values | Interpretation |
 | --- | --- | --- |
 | Service/evidence | Proposed; Planned; In Progress; Partially Implemented; Implemented; Runtime Verified; Acceptance Gates Passed; Supported; Deferred; Blocked | Record source and domain-specific runtime/automated evidence separately; none advances from documentation alone |
-| Historical mapping | V5 In progress → In Progress; Gates passed → Acceptance Gates Passed; Extended track → Deferred/Proposed by current classification | Historical bodies are unchanged; Supported additionally needs declared subset, qualified profile and maintenance policy |
+| Historical mapping | V5 In progress → In Progress; Gates passed → Acceptance Gates Passed; Extended track → Deferred/Proposed by current classification | Previous V5 bodies remain unchanged in the historical snapshot; active V5 uses current categories. Supported additionally needs declared subset, qualified profile and maintenance policy |
 | Product maturity | Experimental; Alpha; Beta; Release Candidate; Stable 1.0; Supported production deployment profile | Maturity and particular host-profile qualification are not automatic from a feature status |
 
 G1: DB desired state/generation authoritative. G2: crash-safe inspection/rebuild without duplicate backend objects. G3: account/RBAC denial (foreign API resources 404) plus actual network/storage credential isolation. G4: meaningful failure acceptance runs in CI on an authorized capable runner. New VM acceptance needs runtime evidence; existing container mock/vector tests cannot pass it.
@@ -49,7 +49,7 @@ All thresholds/profile dimensions, security exceptions and result artifacts need
 
 ## Historical test continuity
 
-V5 tests 1–15 and E1–E8 remain historical records, not a cap on product acceptance. Product tests are defined by the selected service and actual boundary. Old exactly-one-container evidence does not prove a VM: verify exactly one owned VM, guest readiness, network/disk ownership and separate container conformance. Engineering schema/contract review is still necessary; academic permission is not a product dependency. See [historical reference](academic-transition.md).
+Updated [V5 acceptance](../../V5/CoveStack-AntiWrapper-Acceptance.md) retains IDs 1–15/E1–E8 as traceability labels with current product assertions, not a service-count cap. Original definitions/results are preserved in the [historical snapshot](../archive/V5-before-full-product-alignment-2026-11-04.md). Old exactly-one-container evidence does not prove a VM: verify one owned VM, guest readiness, network/disk ownership and separate container conformance. Engineering schema/contract review remains necessary; academic permission is not a product dependency.
 
 ## Failure domain and support
 

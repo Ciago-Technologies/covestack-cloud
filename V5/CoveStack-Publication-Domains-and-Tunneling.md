@@ -1,49 +1,55 @@
-# Architecture transition notice — 4 November 2026
+# CoveStack V5 — Application Publication, Domains and Gateways
 
-> **Superseded design reference.** Active guidance: [platform README](../docs/platform/README.md). Old container-Droplet architecture, two-driver ceiling, fixed sizing and delivery claims below are historical. The active platform docs define VM compute, a distinct App Container and evidence-based releases.
->
-> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
+| Document control | Value |
+| --- | --- |
+| Updated | 4 November 2026 |
+| Authority | Detailed current product specification; aligned to the [canonical catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) and [product SRS](../docs/product/CoveStack-Product-SRS.md) |
+| Evidence | Target design, not a completion certificate; source and actual test results determine implementation status |
+| Compatibility | V5 is a documentation label; current wire contract remains 1.1.0; future fields/kinds/versions require coordinated review |
 
-Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); product scope is independent of historical academic CORE-5.
+## 1. Future opt-in capability
 
-<!-- Historical body preserved below; see supersession notice above. -->
+A user may later publish an owned app running in a VM, trusted container or Kubernetes workload through an operator-approved gateway/reverse proxy and a real reachable HTTPS hostname. This is future scope, not already available from a create request. Support for publishing is distinct from exposing every resource by default. Management/DB/admin ports never become public because a workload exists.
 
-# CoveStack V5 — Application Publication, Domains and Tunnels
+## 2. Durable publication and domain lifecycle
 
-| Document control        | Value                                                                   |
-| ----------------------- | ----------------------------------------------------------------------- |
-| Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
-| Submission deadline     | **Monday, 25 January 2027**                                             |
-| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
-| Status                  | Target design and implementation guidance; not a completion certificate |
+Authenticate ownership → validate allowed workload port and actual readiness → verify hostname/domain control → persist route/domain binding and generation → render only approved DB-owned routes → validate/apply gateway config safely → verify actual HTTPS request → report scoped URL/freshness. Delete disables route and revokes domain binding before resource cleanup. Unknown gateway outcome inspects config/state, does not overwrite unrelated routes.
 
-## 1. Target publication capability
+| Record / subsystem | Target responsibility |
+| --- | --- |
+| Publication | Account/resource/hostname/port policy, generation and intended removal |
+| Domain verification | Proof bound to current claim generation and owner; previous proof invalid after reassignment |
+| Gateway config | Derived cache from approved DB records, never a second authoritative route registry |
+| Tunnel | Shared operator-managed reachable path; no mandatory separate tunnel per VM/pod |
+| TLS | Controlled certificate lifecycle, secure keys/renewal and verified hostname |
 
-**Extended track — not in the SRS or deliverables.** Design details and acceptance are relocated to the [extended roadmap](CoveStack-Extended-Roadmap.md#5-application-publication). CORE-5 has priority; no capability is claimed here.
+Existing V5 publication and V6 domain SQL are partial files with foundation prerequisites; no API/reconciler/gateway is proven by them. Tool/provider choice and DNS challenge interface require reviewed artifact/policy decisions; this doc does not select a tunnel vendor or guarantee Nginx execution exists.
 
-## 2. Request and route lifecycle
+## 3. Routing and address facts
 
-**Extended track — not in the SRS or deliverables.** Design details and acceptance are relocated to the [extended roadmap](CoveStack-Extended-Roadmap.md#5-application-publication). CORE-5 has priority; no capability is claimed here.
+| Path | Requirement / limit |
+| --- | --- |
+| Internet hostname | Real DNS → reachable tunnel/VPS/gateway → registered reverse proxy → owned reachable workload |
+| Private address | Requires appropriate private routing or approved VPN; not universally reachable |
+| Simulated public IP | Optional demonstration field only; does not route internet traffic |
+| Direct public IP | Real routable gateway/IP with host/NAT/firewall/ISP permission, not an arbitrary fake address |
+| Kubernetes app | Correct service/ingress/workload port and network path; a pod starting is not an external URL |
+| VM app | Service listens on permitted interface/port and survives policy/TLS path verification |
 
-## 3. Proxy topology choices
+Host, workload, gateway and tunnel must all run. Phone hotspot may restrict inbound reachability; no router DNS/DHCP ownership is assumed. Do not promise creating arbitrary globally resolvable domains without domain control.
 
-**Extended track — not in the SRS or deliverables.** Design details and acceptance are relocated to the [extended roadmap](CoveStack-Extended-Roadmap.md#5-application-publication). CORE-5 has priority; no capability is claimed here.
+## 4. Gateway and identity safety
 
-## 4. Domain types
+Reject unregistered hostnames; no default tenant backend or public management route. Validate target owner, host/address resolution, port and policy to prevent SSRF/management/metadata reachability. Preserve operator config and per-account boundaries; sanitized logs and quotas protect traffic/route exhaustion. Certificate/private keys are protected references, never list/get output.
 
-**Extended track — not in the SRS or deliverables.** Design details and acceptance are relocated to the [extended roadmap](CoveStack-Extended-Roadmap.md#5-application-publication). CORE-5 has priority; no capability is claimed here.
+## 5. Domains and verification
 
-## 5. Security and operations
+Platform subdomain allocation and verified custom domains have different authority. Only an owned/approved zone can issue a platform name. Custom domain proof/expiry/revalidation and reassignment must bind to the new owner/generation; stale proof cannot serve the old tenant. Define DNS/TLS control and cleanup before calling a domain verified. A documented SQL status is not proof a DNS check ran.
 
-**Extended track — not in the SRS or deliverables.** Design details and acceptance are relocated to the [extended roadmap](CoveStack-Extended-Roadmap.md#5-application-publication). CORE-5 has priority; no capability is claimed here.
+## 6. Owners, dependencies and acceptance
 
-## 6. First acceptance demo
+B durable publication/operations; D API mappings; C domain verification/security tests; A future gateway/tunnel config execution after safe runtime foundation; E API consumer. E5: unknown hostname 404, route disappears after delete and management port unreachable. E6: unverified domain serves nothing, reassignment invalidates old serving/proof. Add reload failure/config recreation from DB, actual HTTPS, cross-account target and tunnel outage tests. Public URL claims need real external reachability evidence, not screenshots alone.
 
-**Extended track — not in the SRS or deliverables.** Design details and acceptance are relocated to the [extended roadmap](CoveStack-Extended-Roadmap.md#5-application-publication). CORE-5 has priority; no capability is claimed here.
+## Historical traceability
 
-**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
-
-Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
-
-[Gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).
+The [previous body of this file](../docs/archive/V5-before-full-product-alignment-2026-11-04.md#v5-covestack-publication-domains-and-tunneling) is preserved unchanged as historical reference, including earlier requirements/DDL/acceptance text. It is not current VM/RustFS setup guidance. Use this active body, the linked canonical domain specifications and [actual implementation evidence](CoveStack-Implementation-Status.md) for new work. No source, migrations, contracts, tests, configuration or runtime state is changed by this document.

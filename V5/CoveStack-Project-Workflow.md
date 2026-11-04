@@ -1,140 +1,74 @@
-# Architecture transition notice — 4 November 2026
+# CoveStack V5 — Dependency-Driven Team Workflow
 
-> **Superseded design reference.** Active guidance: [platform roadmap](../docs/platform/roadmap.md). Old January dates are historical; the latest user deadline is 15 December with year/scope confirmation pending. Product releases have no promised academic dates.
->
-> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
+| Document control | Value |
+| --- | --- |
+| Updated | 4 November 2026 |
+| Authority | Detailed current product specification; aligned to the [canonical catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) and [product SRS](../docs/product/CoveStack-Product-SRS.md) |
+| Evidence | Target design, not a completion certificate; source and actual test results determine implementation status |
+| Compatibility | V5 is a documentation label; current wire contract remains 1.1.0; future fields/kinds/versions require coordinated review |
 
-Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); product scope is independent of historical academic CORE-5.
+## 1. Planning authority
 
-<!-- Historical body preserved below; see supersession notice above. -->
+This is a working dependency plan, not a dated academic delivery schedule or release-by-release roadmap. Product core/future classification follows the catalogue. Historical dates/counts remain in the linked snapshot, not current requirements. Existing team roles remain; no service or runtime evidence is declared finished by this workflow.
 
-# CoveStack V5 — Delivery Workflow to 25 January 2027
+## 2. Current starting checkpoint
 
-| Document control        | Value                                                                   |
-| ----------------------- | ----------------------------------------------------------------------- |
-| Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **20 October 2026**                                                     |
-| Submission deadline     | **Monday, 25 January 2027**                                             |
-| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
-| Status                  | Target design and implementation guidance; not a completion certificate |
+The existing Go signed client/main/poll loop runs no backend work. Immediate goal: real authenticated Java no-work polling with protected assigned credentials, negative auth and cancellation/error observations. Server foundation, concrete credential lookup and trusted assignment are missing or unverified. Do not start by recreating loop.go or wiring Docker/Incus commands into a handler.
 
-## 1. Schedule authority
+| Step | Lead / dependencies | Reviewable output | Exit evidence |
+| --- | --- | --- | --- |
+| Handshake agreement | B+C+A; D compatibility | Real endpoint, no-work shape, key custody/provisioning and trusted host/account assignment | Written nonsecret agreement and missing decisions |
+| Server foundation | B+C; D API | Runnable minimal server and reviewed prerequisite migration/auth path | Actual startup and clean/upgrade schema evidence on approved environment |
+| Signed integration | A+C; B real server | Existing client/loop against assigned real identity | Valid [], negative auth/replay, cancellation and observed retry/failure |
+| Protocol/resource review | B+D+A+C | VM/App Container types, claims/renew/report, capability/network/capacity and migration plan | Reviewed authoritative schemas/fixtures/version strategy before execution |
+| Backend spike | A+C; B reservations | Authorized Incus/OS/image/network/storage profile | Real guest kernel/readiness, task recovery, resource measurement and teardown |
 
-**Submission is Monday, 25 January 2027.** Planning date: 14 October 2026. The deliverable plan is CORE-5 only: Droplets, required Kubernetes, Managed PostgreSQL, Object storage and VPC/IPAM. Security, Recovery, CLI, optional Terraform, one stack demo and Ansible Part 1 are cross-cutting items, not extra services.
+## 3. Foundation-to-resource dependency order
 
-**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
+| Slice | Must exist first | Work and required exit |
+| --- | --- | --- |
+| Identity / account/project ownership | Reviewed custody and assignment | Real credentials/membership, fail-closed auth, audit and owner-scoped API |
+| Durable operations / admission | Authoritative schema and real DB | Idempotent intent+operation+reservation, claims/fence policy and no parallel overspend |
+| Images / disk / networking policy | Trusted host/profile and ownership schema | Approved image provenance, volume/NIC/IP/port allocation, actual default-deny traffic |
+| VM lifecycle / App Container | Above plus approved type/driver interface | Inspect/create/readiness/start-stop/cleanup; uncertain outcome and crash no duplicates |
+| Kubernetes | Safe container runtime, ports/capacity/secrets/network | Tested k3d/k3s pair, real workload, protected kubeconfig and clean recovery/deletion |
+| PostgreSQL / object storage | Persistent network/storage/secrets and trusted executors | Actual SQL/object bytes, scoped credentials, restart and verified restore; Java RustFS reconcile |
+| Bounded environment | Owned ready child services and reservation policy | Typed graph/retry/retention; usable app-data workflow and shared-resource preservation |
+| Interfaces / operations | Real APIs and evidence | CLI JSON/wait/errors, installer, monitoring/freshness, audit, operator runbooks and profile qualification |
 
-Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
+Security, audit, failure tests, quotas and recovery are integrated into each slice rather than deferred to the final demonstration. E may learn/build mocks in parallel, but a mock or planned path is never labelled an available runtime.
 
-## 2. CORE-5 phase — deliverable plan
+## 4. Capacity and runtime spikes
 
-| Period                 | Work                                                                                                                                                                                                                  | Acceptance evidence                                                                                |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| 14 Oct–31 Oct 2026     | B: server main and migrations from schema; C: auth lookup; A: signed client/main, host exclusion and early capacity spike; B+D/A/C claim/network protocol review; plan signer move; schema review B+C+A                                                                     | Auth-smoke against real server; clean-DB migration                                                 |
-| 1 Nov–20 Nov 2026      | A: container driver, labels, reconcile/inspection, host exclusion; B/C default-VPC prerequisite; E: CLI skeleton/droplet; early one-day K8s host spike at first host preparation                                                                                        | Real container create/delete through CLI → API                                                     |
-| 21 Nov–5 Dec 2026      | C: tests 1–6 in CI and Java VPC allocator; E: vpc CLI                                                                                                                                                                 | Tests green; ten parallel IP allocations in one VPC; ten accounts create VPCs without CIDR overlap |
-| 6 Dec–20 Dec 2026      | A: k3d driver; B: port reservations/quota; scoped kubeconfig; C: tests 7–10; E: k8s CLI                                                                                                                               | Crash recovery; tenant denial; clean deletion; third cluster rejected                              |
-| 21 Dec 2026–5 Jan 2027 | PostgreSQL and MinIO process on generic container driver; Java bucket/credential reconcile; restore; db/bucket CLI; D: /v2 subset; Terraform Droplet/K8s only if ahead; SSH key injection and reviewed SSH base image | Delete data, restore known rows/checksum; cross-account bucket key denied                          |
-| 6 Jan–10 Jan 2027      | One Postgres + MinIO + app Droplet stack; stack CLI; Ansible Part 1                                                                                                                                                   | One-command stack with safe retry; playbook second run changed=0                                   |
-| 11 Jan–25 Jan 2027     | FREEZE; teammate clean-VM install; viva rehearsal; backup video; honest relabel for any service without Gates passed                                                                                                  | Clean install and evidence review                                                                  |
-
-These are target checkpoints, not current capability claims. Dates do not waive gates.
-
-## 3. Stage-specific ownership
-
-| Owner | CORE-5 priority                                                                                     | Review dependency                            |
-| ----- | --------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| A     | Agent, two drivers, network helper, reconcile, signing, pkg/kanclient, CI, Ansible Part 1 and ITISS | B SQL; C tests/security; D schema/API; E CLI |
-| B     | Java core, all migrations/lease/fencing/idempotency SQL, quota and stack records                    | Schema review B+C+A                          |
-| C     | Auth/security; all acceptance tests from day 1; Java IPAM allocator                                 | Agent/API integration with A/B/D             |
-| D     | Java /v2 endpoints and DTOs; schema review; Terraform test fixtures                                 | No Go; B core semantics                      |
-| E     | Thin cobra CLI, JSON and packaging; later thin Terraform layer                                      | A reviews every Go change                    |
-
-E has weekly Go-learning reviews: W1 basics/cobra/three-OS builds; W2 HTTP/JSON/context/timeouts with mock API; W3 Droplet flows and mock-only VPC/K8s practice; W4 table tests/httptest and real-server CLI. Follow the [handover](CoveStack-Go-Handover.md); learning weeks are not new calendar promises.
-
-## 4. Dependency order
-
-CLI-first order: **droplet → vpc → k8s → db → bucket → stack**. Start the next production CLI service only after the previous service's failure test passes in CI. W3 K8s practice is mock-only.
-
-Auth, durable intent and signed agent scope precede real reconciliation. VPC is server-owned; compute network attachment needs coordinated contract review B+A. Agreed target: one agent process per physical host; separate service credential and authenticated polling context per assigned account. B owns server assignment validation; C credential provisioning/rotation/revocation; A isolated clients and shared bounded execution. Provisioning/storage details still need B+C+A review; no new wire fields. Do not bypass that decision with caller-selected account parameters.
-
-CLI, Terraform provider and Ansible inventory use only the authenticated API. CLI has no local DB and no Docker/k3d dependency; config is server URL/key ID/profile, secrets from env/keychain. Mutations send an idempotency key; create returns pending, --wait polls; get shows desired/converged generation, lease and observed state; list/get support -o json. No UI work during CORE-5.
-
-### 4.1 Runtime prerequisites and early HLD spike
-
-CLI delivery order does not postpone runtime dependencies. The first real Droplet needs the default-VPC claim/execution path; freeze that reviewed protocol before workload-driver dispatch. Shared MinIO bootstrap is one operator-owned process/volume, separate from tenant bucket children. Claim/report/renewal schemas and default-network execution are early B+D+A/C work, not late patches.
-
-Run the one-day AlmaLinux/k3d capacity spike at first host preparation, before committing to the combined deployment shape. It measures all platform dependencies and bounded workload combinations, not only cluster idle RAM. Revalidate in November as integration changes; the early result does not claim a completed driver. The 2-cluster cap remains an upper limit; admission may reject earlier under measured CPU/memory/disk constraints.
-
-The previous last-resort cuts of the installer/stack are superseded: both remain required under current scope, and tests 1–15 are never cut. If required work still cannot meet the deadline, report unmet gates and seek an explicit revised SRS; no mentor approval or scope change is assumed here.
+VM host evaluation checks hardware/nested virtualization, supported Linux/kernel/Incus/QEMU/KVM, guest image/firmware provenance, management socket permissions, disk/NIC/firewall, unknown task outcomes and measured overhead. Kubernetes spike checks reviewed OS/cgroup/SELinux/firewall behavior, Docker+k3d+k3s compatibility and actual load. No fixed 8 GB production recommendation, two-cluster product cap or idle-memory estimate qualifies a host.
 
 ## 5. Daily engineering workflow
 
-| Step           | Expected artifact                                      |
-| -------------- | ------------------------------------------------------ |
-| Plan one slice | Behavior and acceptance case written first             |
-| Branch         | Agreed reviewed baseline; no direct main push          |
-| Implement      | Small change respecting ownership/contracts            |
-| Verify         | Appropriate tests and actual integration evidence      |
-| Review         | Boundary owners inspect behavior and errors            |
-| Merge          | Required checks and approved PR                        |
-| Record         | Feature matrix, evidence and known limitations updated |
+1. Confirm baseline, issue owner, acceptance, affected files and dependency owner; use [Starter.md](../Starter.md) Git/PR steps.
+2. Read current source/contract, permanent architecture and the existing-code change plan; do not patch generated files alone.
+3. Implement the smallest approved slice; do not add dependencies/runtimes without a consumer and review.
+4. Verify unit/contract checks, then real environment/failure evidence on an authorized host; preserve actual negative results.
+5. Open a concrete PR with owner/reviewers, migration/API/security impact and limitations; no direct main push.
+6. Update the same issue/card, affected docs and canonical AI checkpoint. Board Done is not service Supported.
 
-Standup: last accepted result, today's acceptance target and current dependency. A blocker lasting a working day triggers pairing or reassignment, not silent schedule drift. Do not force-push teammates' branches or bypass policy to meet a gate.
+Weekly learning review for E is an explainable code/test/package outcome, not a fixed calendar promise. A pairs on Go; B/C/D provide mocks/fixtures without secretly changing interfaces.
 
-### 5.1 Experience checkpoints — Planned, within existing dates
+## 6. Scope pressure and stop rules
 
-| Existing checkpoint | Required user experience | Owner and review |
-| --- | --- | --- |
-| First Droplet / tests 1–6 | Useful app response, two-account same-name denial, crash/restart and explainable get output | A/B/D/E; C owns tests |
-| VPC / test 14 | Allocation races plus actual intended connectivity and cross-account network denial | C allocator/tests, A execution, B records |
-| Kubernetes / tests 7–10 | Scoped kubeconfig runs a bounded workload and returns its result | A/B/D/E; C tests |
-| PostgreSQL / MinIO / tests 11–13 | Actual row and exact-byte workflows; restore known rows and retain objects across restart | A/B; C tests |
-| Fixed stack / test 15 | App uses both dependencies; partial-failure retry preserves identities | B/A/E; C tests |
-| Freeze / installer | Teammate follows clean-host walkthrough; records versions, access path, failure diagnosis and restore | A installer/ITISS; C reviews evidence |
+Stop speculative future work when it blocks required reviews, security, ownership or recovery. Do not cut failure tests to meet a demonstration date. If a slice lacks data/auth/cleanup evidence, keep it Planned/In Progress/Blocked with an explicit issue rather than marking it Supported. Replan capacity or workload subset, not safety controls. No academic cut-order or automatic service deadline applies to the product.
 
-For every slice, document inputs/outputs, capability limits, unsupported behavior, readiness, retry, cleanup and retained data before implementation. Test through the authenticated API/CLI and real runtime when promised; record unit, integration and runtime evidence separately. This adds no services, schedule extension or test IDs. See [experience assertions](CoveStack-AntiWrapper-Acceptance.md#33-user-experience-assertions--planned-existing-tests).
+## 7. Demonstration and evidence
 
-## 6. Scope and gate failure policy
+Live highlights can show reviewed real no-work/auth, idempotent requests, owner denial and truthful desired/observed views once APIs exist. VM/RustFS/SQL/cluster/traffic/restore proof may be real CI output or recorded demonstrations from the exact revision. Record backup video and sanitized setup; do not depend on hotspot/router rights. Never use a fictional CLI/server command to conceal absent code. [Acceptance](CoveStack-AntiWrapper-Acceptance.md).
 
-| Situation                          | Response                                                                                                                        |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Extended work competes with CORE-5 | Cut the entire extended track first                                                                                             |
-| Still late after that cut | Cut optional Terraform K8s resource, then the rest of optional Terraform; preserve required CORE-5 services, fixed stack/test 15, Ansible Part 1 and security/recovery |
-| CORE-5 service or tests late       | Never cut a CORE-5 service or tests 1–15; relabel honestly and report unresolved target                                         |
-| A one week behind any checkpoint   | Stop all extended work                                                                                                          |
-| After 10 January 2027              | No new CORE-5 features; repair, verification and evidence only                                                                  |
-| Backend/auth unavailable           | Isolated/mock practice can continue; live acceptance remains pending                                                            |
-| Cluster work too large             | Keep required bounded shape/version; never make Kubernetes optional                                                             |
+## 8. Operations handover
 
-No form, enum or screenshot passes a gate. No mentor acceptance is assumed.
+Before a supported profile: another operator clean-installs exact artifacts, credentials/keys recover, known data restores, stale agent health is truthful, quotas/admission reject safely, upgrades/rollback are rehearsed and license/notices/disclosure responsibilities are known. Single-host hardening is not HA.
 
-## 7. Final demonstration — CORE-5 only
+## 9. Future development dependencies
 
-Five-minute CLI live highlights: test 1 agent crash/restart without duplicate, test 3 other-account 404, test 4 same-key same-ID, then get desired/converged generation, lease and observed state. Show remaining tests 2 and 5–15 as CI results or recorded video. Include required Kubernetes, PostgreSQL restore, MinIO denial/rebuild, VPC allocation and the stack integration evidence. Demonstrate CLI on two actual OSes using cross-built artifacts; keep a backup video and avoid depending on the hotspot alone.
+Future candidates are listed in [extended dependencies](CoveStack-Extended-Roadmap.md), not promoted by schedule. Multi-host needs partition-safe ownership/reservations plus locality; publication needs explicit route/domain/TLS controls; richer databases/registries/migration/GPU work needs demand, rights and backend conformance. No new release plan is generated.
 
-Use [Setup](CoveStack-Complete-Working-Setup.md#9-clean-machine-release-acceptance) for the full evidence script.
+## Historical traceability
 
-## 8. Submission package
-
-| Material        | Requirement                                                 |
-| --------------- | ----------------------------------------------------------- |
-| Source          | Reviewed tested revision with history                       |
-| Binaries/images | Exact versions/digests and checksums                        |
-| Documentation   | V5 plus actual runtime command updates                      |
-| Test evidence   | Commit/date/environment/results and unresolved issues       |
-| Security        | Threat model, policy matrix, remediation and residual risks |
-| Recovery        | Repeated restore evidence with measured scenario            |
-| Demonstration   | Script and backup recording; no secrets visible             |
-
-## 9. Extended development track — not part of SRS or deliverables
-
-Entry: a service starts only after its CORE-5 dependency has Gates passed. From **1 December 2026**, B/C/D/E may start server-side schema/API/controller work only when CORE-5 duties are not blocked. A starts extended Go work only after all CORE-5 gates pass. CORE-5 reviews always take priority; if A is one week behind, stop all extended work.
-
-Order: **ASG → Load balancing → Application publication → Metadata → Monitoring → Snapshots → Domains → read-only list page → Ansible Part 2**. Each requires its corresponding E1–E8 acceptance evidence or interface gate; UI shares backend tests. After **25 January 2027**, this track continues as post-submission development. Bonus demos/viva mentions require Gates passed.
-
-Requirements retained from the old schedule: external HTTPS ingress, UI/CLI stack parity, domain verification, metadata identity, LB/ASG/snapshot lifecycle, monitoring alerts, Terraform refresh/import and approved Ansible connectivity. Broader stack DAG/customization and nested Docker belong to Optional future work. The previous October/December extended milestones are superseded by dependency gates, not deleted requirements.
-
-Historical scope responses retained: if custom domains are unavailable, report the gap rather than claim arbitrary-domain support; incomplete dependencies must not produce success-shaped stacks; nested Docker must not weaken privilege controls. Future UI create → CLI inspect, external-device publication, Terraform changes, inventory/configuration and separate restore demonstrations remain extended targets. No selected proxy/tunnel tool or date is asserted.
-
-[Service gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Extended roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).
+The [previous body of this file](../docs/archive/V5-before-full-product-alignment-2026-11-04.md#v5-covestack-project-workflow) is preserved unchanged as historical reference, including earlier requirements/DDL/acceptance text. It is not current VM/RustFS setup guidance. Use this active body, the linked canonical domain specifications and [actual implementation evidence](CoveStack-Implementation-Status.md) for new work. No source, migrations, contracts, tests, configuration or runtime state is changed by this document.

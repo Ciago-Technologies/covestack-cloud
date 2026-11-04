@@ -1,108 +1,62 @@
-# Architecture transition notice — 4 November 2026
+# CoveStack V5 — Tools, Versions and Responsibilities
 
-> **Superseded design reference.** Active guidance: [platform README](../docs/platform/README.md). Old container-Droplet architecture, two-driver ceiling, fixed sizing and delivery claims below are historical. The active platform docs define VM compute, a distinct App Container and evidence-based releases.
->
-> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
-
-Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); product scope is independent of historical academic CORE-5.
-
-<!-- Historical body preserved below; see supersession notice above. -->
-
-# CoveStack V5 — Tools, Versions and Why They Are Used
-
-| Document control        | Value                                                                   |
-| ----------------------- | ----------------------------------------------------------------------- |
-| Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
-| Submission deadline     | **Monday, 25 January 2027**                                             |
-| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
-| Status                  | Target design and implementation guidance; not a completion certificate |
+| Document control | Value |
+| --- | --- |
+| Updated | 4 November 2026 |
+| Authority | Detailed current product specification; aligned to the [canonical catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) and [product SRS](../docs/product/CoveStack-Product-SRS.md) |
+| Evidence | Target design, not a completion certificate; source and actual test results determine implementation status |
+| Compatibility | V5 is a documentation label; current wire contract remains 1.1.0; future fields/kinds/versions require coordinated review |
 
 ## 1. Tool selection policy
 
-Prefer the smallest tested set. Each release has one recorded matrix of compiler, runtime, images, CLI tools and plugin versions. Existing pins are observed repository inputs; verify actual builds and current support before release. Do not blindly use `latest`, a course's old version, or an unverified download.
+Use current source pins for existing code; select runtime/provider artifacts only after compatibility, security, rights and capacity testing. A version string or available website is not support. No software was installed/upgraded or runtime started by this documentation alignment. Keep Java control plane and Go agent; no wholesale rewrite or mandatory cloud account.
 
-| Tool/group                             | Role                                              | Evidence to record                                                                  |
-| -------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Go                                     | Agent, cobra CLI and later thin provider          | Pin after testing; record actual version; race/vet/build                            |
-| Java/Maven/Spring                      | Authenticated control plane                       | Compiler/runtime, dependencies, packaged boot                                       |
-| Python                                 | Contract generation/fixtures and V5 print tooling | Script version and checks                                                           |
-| Docker/Compose                         | Workload execution/private dependencies           | Engine/plugin and firewall backend                                                  |
-| k3d + k3s                              | Required bounded Kubernetes; driver calls CLI     | Pin after testing; record actual tested pair and flags                              |
-| kubectl                                | Scoped cluster verification                       | Pin after testing; record actual version                                            |
-| PostgreSQL                             | Durable desired state and owned workload DB       | Image/digest and backup/restore                                                     |
-| Valkey                                 | Shared replay-related state                       | Auth, persistence and failure policy                                                |
-| MinIO/S3 client                        | Generic container process; Java bucket reconcile  | Pin after testing; record actual version/digest and tenant/rebuild tests            |
-| Extended tools                         | Proxy, tunnel and browser build choices           | TBD decision records in [roadmap](CoveStack-Extended-Roadmap.md); not selected here |
-| cobra                                  | E thin Go CLI                                     | Pin after testing; record actual version                                            |
-| Terraform + terraform-plugin-framework | Optional thin API provider, Droplet/K8s only      | Pin after testing; record actual versions and lifecycle fixtures                    |
-| Ansible                                | Part 1 operator installation                      | Pin after testing; record actual version; second run changed=0                      |
-| ansible-lint                           | Installer checks                                  | Pin after testing; record actual version and result                                 |
-| ansible-vault                          | Installer secret protection                       | Pin after testing; record actual version; custody B+C                               |
-| golangci-lint                          | Reviewed Go static checks                         | Pin after testing; record actual version and rules                                  |
-| GOOS/GOARCH targets                    | linux/amd64, darwin/arm64, windows/amd64          | Pin compiler after testing; record actual version; two actual OS runs               |
+## 2. Existing development and dependency inputs
 
-## 2. Development versus deployment
+| Tool / surface | Current input | Purpose / limit |
+| --- | --- | --- |
+| Git/editor | Actual developer environment | Feature branches/PR; never discard user work or commit secrets |
+| Go | go.mod/CI toolchain 1.27.2, language baseline 1.22 | Existing agent/signing/client tests; historical tool output differs and must be labelled |
+| Java / Spring Boot | pom Java 25 / Boot 3.5.16 | Auth/JDBC control-plane source; actual app foundation pending |
+| Maven | No wrapper assumed; inspect local version | Existing verify command; build is not startup/schema proof |
+| Python 3 | Current generator/checkers use stdlib | Contract fixture/output validation; no application provisioning |
+| PostgreSQL | Current platform 17 direction; Compose image must be exact tested tag/digest | Durable intent/operations, not JPA; foundation/real migration acceptance missing |
+| Valkey | Compose exact reviewed image input, example family 8 | Authenticated atomic replay store; not resource DB/lease authority |
+| Mailpit | Exact tested image input | Local development email capture, no production SMTP guarantee |
+| Existing CI scanner | Workflow-pinned gitleaks with verified checksums | Source secret scan; not a full dependency/security audit |
 
-| Tool                   | Use                                 | Restriction                                  |
-| ---------------------- | ----------------------------------- | -------------------------------------------- |
-| Git/GitHub             | Branches, reviewed PRs and source   | Do not push secrets/main directly            |
-| API test client        | Repeat positive/negative HTTP cases | Sanitized exports; real auth only            |
-| curl                   | Inspect supported HTTP endpoints    | Do not bypass TLS verification in release    |
-| Editor Go/Java tooling | Navigate, format and debug          | Editor output is not CI evidence             |
-| Kubernetes tools       | Scoped workload validation          | Protect kubeconfig; no public admin endpoint |
-| Extended measurements  | Actual scoped health/metrics        | Roadmap decision; no invented tool selection |
-| Image/config scanners  | Findings and remediation            | Scanner success is not proof of safety       |
+## 3. Planned runtime and interface toolchain
 
-## 3. Version manifest contents
+| Tool / backend | Responsibility | Selection / acceptance |
+| --- | --- | --- |
+| Incus / QEMU / KVM | Preferred real VM management stack | Pin after authorized Linux/image/guest/disk/NIC/security/task-recovery spike; no minimum RAM/density invented |
+| Docker / approved OCI | Distinct trusted App Containers and internal service runtime | Privileged socket restricted; actual image/resources/health/volume/policy tests |
+| k3d + k3s | Local Kubernetes cluster lifecycle via CLI | One tested pair per profile; verify actual flags/version before documentation; no production Kubernetes SLA |
+| RustFS | Preferred Planned S3 provider; operator process/volume, Java bucket/key/policy adapter | Exact artifact/admin SDK/custody/policies/restart/verified restore; not full S3 parity |
+| SeaweedFS / Garage / Ceph RGW | Alternative object adapters if selected | Capability/security/maintenance/licensing/resource/recovery review; no binary swap guarantee |
+| cobra / Go HTTP client | E's thin API CLI | Module/user-auth boundary with A; no runtime/DB import; JSON/wait/idempotency tests |
+| Terraform plugin framework / Terraform / OpenTofu | Later thin approved compute/Kubernetes provider | Pin actual tested framework/tool/provider subset; refresh/import only if implemented and verified |
+| Ansible / lint / Vault or approved custody | Operator installer; later API inventory | Exact tested versions, protected secrets, artifact verify, lint, repeat install/no unexpected changes |
+| Go lint / static/dependency tools | Reviewed source quality/supply-chain checks | Existing versus proposed checks labelled; no guessed pin or installation |
+| Mature secret backend | Evaluate custody/rotation/recovery, e.g. OpenBao candidate | Not selected/installed; no homemade vault or assumed KMS compatibility |
+| Gateway/proxy/tunnel/certificate tools | Future explicit publication/domain service | TBD decision record; real routing/TLS/SSRF/management denial required |
 
-The team should add a release manifest under the approved deployment/evidence location. V5 does not alter runtime pins.
+## 4. Build targets and checks
 
-| Field                         | Meaning                                                |
-| ----------------------------- | ------------------------------------------------------ |
-| Commit and date               | Source snapshot tested                                 |
-| Host and VM OS/kernel         | Network/privilege context                              |
-| Go and Java actual version    | Not only configured preference                         |
-| Image references/digests      | Exact control-plane/workload inputs                    |
-| k3d/k3s pair                  | Supported cluster shape/version                        |
-| Extended tools                | Future deployment-specific choices recorded in roadmap |
-| Terraform/Ansible plugins     | Accepted integrations and dependencies                 |
-| Verification commands/results | Build, integration, security and restore               |
+CLI packaging target linux/amd64, darwin/arm64 and windows/amd64 after module exists; actual runtime platform support requires OS-run evidence, not cross-compile alone. Existing Go/Java/contract checks are in [setup](CoveStack-Complete-Working-Setup.md). Never run fictional CLI/server/driver commands or change pins to hide unavailable tooling. B/C/D need real Java foundation, A/E correct Go source/module boundary, C authoritative tests.
 
-## 4. Useful checks
+## 5. Deployment profiles and resource constraints
 
-```bash
-go version
-java -version
-javac -version
-mvn -version
-docker version
-docker compose version
-```
+Old 8 GB AlmaLinux context is development/lab only. Supported self-hosted production needs exact measured compatible OS/kernel/backend/image/storage/network/workload plus hardening/restore/upgrade evidence. Single-host is not HA, multi-host future. Incus placement/IPAM mechanisms need explicit mapping to platform account/environment policy, not competing schedulers/allocators.
 
-Run module checks from the proper working directory. Extra tools are tied to planned features and become release requirements only with their gate evidence. Lack of Node/Terraform does not prevent checking current signing/lifecycle code.
+## 6. Networking, storage and rights
 
-## 5. Automation integration policy
+No router DNS/DHCP or inbound internet path assumed on hotspot. Fake public IP is demonstration-only; actual route/tunnel/domain and authorization needed. Privileged sockets/host mounts never tenant access. Apache-2.0 covers CoveStack-owned code/docs; runtime/guest/container/SDK dependencies retain their licenses/notices. Record artifact source/digest/signature, SBOM and required redistribution obligations.
 
-Terraform and Ansible already integrate with execution tools; no exclusivity claim is made. CoveStack adds authenticated resource/account semantics. CLI, thin Terraform provider and Ansible inventory talk only to the authenticated API; none import/call Docker/k3d. The operator Ansible Part 1 installer is distinct and intentionally installs host dependencies.
+## 7. References
 
-Optional Terraform is Droplet and Kubernetes resources only, after CLI. Part 1 requires reviewed roles, checksum-verified binaries, no_log/vault, systemd hardening and repeat-run changed=0. Part 2 inventory and unrestricted platform-run job ideas remain roadmap targets; arbitrary uploaded configurations must not run with host credentials. Preserve job identity, permissions, timeout, logs/state and exit-result requirements for that future scope.
+[Canonical source references](../docs/platform/references.md), [provider evaluation](../docs/platform/provider-evaluation.md), [license/attribution](../docs/platform/license-and-attribution.md), [setup/profile](CoveStack-Complete-Working-Setup.md), [operations](CoveStack-Operations-and-Recovery.md).
 
-[Service gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Extended roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).
+## Historical traceability
 
-## 6. Networking tools
-
-Record routes, DNS answers and actual listener addresses using platform-appropriate tools. Confirm Docker's iptables/nftables mode and test forwarded traffic, not only host INPUT policy. Use the host's supported firewall mechanism; do not copy unrelated Linux distro instructions or disable SELinux to hide a failure.
-
-## 7. Primary references
-
-| Reference                                                                                                             | Use                                                     |
-| --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| [Go documentation](https://go.dev/doc/)                                                                               | Language, tooling and standard library                  |
-| [Docker networking](https://docs.docker.com/engine/network/)                                                          | Execution/network mechanisms                            |
-| [k3d exposure](https://k3d.io/stable/usage/exposing_services/)                                                        | Cluster ingress/port integration                        |
-| [Terraform framework](https://developer.hashicorp.com/terraform/plugin/framework)                                     | Provider implementation                                 |
-| [Ansible Docker collection](https://docs.ansible.com/projects/ansible/latest/collections/community/docker/index.html) | Existing automation mechanisms                          |
-| [Extended decisions](CoveStack-Extended-Roadmap.md)                                                                   | Proxy/tunnel candidates and references; tool choice TBD |
-
-These references are mechanisms, not endorsements of the complete CoveStack design. Match tested versions and document provider-specific constraints.
+The [previous body of this file](../docs/archive/V5-before-full-product-alignment-2026-11-04.md#v5-tools) is preserved unchanged as historical reference, including earlier requirements/DDL/acceptance text. It is not current VM/RustFS setup guidance. Use this active body, the linked canonical domain specifications and [actual implementation evidence](CoveStack-Implementation-Status.md) for new work. No source, migrations, contracts, tests, configuration or runtime state is changed by this document.

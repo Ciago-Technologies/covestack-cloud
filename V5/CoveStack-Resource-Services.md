@@ -1,144 +1,85 @@
-# Architecture transition notice — 4 November 2026
+# CoveStack V5 — Resource Specifications and Runtime Behavior
 
-> **Superseded design reference.** Active guidance: [platform resource-model](../docs/platform/resource-model.md). The container-backed Droplet mapping below is legacy compatibility only. VM/Container split requires versioned schema and capability negotiation before implementation.
->
-> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
+| Document control | Value |
+| --- | --- |
+| Updated | 4 November 2026 |
+| Authority | Detailed current product specification; aligned to the [canonical catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) and [product SRS](../docs/product/CoveStack-Product-SRS.md) |
+| Evidence | Target design, not a completion certificate; source and actual test results determine implementation status |
+| Compatibility | V5 is a documentation label; current wire contract remains 1.1.0; future fields/kinds/versions require coordinated review |
 
-Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); product scope is independent of historical academic CORE-5.
+## 1. Common owned resource envelope
 
-<!-- Historical body preserved below; see supersession notice above. -->
+Every target resource has an immutable owned logical identity, account/project policy, desired configuration/hash/generation, operation/attempt history, provider/host/task binding, dependency/reservation references and redacted observed state/freshness. These are schema responsibilities, not new current wire fields. Mutations persist intent before backend calls; readiness and cleanup require actual evidence. [API](CoveStack-API-and-Compatibility.md), [schema](CoveStack-Database-Schema.md).
 
-# CoveStack V5 — Resource Specifications and Service Behavior
+| Action | Required behavior |
+| --- | --- |
+| Create / update | Validate image/type/capability/owner/dependencies, admit capacity, persist idempotent intent; no hidden reassignment |
+| Inspect | Return scoped redacted desired/observed generation, actual readiness/freshness and useful operation errors |
+| Start / stop / restart | Only applicable types and authorized retained data; graceful/force policy explicit; re-admit capacity where needed |
+| Resize | Backend/image-supported delta, safe capacity and explicit offline/online limits; no unapproved disk shrink |
+| Snapshot / backup / restore | Declared consistency and ownership; independent protected data/key recovery and known-value verification |
+| Delete / recover | Inspect owned provider/task, preserve shared/retained data, release reservations only after confirmed teardown |
 
-| Document control        | Value                                                                   |
-| ----------------------- | ----------------------------------------------------------------------- |
-| Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **15 October 2026**                                                     |
-| Submission deadline     | **Monday, 25 January 2027**                                             |
-| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
-| Status                  | Target design and implementation guidance; not a completion certificate |
+## 2. VM Instances — Planned
 
-## 1. Common resource envelope
+| Requirement | Target behavior / evidence |
+| --- | --- |
+| User outcome | Real guest OS/kernel with allocated CPU/RAM, owned disk/vNIC/network and protected initial access |
+| Backend | Incus management API preferred evaluation over QEMU/KVM; verify host/kernel/architecture/nested virtualization and image compatibility |
+| Provision | Approve image provenance, reserve capacity/disks/addresses, persist task binding and inspect before create; deterministic logical identity |
+| Readiness | Hypervisor accepted/running is not enough; verify guest/kernel plus required network/service readiness |
+| Lifecycle | Start/stop/restart/resize/snapshot/backup/restore/delete only declared tested operations; preserve disk/retention on failure |
+| Security | Trusted agent socket access only; no tenant host paths, unrestricted devices, privileged daemon or arbitrary host command |
+| Failure | Lost provider response/parent death blocks conflicting action until owned task/object is inspected; one VM after retry |
+| Tests | Test 1 plus actual guest/volume/NIC/admission/privilege/restore cases; foreign attach and cleanup denied |
 
-| Field/behavior          | Requirement                                                                                                      |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| ID, account and kind    | Stable identity from trusted server context                                                                      |
-| Host/agent and lease    | Authorized execution placement                                                                                   |
-| Desired spec/generation | Validated versioned intent                                                                                       |
-| Observed state/time     | Actual evidence, not requested state echoed back                                                                 |
-| Operation               | Durable create/update/delete attempt and result                                                                  |
-| Secret references       | Separate protected retrieval                                                                                     |
-| Ownership labels        | kan.* reserved labels are proposed; approve contract before use; existing fixtures do not establish these labels |
+Execution backend only (Incus/QEMU/KVM). Platform value to prove: account/environment ownership, durable generation/operation, capacity, safe recovery, scoped access and verified restoration. Do not call a container a VM or claim this already runs.
 
-Use authoritative current contract vocabulary, not new enums copied from this document. Unsupported fields/actions are rejected explicitly. Failed work never acknowledges successful generation. Contract 1.1.0 wins; unknown strings are TBD with B. Convergence ack requires exact owner/epoch/generation and clears both lease fields; progress never changes acked_generation.
+## 3. App Containers — Planned
 
-**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
+Reviewed OCI image with explicit trust class, CPU/RAM, narrow capabilities, ports, network, secret references, volumes and health/logs. Docker is a candidate backend, not guest-kernel isolation. No daemon/Incus socket, privileged mode, broad devices or host-root mounts. Image update/readiness failure preserves owned persistent data and a usable rollback policy; unknown task inspects before retry. Test shared-kernel type distinction, privilege/foreign network denial, actual app health, restart and retained-volume cleanup.
 
-Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
+## 4. Kubernetes — Planned
 
-### 1.1 LLD runtime and data dependencies
+k3d CLI/k3s over Docker is initial evaluation. Pin a tested pair after host spike and verify every documented flag; no library/flag/version is invented. Reserve API endpoint/port before creation, track owned cluster/task/node bindings and export kubeconfig only on authorized request. Node topology/cluster quota come from measured profile and account share, not old academic limits. An actual API plus sample workload/network test is required; this is not a managed production Kubernetes SLA.
 
-[Main HLD/LLD](DocsV5-DO_Team.md#22-hld--control-execution-and-data-paths) and [schema concurrency](CoveStack-Database-Schema.md#7-concurrency-and-reference-queries) define the target protocol. Current claim/renew/report encoding and separate network control need coordinated contract review before mutations. Every nonterminal converged resource remains due for leased periodic inspection; a health observation does not acknowledge a new generation. Host exclusion and uncertain-operation handling supplement the DB epoch fence.
+| CoveStack logic to implement | Backend mechanism / test boundary |
+| --- | --- |
+| Account/host/resource assignment and reserved labels | Proposed kan.account / kan.resource / kan.agent labels and deterministic names are backend correlation, not authorization; reserved-label contract still needs review |
+| Desired revision/image/node spec and provider task | Persist before dispatch; inspect half-created cluster and settle/recreate only owned deterministic object |
+| Port/capacity reservation and quota | Concurrent admission cannot allocate a duplicate port or overspend physical host |
+| Scoped kubeconfig export | Foreign account 404; never list/get/observed secret material |
+| Reconciled node changes / health | Backend commands follow current ownership/spec; stale worker cannot authoritatively report convergence |
+| Deletion | Verify all owned containers/volumes/networks removed under retention; no unrelated cleanup |
 
-The account default VPC must converge before workload attachment. One operator-owned shared MinIO process/volume is bootstrapped separately from tenant buckets; generic container execution uses only approved host-secret references, never admin values in work. The fixed stack creates a scoped bucket, not a MinIO server. Actual retention/readback, not metadata reconstruction, proves object persistence.
+Tests 7–10 cover crash, denial, cleanup and measured quota; add actual workload/readiness and node-change evidence.
 
-## 2. Droplets / compute instances
+## 5. Managed PostgreSQL — Planned
 
-| Input              | Bounded behavior                                                 |
-| ------------------ | ---------------------------------------------------------------- |
-| Image              | Approved tested workload image                                   |
-| Size               | Enforced CPU/memory/storage policy                               |
-| Network            | Owned VPC on selected execution host                             |
-| SSH key            | Validated owned public key; only if SSH mode supported           |
-| App port           | Private application listener; public routing is a roadmap target |
-| Persistent storage | Explicit volume identity and retention                           |
+This name requires all of backup, restore, scoped credentials and private networking in acceptance. A reviewed workload backend uses persistent owned volume, resource limits and readiness through a real SQL connection. Distinguish platform DB from tenant DB. Generate narrow users/password references, redact ordinary DTOs, rotate/revoke safely, retain policy-governed volumes and test data after restart. Test 11 restores known rows/checksum and denies a foreign account's access. Snapshot alone is not a consistent database backup.
 
-Inspect approved reserved labels and stable runtime identity before Ensure creates anything. Start/stop must respect user intent; an intentional stop is not a failure requiring replacement. Reboot requires an explicit operation or restart marker, not an active-to-active state change with no effect. Convergence includes agreed readiness, not only container existence.
+Execution backend only (reviewed PostgreSQL workload). Platform value: volume/credential/network ownership, data lifecycle and measured restore. A VM-backed profile may be needed for untrusted tenant workloads; a container-hosted database does not inherit VM isolation.
 
-Key-only SSH requires an SSH-ready image and tested minimal capability/transport configuration. A raw Ubuntu image does not automatically provide a usable Droplet session. Do not expose shared root passwords. Nested Docker is not included in the base specification, and no workload receives the platform daemon socket.
+## 6. Object storage — RustFS preferred, integration Planned
 
-**Status: Planned.** Execution backend only (Docker). Platform value: tenancy, desired/observed generation, lease and fencing, crash-safe restart.
+Operator owns service process, persistent volumes, management path and protected administration. Java reconciles account-owned buckets, policy, credential references and intended deletion through a replaceable adapter. S3 requests authenticate narrow tenant credentials; root/admin never becomes a tenant key. Future SeaweedFS/other adapters must pass the same conformance.
 
-Droplets are container-backed on one host, never VMs. Tests 1–6 prove crash/fence/account/idempotency/generation/outage behavior. Reboot/restart intent needs coordinated schema/fixture review; no new wire marker is invented. Public routing is relocated to the roadmap.
+Official RustFS docs describe tested common bucket CRUD/policy and object/multipart operations, IAM users/derived access keys. ACL authorization is unsupported; bucket logging/ownership controls are planned upstream; selected versioning/encryption behavior is not complete S3 parity. Full evidence/citations: [provider evaluation](../docs/platform/provider-evaluation.md#rustfs-compatibility-and-acceptance).
 
-## 3. Kubernetes clusters
+Tests 12–13 require actual upload/download/checksums, denied foreign access, key rotation/revocation, restart-persistent bytes and Java DB-driven configuration rebuild. Independently back up/restore required object data/metadata/policy/key state and recheck denial. Recreating an empty bucket does not restore lost data. Exact artifact/admin API, custody/rotation/private network and consistent service-wide backup need B+C+A review.
 
-| Area           | Initial support                                                       |
-| -------------- | --------------------------------------------------------------------- |
-| Version        | One tested pinned k3d+k3s pair; verify every CLI flag                 |
-| Shape          | 1 server + max 2 agents; hard cap 2 clusters/host                     |
-| Network        | Explicit Docker, Pod and Service CIDRs without collisions             |
-| Administration | Authorized separately exported kubeconfig                             |
-| Website        | Private workload rollout; public routing details relocated to roadmap |
-| Lifecycle      | Create/inspect/delete; other actions enabled after tests              |
+## 7. Networks, IPAM, NICs, firewall and volumes — Planned
 
-Cluster provisioning is actual local Kubernetes, not a renamed app container. Track provisioning, readiness, failure and safe cleanup using the shared lifecycle. Protect cluster administration from ordinary public website routing. Preserve the caller's existing kubeconfig on export/merge.
+These are first-class product ownership/capacity capabilities, not merely a Docker bridge. Subnet pools and range policy must prevent overlap with host/VPN/Incus/Docker routes; one coordinated allocator authority. Interface attachment validates both owners/host/locality/current generation. Default-deny ingress/egress must actually block packets; stored rules alone are not enforcement. Volumes have disk/capacity/retention and attach/restore policy. Tests include 10 parallel IPs in one network, 10 accounts allocating networks with no overlap, denied foreign attach/traffic and retained data after restart.
 
-Reserve only necessary ports, not the whole NodePort range. Define the advertised API address and certificate coverage for the actual client path; a loopback API address is unusable on a remote laptop unless approved tunnel/VPN forwarding exists. Do not claim a website tunnel automatically makes kubectl connectivity work.
+## 8. Images, secrets, quotas and observations
 
-**Status: Planned.** Execution backend only (k3d). Platform value: ownership, scoping, crash-safe lifecycle, quota, scoped kubeconfig.
+Images are approved immutable provenance-bound artifacts with versioned initialization; no arbitrary host imports. Secret references are scoped and recoverable with a mature custody provider under review. Quotas combine authoritative account limits and host reservations; do not double-store derived usage. Health is observed and freshness-aware, not inferred from desired state or old acknowledgement. Core logging/audit/backup are part of lifecycle, not optional polish.
 
-Tests 7–10: exactly one cluster after crash; other-account kubeconfig 404 and absent from ordinary views; clean owned deletion; third cluster rejected. Reserve API port before create; release only after cleanup. Ensure finds half-create by approved labels and finishes or recreates under the same deterministic name. Node-pool changes go through reconcile within node limits, not independent manual commands. Driver calls k3d CLI, not library.
+## 9. Broader services and environments
 
-8 GB host; 0.5–1 GB/cluster is an **unverified estimate, confirm in K8s host spike**. An early one-day spike, revalidated in November, covers AlmaLinux cgroup v2, SELinux, firewalld and RAM with one tested pair. [Main Kubernetes ownership table](DocsV5-DO_Team.md#52-kubernetes--planned-required) defines platform-owned logic.
+The [catalogue](CoveStack-Service-Catalog.md) lists all core/future entries. [Environment orchestration](CoveStack-Stack-Templates.md) combines owned typed children and readiness without an arbitrary DAG engine. [Future dependencies](CoveStack-Extended-Roadmap.md) cover LB/ASG/publication/domains and other candidates; they are not automatically available from contract/schema examples. No service is Supported before domain evidence and G1–G4/profile qualification.
 
-## 4. Managed PostgreSQL
+## Historical traceability
 
-| Area           | Required policy                                          |
-| -------------- | -------------------------------------------------------- |
-| Engine         | One reviewed tested PostgreSQL line                      |
-| Data           | Named owned volume and stable attachment                 |
-| Credentials    | Scoped generated secret and protected connection details |
-| Network        | User VPC/private route, separate from control-plane DB   |
-| Readiness      | Authenticated usable connection under timeout            |
-| Delete         | Explicit retain/delete policy                            |
-| Backup/restore | Measured known-row and checksum restore; scoped artifact |
-
-The database used by the control plane is not a user-managed database. Restart/replacement must preserve data and account identity. Existing volumes have their initialized password; changing an environment variable is not a password rotation. Schema migrations for platform state differ from user database application migrations.
-
-**Status: Planned.** Execution backend only (container). Platform value: volume ownership, backup/restore, credential scoping.
-
-Generic container driver: image/env/volume/labels/health, not a third PostgreSQL driver. Test 11 requires known rows/checksum restored and cross-account private-network denial. Backup, restore, credential scoping and private networking are all required before the service may be Gates passed.
-
-## 5. Object storage through MinIO
-
-| Area        | Required behavior                                     |
-| ----------- | ----------------------------------------------------- |
-| Bucket      | Account-owned logical/physical mapping                |
-| S3 endpoint | Actual client-reachable supported protocol endpoint   |
-| Credential  | Scoped policy; not global MinIO root keys             |
-| Operations  | Selected put/get/list/delete tests                    |
-| Persistence | Correct mounted data path and object verification     |
-| Network     | Defined shared-service/private/public endpoint policy |
-
-A bucket is a server-managed logical resource; it need not be one container or bridge. Prefixing its name avoids collisions but does not authorize access. Shared MinIO can be used if credentials/policies isolate accounts. Define approved app access to that shared endpoint rather than pretending each bucket is physically attached to a VPC.
-
-MinIO administrative access stays private. Proxying S3 traffic must preserve the protocol's signed authority/path semantics. A generic website route can break client signatures. Test a real supported S3 client against the selected connection method.
-
-**Status: Planned.** Execution backend only (MinIO). Platform value: per-account credentials, bucket scoping, cross-account denial.
-
-MinIO process uses the generic container driver; bucket and credential reconciliation is Java server-side under storage.bucket, never agent bucket work. Tests 12–13 prove denied cross-account key and server recreation of bucket/policy after MinIO restart. Admin custody, rotation and server-to-MinIO private path are open B+C decisions.
-
-## 6. HTTP load balancer — relocated
-
-**Extended track.** All former design and acceptance text is preserved in the [roadmap](CoveStack-Extended-Roadmap.md#4-load-balancing). Not an SRS requirement or deliverable.
-
-## 7. Auto scaling groups — relocated
-
-**Extended track.** All former design and acceptance text is preserved in the [roadmap](CoveStack-Extended-Roadmap.md#3-auto-scaling-groups). Not an SRS requirement or deliverable.
-
-## 8. Snapshots — relocated
-
-**Extended track.** All former design and acceptance text is preserved in the [roadmap](CoveStack-Extended-Roadmap.md#8-snapshots). Not an SRS requirement or deliverable.
-
-## 9. Capacity and fidelity
-
-A full stack includes control-plane overhead, application workloads, DB/storage and several Kubernetes node containers. Record actual CPU/memory/disk use on the lab host; quotas must leave headroom for platform dependencies. The required shape stays within the 2-cluster host cap and 1-server/max-2-agent limits.
-
-Do not promise cloud hardware isolation, SLA, full provider networking, provider billing or exact performance. Connection metadata and supported actions must describe what the local execution model can really do.
-
-### 9.1 VPC/IPAM — Planned
-
-Execution backend only (Docker bridge). Platform value: allocator, ownership, collision-free subnets and IPs. Server-owned vpcs/ip_allocations records drive C's allocator and A's container-driver network helper. One private network/account, no custom CIDR. Test 14 includes ten parallel allocations in one VPC and ten accounts creating VPCs without overlap. No VPC wire kind exists; attachment is coordinated B+A contract work.
-
-[Gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).
+The [previous body of this file](../docs/archive/V5-before-full-product-alignment-2026-11-04.md#v5-covestack-resource-services) is preserved unchanged as historical reference, including earlier requirements/DDL/acceptance text. It is not current VM/RustFS setup guidance. Use this active body, the linked canonical domain specifications and [actual implementation evidence](CoveStack-Implementation-Status.md) for new work. No source, migrations, contracts, tests, configuration or runtime state is changed by this document.

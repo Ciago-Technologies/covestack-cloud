@@ -22,7 +22,7 @@ Users should request infrastructure, observe lifecycle and recover interrupted o
 
 1. Latest explicit user decisions define independent product scope and the VM-based target; no implementation acceptance is inferred.
 2. [Contract 1.1.0](../../contracts/README.md) remains the actual wire contract. It has no approved VM/App Container separation or full claim/renew protocol. Product terminology is not a new wire kind.
-3. The [canonical product architecture and service catalogue](../product/CoveStack-Product-Architecture-and-Service-Catalogue.md) owns identity and core/future classification; this directory supplies domain specifications. [V5](../../V5/README.md) preserves the previous academic design, schema reference and tests; its container-Droplet/two-driver/8 GB production implications are superseded, not evidence to reproduce.
+3. The [canonical product architecture and service catalogue](../product/CoveStack-Product-Architecture-and-Service-Catalogue.md) owns identity and core/future classification; this directory supplies domain specifications. [V5](../../V5/README.md) is updated detailed product/team/schema/acceptance guidance aligned with this directory. Its [previous bodies](../archive/V5-before-full-product-alignment-2026-11-04.md) retain historical requirements and evidence, not current container-Droplet/two-driver/8 GB production assumptions.
 4. [Academic history](academic-transition.md) is preserved but does not constrain product features, quotas or service classification. Engineering contract review and evidence still apply.
 5. Historical logs, test reports and learning snapshots retain their dates. [Status](implementation-status.md) separates source evidence, historical checks and absent runtime proof.
 

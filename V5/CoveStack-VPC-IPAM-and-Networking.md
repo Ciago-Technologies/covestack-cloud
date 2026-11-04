@@ -1,100 +1,61 @@
-# Architecture transition notice — 4 November 2026
+# CoveStack V5 — Private Networks, IPAM and Traffic Enforcement
 
-> **Superseded design reference.** Active guidance: [platform network-and-storage](../docs/platform/network-and-storage.md). VM vNIC/Incus and container network paths need coordinated enforcement and allocator authority; the old Docker bridge helper cannot alone implement both.
->
-> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
+| Document control | Value |
+| --- | --- |
+| Updated | 4 November 2026 |
+| Authority | Detailed current product specification; aligned to the [canonical catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) and [product SRS](../docs/product/CoveStack-Product-SRS.md) |
+| Evidence | Target design, not a completion certificate; source and actual test results determine implementation status |
+| Compatibility | V5 is a documentation label; current wire contract remains 1.1.0; future fields/kinds/versions require coordinated review |
 
-Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); product scope is independent of historical academic CORE-5.
+## 1. Product networking scope
 
-<!-- Historical body preserved below; see supersession notice above. -->
+Core includes account-owned private networks, subnets, IPAM, NICs and firewall/security-group policy. No academic one-network/no-custom-CIDR rule constrains the product. The selected initial subset still needs reviewed pool/range/sharing policy and backend capabilities; unsupported requests fail explicitly. Incus/Linux/host networking and container/k3d paths differ; a Docker-only helper does not automatically attach VM guests.
 
-# CoveStack V5 — VPC, IPAM and Connectivity Policy
+## 2. Ownership and allocation model
 
-| Document control        | Value                                                                   |
-| ----------------------- | ----------------------------------------------------------------------- |
-| Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **15 October 2026**                                                     |
-| Submission deadline     | **Monday, 25 January 2027**                                             |
-| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
-| Status                  | Target design and implementation guidance; not a completion certificate |
+| Record / capability | Authoritative responsibility | Acceptance |
+| --- | --- | --- |
+| Network/subnet | Account/project ownership, pool containment, overlapping-route rejection, immutable allocation identity | Parallel accounts allocate disjoint ranges; foreign inspection/deletion denied |
+| Address lease | Owned subnet/interface/resource binding, live uniqueness and controlled release | 10 parallel IP allocations in one network have no duplicates |
+| NIC/attachment | Validate both owners, current revision, host/backend/locality and selected policy | Foreign attach denied; interruption resumes with one binding |
+| Firewall/policy | Desired rule/version, default deny and actual backend apply observation | Allowed traffic works and forbidden traffic fails before/after restart |
+| Routes/DNS/egress | Scoped naming, resolver/route restrictions and private management separation | No cross-account disclosure, spoof bypass or management reachability |
+| Capacity/recovery | Durable reservations, owned bridge/NIC references and complete inventory | Lost response does not free an in-use address or destroy an unrelated route |
 
-## 1. CORE-5 private networking boundary
+Backend IPAM can be delegated under an explicit recorded mapping; do not let server and backend allocate the same pool independently. Pool values, reserved ranges/ports, tenant custom ranges and network-sharing rules require A+B+C decision, not invented CIDRs.
 
-**Status: Planned.** Execution backend only (Docker bridge). Platform value: allocator, ownership, collision-free subnets and IPs.
+## 3. Allocation and attachment lifecycle
 
-One private network per account on one host; no custom CIDR. VPC is server-owned, like storage.bucket, but has no kind/state in lifecycle contract 1.1.0. State is TBD with B; attaching compute.instance to this network requires coordinated schema/fixture/generated-output review B+A. No wire field is invented.
+Validate request/ownership/pool → ordered DB locks and reserve unique range/address/port → persist intent/operation/attachment generation → apply reviewed owned network/interface/firewall capability → verify actual traffic and address → record observation. Detach/delete first disables unsafe access and checks dependencies; release only after confirmed teardown. Unknown task or partial inventory retains allocation and requires reconciliation.
 
-Private east-west traffic, reviewed outbound egress and public ingress are different concerns. Public ingress design is preserved in the [roadmap](CoveStack-Extended-Roadmap.md#5-application-publication); it is not implied by VPC creation. Containers share the host kernel.
+Network leases are not worker execution leases. Worker expiry does not prove address cleanup. Tombstones/retention prevent accidental public-ID/resource reuse; released-address reuse requires actual old attachment absence. Lock ordering and serialization retries must be defined and tested by B+C.
 
-**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
+## 4. Trust boundaries and enforcement
 
-Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
+Separate management plane (API, control DB, Valkey, agent, Incus/Docker administration, RustFS admin) from tenant data paths. No tenant socket/root/device access; scoped user APIs cannot bridge to arbitrary host routes. Default-deny both ingress and egress with explicit required DNS/app/SQL/S3 destinations; do not assume private addressing alone isolates tenants. VM-to-container and cluster-to-workload traffic need their own tests.
 
-### 1.1 HLD/LLD resolution — network before workload
+NIC identity must resist address/source spoofing. Name/IP alone is not trusted metadata or tenancy identity. Policy changes are versioned; partial apply is not healthy/converged. Evaluate host firewall/Incus ACL mechanisms on the selected OS/profile and preserve operator-managed unrelated rules.
 
-Java owns network policy and durable vpcs/IP reservations; only A's container-driver helper changes bridges. A separate signed internal network-control exchange, rather than a VPC /work kind, carries current assigned VPC intent/claim and observations. Exact route/field/state/capability encoding remains TBD with B+D/A/C and requires coordinated schemas/fixtures/generated outputs before execution. [Schema section 7.5](CoveStack-Database-Schema.md#75-server-owned-vpc-execution--lld-target) defines its row/lease model.
+## 5. Current contract gap
 
-The first Droplet API request transaction creates/reuses the account's default VPC and stores pending workload intent. Java must not dispatch workload attachment until the network's required generation converges. Therefore default networking is an internal prerequisite for the first real Droplet, even though standalone CLI commands still ship droplet → vpc → k8s → db → bucket → stack. Initial single-account integration uses the same approved network path; no undocumented manual bridge substitutes for the gate.
+No current VPC kind or complete network-attachment protocol exists in 1.1.0. Java owns network/IPAM intent; A's future agent capability executes only reviewed owned host operations. VM/NIC/subnet policy changes need B+D+A/C-approved schema/fixtures and generated outputs. Do not invent wire fields, new state values or label compatibility.
 
-Serialize VPC teardown/admission against live and reserved attachments; retain CIDR/IP identity until owned cleanup is confirmed. Apply the same DB-clock claim fencing and host exclusion as other execution. A blocked/uncertain backend operation is not permission to free its subnet. Periodic inspection can repair the same bridge from server intent without a new user request. Shared S3 access needs an explicit permitted data path that does not expose control-plane DB/cache/daemon or MinIO console.
+## 6. Internet access and address presentation
 
-## 2. Address allocation
+| Address/path | What it means |
+| --- | --- |
+| Private address | Reachable only through configured local/private routes or approved VPN |
+| Simulated public address | Optional UI/demo annotation associated with future publication; never internet routing |
+| Real gateway/IP | May be externally reachable only with actual routing/NAT/firewall/ISP permissions |
+| Tunnel and reverse proxy | Future explicit registered app route through an operator gateway; workload and tunnel must run |
+| Custom domain | Controlled verified DNS/TLS/route; no arbitrary global names without ownership |
 
-| Allocation                | Authority                                                           | Durable record                                           |
-| ------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------- |
-| Account subnet            | C Java simple allocator; B transaction/constraints                  | subnet_pool and one vpcs row/account                     |
-| Workload IP               | C allocator reserves DB lease; A helper applies reviewed assignment | ip_allocations; partial live-IP uniqueness               |
-| Bridge/backend IPAM       | Docker enforces selected network/IP assignment                      | Inspect actual runtime and reconcile with DB reservation |
-| Gateway/system exclusions | Reviewed pool policy B+A/C                                          | Explicit exclusions before workload allocation           |
+Publication, DNS/NAT/VPN/real exposure are future services, not automatically enabled by network creation. No router DHCP/DNS control is assumed on a phone hotspot; plan reproducible local evidence and backup recordings. [Publication](CoveStack-Publication-Domains-and-Tunneling.md).
 
-Pool/subnet sizes are **TBD with B+A** after host/VM/VPN/Docker/Pod/Service-route overlap checks; no numeric pool is selected here. The old illustrative pool is preserved as unapproved historical text in the roadmap. Use one authoritative allocator: backend allocation cannot conflict with Java reservations. Explicit-IP assignment/route policy needs a tested decision before claiming the gate.
+## 7. Acceptance and operations
 
-## 3. Lease lifecycle
+Test 14: 10 IP allocations in one network, 10 accounts creating networks concurrently with no CIDR overlap, foreign network API denial. Add actual allow/deny traffic, source spoof/management protection, crashed attachment recovery, DB/provider unavailable behavior, release/reuse and shared dependency deletion. Restoring DB intent must inspect actual network state before recreation. Capacity and multi-host networking require separate measured/locality/partition design; no current multi-host support.
 
-| Step      | Rule                                                                                                |
-| --------- | --------------------------------------------------------------------------------------------------- |
-| Reserve   | Atomic uniqueness/locking, not check-then-insert race                                               |
-| Provision | Create only the intended owned bridge                                                               |
-| Record    | Save runtime network ID and actual addressing                                                       |
-| Attach    | Validate resource/VPC account and host                                                              |
-| Recover   | Inspect/reconcile pending leases after failure                                                      |
-| Release   | Confirm owned attachments/runtime removed; future route/identity cleanup also required before reuse |
-| Reuse     | Only after owned objects have actually gone                                                         |
+## Historical traceability
 
-Track allocation exhaustion and explicit conflicting-CIDR errors. VPC failure-state strings remain TBD with B. A partially created bridge/DB lease needs recorded retry/error intent; deleting unrelated networks is never a valid recovery shortcut.
-
-## 4. Isolation and firewall policy
-
-| Path                                    | Initial policy                                                         |
-| --------------------------------------- | ---------------------------------------------------------------------- |
-| Same VPC approved app → DB              | Allowed under selected service policy                                  |
-| Different account/VPC                   | Denied unless explicitly modeled                                       |
-| Workload → control-plane DB/cache       | Denied                                                                 |
-| Workload → Docker management API/socket | Denied                                                                 |
-| Public/private admin access             | No CORE-5 public route; private management stays denied from workloads |
-
-Bridge defaults and published host ports can create alternate paths. Test backend IPs, gateways, published ports and both directions. DNS lookup failure alone is not proof of isolation. Inspect the actual Docker iptables/nftables behavior; do not assume ordinary host INPUT rules govern forwarded container packets.
-
-Kubernetes adds its own service/Pod CIDRs and network policy mechanisms. Reserve those ranges and verify cluster-to-VPC routes. A cluster network does not automatically become an isolated VPC attachment; the driver must define its boundary.
-
-## 5. Address presentation
-
-| Value                          | Meaning                                                                                                                             |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Private IP                     | Actual inspected assignment through permitted private routes                                                                        |
-| API endpoint/kubeconfig        | Separately authorized private administrative connection                                                                             |
-| Future public/simulated fields | Relocated to [publication design](CoveStack-Extended-Roadmap.md#5-application-publication); no fake address routes internet traffic |
-
-Safe account views exclude credential content. Existing example addresses are not an approved allocation pool.
-
-## 6. Future constraints — relocated
-
-Overlapping tenant ranges, multi-host routing, real per-resource public addresses, private remote administration and stronger hostile-tenant boundaries remain Optional future work or extended publication decisions in the [roadmap](CoveStack-Extended-Roadmap.md). No extra CORE-5 deliverable is introduced.
-
-## 7. Acceptance evidence
-
-C owns test 14: ten parallel IP allocations in one VPC have no duplicate; ten accounts create VPCs concurrently with no overlapping CIDR; other-account network read is 404. Exercise allocator overlap/exhaustion internally, not a custom-CIDR user form. Verify allowed app/DB paths and denied control-plane/daemon/cross-account paths, restart bridge/lease reconciliation and safe release/reuse.
-
-B owns SQL/constraints, C allocator/tests, A network execution helper inside the container driver. Record actual routes/rules/versions; DNS failure alone does not prove isolation.
-
-[Gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).
+The [previous body of this file](../docs/archive/V5-before-full-product-alignment-2026-11-04.md#v5-covestack-vpc-ipam-and-networking) is preserved unchanged as historical reference, including earlier requirements/DDL/acceptance text. It is not current VM/RustFS setup guidance. Use this active body, the linked canonical domain specifications and [actual implementation evidence](CoveStack-Implementation-Status.md) for new work. No source, migrations, contracts, tests, configuration or runtime state is changed by this document.

@@ -16,6 +16,7 @@ Updated: 4 November 2026. Decision labels distinguish user-selected direction fr
 | Current wire 1.1.0 unchanged | Compatibility boundary | Future VM/container, claim/renew/report/capacity/network schema/fixtures/generated output review |
 | Database and migration chain | Blocked foundation | B checks applied history; accounts/resources prerequisites, VM-owned records/reservations; never edit applied migrations |
 | Capacity profile | No production sizing approved | A/B/C measurements; 8 GB lab only; conservative initial overcommit policy and rejection behavior |
+| Lease-expiry, renewal and acknowledgement | Open; exact generation/owner/epoch already mandatory | B+C+A finalize consistent DB-time expiry/renew/report acceptance and takeover races; D reviews wire/DTO impact. Progress never acknowledges; DB expiry alone cannot authorize conflicting runtime mutation |
 | Identity and keys | Partially Implemented | C+B actual token/credential store, account-host assignment, TTL/rotation/revocation/master-key custody |
 | Network enforcement and IPAM | Planned | C allocator, A Incus/container adapters, B transactions; default-deny packet tests; avoid double allocation |
 | Storage/backup | Planned | Owner/disk/restore model, encryption/backend/key and retention policy; real restore |
@@ -25,6 +26,21 @@ Updated: 4 November 2026. Decision labels distinguish user-selected direction fr
 | Historical academic dates | Reference only | Preserve old date records; no academic date is a product deadline and no new product schedule is invented |
 | Product license/security disclosure | Apache-2.0 approved by maintainer; root LICENSE added | Third-party dependency/NOTICE and copied-material rights review, contribution governance, maintainer/contact and response process remain; see licensing-decision.md |
 | Stable profile/HA | None / future | Readiness gates, profile matrix; separate HA architecture and partition/host-loss evidence |
+
+## Lease expiry, renewal and acknowledgement — open
+
+B+C+A own this unresolved policy; D reviews schema/DTO/wire impact. No choice is made by this documentation correction. The mandatory fence is matching resource/assignment, exact desired generation, lease owner and epoch; a valid signature or a reported expiry alone grants no authority.
+
+| Question to settle | Required decision / evidence |
+| --- | --- |
+| DB-time validity | Which consistent expiry predicate applies to claim renewal, successful convergence and observation/progress; do not mix agent wall clock and server authority |
+| Delayed report / renewal | Whether an otherwise current owner/epoch report or renewal after expiry can be accepted before takeover, or must reacquire; record the chosen boundary explicitly |
+| Takeover race | Transaction/lock ordering for expiry, renewal, generation change and new epoch; old owner/epoch can never acknowledge the new attempt |
+| Progress versus convergence | Progress/health never writes acked_generation; independently ordered observations cannot revive stale identity or override a newer sample |
+| Accepted completion | Clear lease_owner and lease_expires_at together, retain lease_epoch, require actual domain readiness and exact generation |
+| Runtime safety | Serialize resource/child operations and inspect/settle uncertain backend tasks; expiry or a rejected DB report does not stop an existing Incus/Docker/k3d action |
+
+C owns boundary/race acceptance with B SQL and A agent: renewal just before/after expiry, delayed report, stale epoch after takeover, generation update, progress ordering, control-plane outage and unknown provider outcome. Concrete protocol fields/version and SQL require coordinated review; current contract 1.1.0 remains unchanged. [V5 reference](../../V5/CoveStack-Database-Schema.md#73-exact-generation-acknowledgement-and-separate-progress).
 
 ## What documentation cannot establish
 

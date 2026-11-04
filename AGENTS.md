@@ -8,7 +8,7 @@
 - Preserve all pre-existing changes and compare content fingerprints.
 - Never claim implementation from documentation alone. Record code-confirmed, tested, partial, planned/proposed/blocked/deferred evidence separately; service Supported still requires G1–G4.
 - Product compute is a true VM Instance; App Container is distinct. Historical academic CORE-5 is preserved as history and imposes no product scope limit.
-- Active product SRS follows the canonical core/future catalogue; old five-service SRS is historical only.
+- Active product SRS and updated V5 SRS follow the canonical core/future catalogue; former five-service bodies are preserved in the historical V5 snapshot.
 - Product core/future classifications are authoritative; historical Extended track labels do not override them.
 - Optional future work is separate from the named extended track.
 - Service Gate Rule: Supported requires Acceptance Gates Passed after G1–G4 plus a qualified profile and maintenance policy; historical V5 Gates passed maps to Acceptance Gates Passed.
@@ -48,7 +48,7 @@
 
 ## Active documentation authority
 
-- Start docs/platform/README.md, resource-model.md and implementation-status.md for the new VM-first target. V5 body is superseded design/academic history; current 1.1.0 contracts/source remain unchanged and cannot execute invented VM/claim fields.
+- Start V5/README.md and docs/platform/README.md for current aligned VM-first guidance. V5 active bodies are updated detailed product/team docs; previous bodies are preserved in docs/archive/V5-before-full-product-alignment-2026-11-04.md. Current 1.1.0 contracts/source remain unchanged; no invented VM/claim fields.
 - Incus is preferred evaluation only; 8 GB is a lab constraint, never a production profile or density guarantee. No VM-to-container fallback. Single-host hardening is not HA.
 - Floci is optional external emulation integration, not a mandatory core, fork decision or wholesale Java-to-Go rewrite. Java control plane stays; product-owned new Go components need reviewed boundaries/ownership.
 - Root LICENSE contains maintainer-approved Apache License 2.0 (SPDX Apache-2.0) for CoveStack-owned material; third-party licenses/notices remain unchanged. License adoption is not runtime support or production readiness. Preserve historical evidence and environment restrictions.

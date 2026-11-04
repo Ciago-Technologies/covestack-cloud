@@ -1,103 +1,66 @@
-# Architecture transition notice — 4 November 2026
+# CoveStack V5 — Authority, References and Open Decisions
 
-> **Superseded design reference.** Active guidance: [platform decisions](../docs/platform/decisions.md). Current user selects VM-first product direction. Old version/timing/backend notes are not new contract approval or measured support.
->
-> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
-
-Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); product scope is independent of historical academic CORE-5.
-
-<!-- Historical body preserved below; see supersession notice above. -->
-
-# CoveStack V5 — References, Assumptions and Decisions
-
-| Document control        | Value                                                                   |
-| ----------------------- | ----------------------------------------------------------------------- |
-| Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **27 October 2026**                                                     |
-| Submission deadline     | **Monday, 25 January 2027**                                             |
-| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
-| Status                  | Target design and implementation guidance; not a completion certificate |
+| Document control | Value |
+| --- | --- |
+| Updated | 4 November 2026 |
+| Authority | Detailed current product specification; aligned to the [canonical catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) and [product SRS](../docs/product/CoveStack-Product-SRS.md) |
+| Evidence | Target design, not a completion certificate; source and actual test results determine implementation status |
+| Compatibility | V5 is a documentation label; current wire contract remains 1.1.0; future fields/kinds/versions require coordinated review |
 
 ## 1. Document authority
 
-| Material                        | Authority                                               |
-| ------------------------------- | ------------------------------------------------------- |
-| V5 docs                         | New target architecture/schedule and agreed scope       |
-| Current runtime contracts       | Authoritative wire/generator source; lifecycle 1.1.0    |
-| Actual commits/tests/deployment | G1–G4 evidence for Gates passed                         |
-| Old team guides/archives        | Historical design and findings                          |
-| Mentor rubric                   | External acceptance requirement; obtain current version |
+| Material | Authority |
+| --- | --- |
+| Latest explicit user decisions | Independent VM-first infrastructure product, Planned RustFS, Apache-2.0 adoption and retained useful V5 detail |
+| Canonical product/domain docs | Shared scope/architecture/security/capacity/requirements/evidence |
+| V5 active bodies | Detailed working roles, setup, API/schema/concurrency/service/acceptance and topic guidance aligned to canonical docs |
+| Actual contracts/source/PR/CI/runtime artifacts | Existing wire behavior and actual implementation/test scope; documentation cannot override them |
+| Historical snapshots/exports/old plans | Past requirements, alternative designs and results only; not current product limitations |
+| GitHub issues / root checkpoint | Live task status / single AI continuity, respectively |
 
-No official C-DAC marks allocation or no-coding rule is assumed. Planning date is 14 October 2026; deadline is Monday, 25 January 2027.
+No mentor confirmation, market advantage, production profile, deadline or new wire version is inferred from an architecture document. Cite the exact revision and verified evidence type when claiming behavior.
 
-## 2. Primary source links
+## 2. Primary technical and licensing references
 
-| Reference                                                                                                           | Purpose                             |
-| ------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| [Docker bridge](https://docs.docker.com/engine/network/drivers/bridge/)                                             | Local network primitives and limits |
-| [Docker IPAM options](https://docs.docker.com/reference/cli/docker/network/create/)                                 | Existing address mechanisms         |
-| [Docker security](https://docs.docker.com/engine/security/)                                                         | Daemon/workload authority           |
-| [k3d exposure](https://k3d.io/stable/usage/exposing_services/)                                                      | Ingress integration                 |
-| [Terraform framework](https://developer.hashicorp.com/terraform/plugin/framework)                                   | Provider development                |
-| [Ansible Docker](https://docs.ansible.com/projects/ansible/latest/collections/community/docker/index.html)          | Existing automation capabilities    |
-| [OWASP object permissions](https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/) | Authorization test rationale        |
+| Source | Purpose / evidence boundary |
+| --- | --- |
+| [Incus docs](https://linuxcontainers.org/incus/docs/main/) | VM/container/projects/storage/network/security; not an implemented CoveStack backend |
+| [KVM](https://www.linux-kvm.org/page/Main_Page) / [QEMU](https://www.qemu.org/docs/master/system/introduction.html) | Virtualization foundations; actual hardware/profile measured separately |
+| [RustFS compatibility](https://docs.rustfs.com/en/reference/s3-compatibility) / [IAM](https://docs.rustfs.com/en/security-compliance/iam) | Tested subset, credential/policy model and explicit unsupported/planned behavior; not CoveStack runtime acceptance |
+| [Provider evaluation](../docs/platform/provider-evaluation.md) | Private administration/custody, alternatives and real restart/restore requirements |
+| [Apache-2.0 official text](https://www.apache.org/licenses/LICENSE-2.0.txt) / [root LICENSE](../LICENSE) | Exact maintainer-approved project license; does not relicense upstream projects |
+| [Competitive official-source review](../docs/platform/competitive-analysis.md) | Fair existing capabilities/uncertainties; no false missing-feature claim |
+| [Canonical research references](../docs/platform/references.md) | Additional reviewed official sources and failed-lookup limits; latest docs are not support pins |
 
-Links are carried from earlier documents; no network access or source revalidation occurs in this documentation task. Extended references/candidates are preserved in the roadmap. Exact tool/provider compatibility must be retested against release versions. Do not claim Docker lacks IPAM or Terraform/Ansible integrations.
+No fresh network research, dependency install or runtime verification was performed for this alignment; existing verified source references are reused. Revalidate exact selected artifact/security/version documentation before qualification.
 
-## 3. Decisions before implementation
+## 3. Current decisions and unresolved encoding
 
-| Decision                                                    | Owners / evidence required                                             |
-| ----------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Go module layout and signer move                            | A+B+C; shared client imports and CLI boundary                          |
-| CLI/agent boundary                                          | A/E with B+C; dependency check and real auth                           |
-| Credential-account/agent assignment and multi-account polls | Agreed one process/host, separate account credentials/clients; B+C+A finalize provisioning/custody/assignment; no new wire fields       |
-| k3d+k3s tested pair and flags                               | A+B+C; one-day AlmaLinux host spike                                    |
-| K8s port range/release and kubeconfig delivery              | B+A+C; reserve before create; cleanup; scoped export                   |
-| Subnet pool and VPC/compute attachment                      | B+A; C allocator; route overlap and coordinated contract review        |
-| MinIO scoped credential model/admin custody                 | B+C; private server path, rotation and negative tests                  |
-| Backup storage format/retention                             | B+A; measured rows/checksum restore                                    |
-| Internal/public/provider IDs                                | B+D; uuid/public_id/provider_id mappings                               |
-| Audit/RLS/key custody and missing enums                     | B+C/D as applicable; nullable/security-events tradeoff; contract-first |
-| One stack inputs/app contract                               | B+E+A/C; fixed sequence, JSON shapes and test 15                       |
-| ITISS coding ownership                                      | Ask mentor in writing; if disallowed, named agent developer/handover   |
-
-No versions, CIDRs, quota-error wire names or confirmations are chosen here. Extended proxy/health/cooldown/storage/identity/domain/tunnel decisions live only in the roadmap; old G0 schedule wording is superseded by the workflow.
-
-### Single-account client starting decision — 27 October 2026
-
-**Status: Planned.** Selected by the project owner as the starting implementation plan; not evidence of B+C review, a running endpoint or service gates. Authoritative detail: [Anuj's first milestone](CoveStack-Anuj-Next-Steps.md#23-first-milestone-decision--single-account-communication-planned).
-
-| Decision | Selected target | Still needs implementation / evidence |
+| Decision | Disposition | Owner / next evidence |
 | --- | --- | --- |
-| Initial scope | One account, dedicated service credential, one agent process; no execution | B trusted assignment, C secure provisioning, A client |
-| Existing contract | Local development origin localhost:4700; signed read-only GET /internal/v1/agent/work; 200 [] when empty | B server boot, valid/revoked-key integration tests with C+A |
-| Client policy | 10-second timeout, 5-second polling base; bounded jitter; 1-to-30-second temporary backoff; 429 Retry-After; 401/403 stops account loop | A implements; B+C review timing, parsing and error behavior using real server |
-| Capability honesty | Empty supportedKinds until tested driver; truthful required heartbeat versions | Heartbeat readiness and version source A+B+C; no placeholder Docker version |
-| Safety boundary | Fresh signature per attempt; no redirects, secrets in logs, direct DB or claim via GET | A transport/cancellation tests and C real-server verification |
-| Execution prerequisite | Separate idempotent claim, renewal and guarded reports; exact generation/owner/epoch and expiry | B+D+A/C coordinated schemas/fixtures; no invented next wire version |
+| Independent core/future product scope | User-selected; no academic ceiling | Keep canonical 22/31 classification; no separate microservice count promise |
+| True VM primary, distinct App Container | User-selected; Planned execution | B+D+A/C reviewed spec/migration; A real guest/provider spike |
+| Incus over QEMU/KVM | Preferred evaluation | Approved host/image/privilege/capacity/task/restore tests |
+| Java control plane / Go agents/clients | Retained; no wholesale rewrite | New extraction/scheduler ownership/transaction boundary reviewed separately |
+| RustFS object backend | Preferred Planned provider | B+C/A artifact/admin API/policy/key/volume/private management and verified byte restore |
+| API 1.1.0 | Actual unchanged wire | B+D+A/C future type/claim/assignment/network/capacity and fixtures/generated consumers |
+| One agent host, isolated account contexts | Target model, concrete assignment pending | B+C+A secure enrollment/dispatch/credential loading and failure isolation |
+| Claim/ack/unknown outcome | Exact generation/owner/epoch and separate progress target | B+C+A expiry/renew policy, runtime task exclusion and real stale-worker tests |
+| Schema / IDs / capacity / ranges / retention | Reference design, not migration-ready | B finalizes with C tenancy and A runtime/D DTO; actual DB history before migration |
+| CLI/shared module/provider | Planned; E thin user client | A+B+C+E module/auth review, D fixtures; API-only lifecycle first |
+| Apache-2.0 | Maintainer approved; official root LICENSE present | Exact transitive/image/notices/copied-reference provenance still reviewed |
+| Production profile / HA / demand | Unqualified / future / hypothesis | Clean install, security/endurance/restore/upgrade and pilot comparison evidence |
 
-These operational defaults are not pinned tool versions or protocol constants. Final key custody, assignment lookup/provisioning, response bounds, jitter bounds and release timing validation remain named review items. No new code/config option or wire field is introduced by this decision.
+## 4. Evidence and change policy
 
-### 3.1 HLD/LLD review decisions — target resolution
+Current Go loop safely stops on work and does not provision. Pure lifecycle validators do not enforce DB ownership/leases/readiness. Existing extended SQL is not a complete migration chain. HMAC is not a tenant authorization or host assignment grant. Runtime operations require intent, physical admission, exact current authority and actual backend inspection/readiness.
 
-| Decision | Target selected | Remaining review |
-|---|---|---|
-| Runtime safety | OS host exclusion plus per-resource serialization; uncertain actions block takeover | A+C prototype; no Docker epoch-fencing claim |
-| Lease semantics | Current owner/epoch/generation and unexpired DB-clock lease for renew/report/ack | B+D/A/C schema and fixtures; values TBD |
-| Drift/health | next_attempt_at schedules retries and periodic inspections; new claim after convergence | B+A query/scheduling and C tests |
-| Network transport | Separate signed network-control exchange, server-owned vpcs, default network prerequisite | Routes/fields/states TBD B+D/A/C |
-| Shared MinIO | Operator-owned durable compute.instance runtime; protected host secret references; stack tenant bucket | B+C/A bootstrap/custody/private route; approved compute mapping |
-| Required cuts | Preserve stack/test 15 and installer; optional provider and extended work cut first | Explicit SRS revision required for any other reduction |
-| Capacity | Spike at first host preparation, before driver capacity commitment | Actual workload matrix; revalidate integration in November |
+Any future message/schema change updates authoritative sources, fixtures, generated outputs and consumers together; no silent API strings or supported option claims. Current roles remain A agent Go, B all SQL/Java core, C security/acceptance/Java allocator, D Java API no Go, E CLI/packaging/later provider. [Existing-file plan](../EXISTING-CODE-CHANGE-PLAN.md), [gate evidence](CoveStack-Service-Gates.md).
 
-Prior contradictory cut wording is superseded, not a removed service requirement. Historical roadmap text and the gate spreadsheet preserve earlier targets/slogans; they do not establish runtime capability or override this review. No spreadsheet/code/contract edit occurs here.
+## 5. Historical relocation record
 
-## 4. Claim and evidence policy
+All prior V5 bodies—including original 32-table/extended DDL, 38-issue audit text, old calendar/caps, previous extension/service assumptions and relocated design alternatives—are preserved unchanged in the single snapshot linked below. Active bodies have actual updated content, not transition notices over old instructions. No unique historical requirement/test result is deleted; obsolete applicability is explained and current requirements are cross-linked.
 
-Do not claim provider parity, VM isolation for Droplets, fake-IP routing, tamper-proof audit or an operational service from documentation. Unknown kinds/states are TBD with B; new messages require coordinated schema/fixtures/generated outputs. Reference DDL is not executable or migration-ready; no schema exists yet.
+## Historical traceability
 
-**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
-
-Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
-
-[Gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).
+The [previous body of this file](../docs/archive/V5-before-full-product-alignment-2026-11-04.md#v5-covestack-references-and-decision-log) is preserved unchanged as historical reference, including earlier requirements/DDL/acceptance text. It is not current VM/RustFS setup guidance. Use this active body, the linked canonical domain specifications and [actual implementation evidence](CoveStack-Implementation-Status.md) for new work. No source, migrations, contracts, tests, configuration or runtime state is changed by this document.
