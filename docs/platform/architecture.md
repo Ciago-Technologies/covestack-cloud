@@ -36,6 +36,8 @@ flowchart TB
     K --> Q[Bounded Kubernetes clusters]
     G --> B[Tenant SQL / S3 / app data paths]
     P --> B
+    C --> RS[Java bucket / credential / policy adapter - Planned]
+    RS --> RF[Operator-managed RustFS candidate]
     C --> O[Audit / operation visibility]
     D --> BK[Protected backups and verified restore]
 ```
@@ -74,3 +76,11 @@ Keep existing Java responsibilities; no migration now. Build new product-owned a
 A hardened single host has one failure domain: host loss can take down API, DB, agents and guests. Future HA requires independent DB availability, leader/claim safety, agent failover, durable storage/networking, split-brain prevention and host-loss tests. Do not equate multiple processes or an Incus cluster with CoveStack HA.
 
 References: [Incus API/security](https://linuxcontainers.org/incus/docs/main/explanation/security/), [QEMU management/accelerators](https://www.qemu.org/docs/master/system/introduction.html). See [readiness](readiness.md), [network/storage](network-and-storage.md), [capacity](capacity.md).
+
+## Object-storage HLD and LLD — Planned RustFS integration
+
+HLD: operator-managed RustFS is the preferred object-storage candidate. Account-owned buckets and policy/credential intent stay in authoritative PostgreSQL; Java reconciles them through a provider adapter over a private management path. The agent may manage process/volume lifecycle, but does not own bucket reconciliation. Tenant S3 traffic is separate from management access. [Compatibility and acceptance](provider-evaluation.md#rustfs-compatibility-and-acceptance).
+
+LLD target: authenticate/authorize → persist bucket intent, generation, operation and idempotency atomically → Java inspect owned backend bucket/policy/credential binding → ensure only missing/current intent → verify observed state and record result. On timeout inspect before retry; on restart preserve stored bytes and reconcile configuration. Delete only authorized intent under retention policy. Credential issuance uses the reviewed backend admin interface; do not assume it is part of S3 or introduce unapproved wire fields. Backups must restore actual bytes and required configuration/ownership/keys, then recheck access denial.
+
+RustFS integration is Planned. Its admin interface, artifact/version, custody and backup procedure remain subject to engineering review. SeaweedFS/other providers remain possible behind the same conformance boundary.

@@ -6,7 +6,7 @@ Updated: 4 November 2026. Status: **Planned**; existing Compose defines platform
 
 ## Networking ownership
 
-One account-owned private network remains the initial product/lab constraint; no custom CIDR in the initial subset. VM vNICs use the selected Incus network integration; App Container and k3d adapters need explicit attach/reachability behavior. Reusing a Docker-only helper cannot automatically attach Incus guests. Backend network mapping, subnet pools and allowed cross-runtime paths are B+C+A decisions, not new wire kinds.
+Account-owned private networks use reviewed pools, dependency checks and collision prevention. Historical one-network/no-custom-CIDR restrictions are not product constraints. VM vNICs use the selected Incus network integration; App Container and k3d adapters need explicit attach/reachability behavior. Reusing a Docker-only helper cannot automatically attach Incus guests. Backend network mapping, subnet pools and allowed cross-runtime paths are B+C+A decisions, not new wire kinds.
 
 | Requirement | Ownership and implementation target | Evidence |
 | --- | --- | --- |
@@ -26,7 +26,7 @@ VM disks and application volumes are distinct account-owned resources even when 
 
 PostgreSQL tenant instance is separate from the control-plane DB, with private endpoint, persistent storage, scoped credentials and verified read/write/restore. A trusted App Container may host it in the initial reviewed subset; potentially untrusted DB/workload isolation may require a VM-backed profile. No automatic assumption that all tenants may run privileged DB images.
 
-Object storage provider selection remains open; see [provider evaluation](provider-evaluation.md). The selected provider's operator-owned service/storage is separate from tenant bucket/credential records. Java reconciles buckets/policies, not the agent work queue. Protected administrator custody, rotation, version/API/license and private server path remain open. Tenant credentials cannot administer or delete another account's data. Rebuilding bucket rows/policy does not restore lost bytes.
+**RustFS is the preferred object-storage candidate; integration is Planned.** See [provider evidence and gaps](provider-evaluation.md#rustfs-compatibility-and-acceptance). The selected provider's operator-owned service/storage is separate from tenant bucket/credential records. Java reconciles buckets/policies, not the agent work queue. Protected administrator custody, rotation, version/API/license and private server path remain open. Tenant credentials cannot administer or delete another account's data. Rebuilding bucket rows/policy does not restore lost bytes.
 
 ## Backup and verified recovery
 

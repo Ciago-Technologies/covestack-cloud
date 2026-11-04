@@ -30,7 +30,7 @@ No feature here is promoted to Runtime Verified, Acceptance Gates Passed or Supp
 
 [Toolchain status](../development-toolchain-status.md) records earlier Go race/vet/lint, Java 15-test builds, contract checks and dependency availability in an OmniRush sandbox. [Environment record](../development-environment.md) records its specific versions. Do not silently replace those dates/results with today's claims. They are environment evidence, not proof the resource API/VM runtime exists.
 
-Current manifest Go toolchain/CI pin is 1.27.2 while that environment reported 1.27.3; align/review later without changing manifests here. Java source remains JDBC, not JPA. No root license file found. No live credentials, DB schema, upstream sync, GitHub PR acceptance or production runner was inspected.
+Current manifest Go toolchain/CI pin is 1.27.2 while that environment reported 1.27.3; align/review later without changing manifests here. Java source remains JDBC, not JPA. Maintainer-approved root LICENSE now contains Apache-2.0; this licensing update does not change historical runtime evidence. No live credentials, DB schema, upstream sync, GitHub PR acceptance or production runner was inspected.
 
 ## Environment boundaries
 
@@ -39,3 +39,5 @@ Preserve user-directed restrictions: no Docker daemon/socket provision, no Compo
 Next meaningful evidence: B+C real server/assignment/credential provisioning for existing signed no-execution loop; D/B/A/C VM/claim/network compatibility ADR; authorized backend spike elsewhere. Check current worktree and [checkpoint](../../checkpoint.md), not old next-task notes.
 
 Current loop retry evidence is bounded: timeout-class transient errors and selected HTTP responses are handled; not every network error is retried. Connection-refusal/general transport recovery and multi-account independence still require review and real-server evidence. Returned resource work stops with ErrWorkAvailable; no driver execution occurs.
+
+Object storage: RustFS preferred candidate, integration **Planned**. No RustFS runtime/admin adapter, scoped-key acceptance, restart or backup/restore test was executed here. Signed polling and no-execution behavior exist; full credential provisioning, trusted assignment, claims and runtime execution remain pending.

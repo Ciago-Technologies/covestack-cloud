@@ -1,49 +1,50 @@
 # CoveStack
 
-**An open-source, local-first infrastructure control plane for small teams that want account-owned environments, intelligent resource scheduling, reliable provisioning, built-in security and recoverable infrastructure across their own machines.**
+**A local-first infrastructure control plane for account-owned environments on machines you control.**
 
-This is the product target, not a statement of shipped support or a license grant. Read the [canonical product architecture and service catalogue](docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md).
+CoveStack aims to combine real infrastructure provisioning, capacity-aware scheduling, crash-safe reconciliation, built-in security and verified recovery through one API and CLI. **CoveStack-owned code and documentation are licensed under Apache License 2.0 (SPDX: `Apache-2.0`); see [LICENSE](LICENSE).**
 
-CoveStack aims to turn a resource request into actual infrastructure, visible lifecycle and safe recovery—without making each user administer the underlying runtimes. Primary compute is a **VM Instance with its own guest kernel**. **App Containers** are a separate, shared-kernel resource for trusted workloads. Incus is the preferred VM backend to evaluate; no VM driver is implemented yet.
+Primary compute is a **VM Instance with its own guest kernel**. **App Containers** are distinct shared-kernel resources for trusted workloads. Incus/QEMU/KVM is the preferred VM backend to evaluate; no VM driver exists yet.
 
 ## Status: Experimental
 
-| Present in source                                                                                                   | Not yet available as a verified product                                                                            |
-| ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Go configuration, HMAC request signing, bounded signed client and cancellable single-account no-execution poll loop | Actual VM/App Container provisioning, runtime reconciliation and capacity admission                                |
-| Java auth/replay components and lifecycle validators                                                                | Complete runnable account-owned resource API, concrete credential provisioning and foundational DB migration chain |
-| Unit-test sources and dated environment reports                                                                     | Supported install/profile, real isolation, verified workload restore and production readiness                      |
+| Present in source | Still pending |
+| --- | --- |
+| Go configuration, HMAC signing and bounded signed HTTP client | Full credential provisioning and trusted account/host assignment |
+| Cancellable single-account signed polling with deliberate no-execution behavior | Claims, runtime drivers and crash-safe resource execution |
+| Java authentication/replay components and lifecycle validators | Runnable scoped resource APIs and foundational migration chain |
+| Unit-test sources and dated reports | Real isolation, verified recovery and a supported deployment profile |
 
-The loop deliberately stops if work arrives; it cannot execute resources. Tests/builds do not prove infrastructure readiness. No application/infrastructure checks ran for this documentation update. See [implementation evidence](docs/platform/implementation-status.md).
+The agent stops safely when work arrives. It does not claim, execute, acknowledge or delete that work. Source and mock tests do not prove live-server or infrastructure readiness. See the [implementation ledger](docs/platform/implementation-status.md).
 
-## Who it is for
+## Product scope
 
-Potential users are small teams, organizations, DevOps engineers and self-hosters who need owned VM/application/data environments, predictable cleanup and recoverable operations. This is a **market hypothesis**, not evidence of customers or adoption. [Use cases and validation](docs/platform/strategy.md).
+The [canonical architecture and service catalogue](docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) defines proposed core and future infrastructure capabilities independently of historical academic CORE-5. Core includes compute, networking, storage, PostgreSQL, environments and security/operations foundations. Future candidates remain dependency-bound targets, not available services or a release promise.
 
-## Why another infrastructure tool?
+Potential users are small teams, DevOps engineers, organizations and self-hosters. Demand and comparative advantage require interviews and pilots. The hypothesis is a coherent account/environment lifecycle and recovery experience—not simply more services. Read the [competitive analysis](docs/platform/competitive-analysis.md).
 
-Floci/LocalStack primarily serve cloud-API development/testing and can run real selected workloads. Coolify/Dokku/Portainer already offer useful app/container management. Incus, CloudStack and OpenStack already manage actual infrastructure and tenancy. CoveStack's hypothesis is a smaller integrated account-owned VM/app/data/recovery workflow—not uniquely inventing those features or replacing those tools. Floci can be an optional testing integration, never a mandatory core or a Java rewrite target. [Fair comparison and evidence to prove value](docs/platform/competitive-analysis.md).
+## Architecture
 
-## Architecture and limits
+Java/Spring Boot control plane → authoritative PostgreSQL → authenticated outbound Go agent → future VM, container, Kubernetes and networking/storage providers. Valkey is the replay store; Mailpit is development email capture. Users never receive privileged sockets or direct platform database access.
 
-Java/Spring Boot control plane → authoritative PostgreSQL intent/operations → authenticated outbound Go agent → future VM/container/Kubernetes and network/storage providers. Valkey supports replay protection; the object-storage provider is under evaluation (Garage, SeaweedFS and Ceph RGW; legacy MinIO requires maintenance/licensing review); Mailpit is development email capture. API/CLI users never access privileged sockets or the platform DB.
+**RustFS is the preferred object-storage candidate; integration is Planned.** The operator manages the storage service and persistent volumes; Java reconciles account-owned buckets, policies and scoped credentials. The provider adapter retains SeaweedFS and other alternatives. [RustFS compatibility gaps and required tests](docs/platform/provider-evaluation.md#rustfs-compatibility-and-acceptance).
 
-The current wire contract remains 1.1.0; VM/container and claim/capacity/network evolution needs coordinated schemas and tests. Previous 8 GB sizing is a lab constraint, not a production requirement. Single-host operation is not HA. No production host profile or root open-source license grant has been established.
+The current wire contract remains 1.1.0. VM/type, trusted assignment, claim and capacity evolution requires coordinated schema/fixture review. Floci is an optional external testing integration. Historical 8 GB sizing is not a production recommendation; single-host deployment is not HA.
 
-## Start here
+## Documentation
 
-- [Current documentation index](docs/platform/README.md)
-- [VM/container decision](docs/platform/resource-model.md) · [architecture](docs/platform/architecture.md)
-- [Security](docs/platform/security.md) · [capacity](docs/platform/capacity.md) · [readiness](docs/platform/readiness.md)
-- [Installation limits and operations](docs/platform/installation-and-operations.md) · [API/CLI boundary](docs/platform/api-and-cli.md)
-- [Core/future catalogue](docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) · [Future dependencies](docs/platform/future-services.md) · [academic scope/deadline transition](docs/platform/academic-transition.md)
+- [Product SRS](docs/product/CoveStack-Product-SRS.md) and [service catalogue](docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md)
+- [Architecture and HLD/LLD](docs/platform/architecture.md), [VM/container model](docs/platform/resource-model.md) and [environments](docs/platform/environments.md)
+- [Security](docs/platform/security.md), [capacity](docs/platform/capacity.md) and [acceptance/readiness](docs/platform/readiness.md)
+- [Installation and operations](docs/platform/installation-and-operations.md), [API/CLI](docs/platform/api-and-cli.md) and [documentation index](docs/platform/README.md)
+- [Future dependencies](docs/platform/future-services.md) and [historical academic reference](docs/platform/academic-transition.md)
 
-No full product quick-start is published because it would imply functionality not yet present. Existing Compose is dependency configuration only; do not assume it starts CoveStack or a VM.
+No full-product quick-start is offered yet: existing Compose starts dependencies, not the complete platform or VM service.
 
-## Contribute
+## Contributing and licensing
 
-Choose one bounded issue, read [contribution guidance](docs/platform/contributing.md), [decision gaps](docs/platform/decisions.md), [documentation audit](docs/documentation-audit.md) and [checkpoint.md](checkpoint.md). Help validate use cases, VM backend capabilities, compatible protocol design, security and recovery tests. Java remains the control plane; Go grows in product-owned components selectively, not through an unsolicited rewrite.
+Read the [contribution guide](docs/platform/contributing.md), [open decisions](docs/platform/decisions.md) and [checkpoint](checkpoint.md). Java remains the control plane; Go components grow selectively without a wholesale rewrite.
 
-**Licensing:** no root LICENSE was found; maintainers must decide and publish a real grant before promising open-source redistribution. Third-party artifacts have their own obligations. See [license/attribution review](docs/platform/license-and-attribution.md). No feature badges, availability guarantees or security certification are claimed.
+**License: Apache License 2.0 — SPDX `Apache-2.0`.** The maintainer approved adoption; the complete text is in [LICENSE](LICENSE). Existing third-party material, dependencies and external projects retain their own licenses and notices. See the [licensing decision](docs/platform/licensing-decision.md) and [attribution review](docs/platform/license-and-attribution.md) for outstanding distribution checks. License adoption does not establish production support.
 
-V5, old guides and exports are explicitly historical design/evidence. Their academic requirements remain recorded; new VM mapping and deadline reconciliation require team/mentor review, not silent removal.
+Historical V5 guides and evidence retain their original statements under supersession notices. They do not constrain product scope or establish current functionality.

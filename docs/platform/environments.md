@@ -6,7 +6,7 @@ Updated: 4 November 2026. Status: **Planned**; catalogue core capability 13. Can
 
 A team needs a usable application environment, not a collection of unrelated create responses. An account/project member requests a reviewed definition and inspects the entire environment: child IDs, actual readiness, operation attempts, failures, retry/retention and shared dependencies. Environment-level progress must never imply a failed child is ready. Account ownership + orchestration + capacity + crash safety + security + verified recovery is the hypothesis, not a proven unique market feature.
 
-The existing academic fixed app/PG/bucket stack is the first bounded definition. A future e-commerce definition can include frontend and backend VM/App Container, PostgreSQL, bucket, private network, subnets/interfaces/volumes, firewall and scoped secrets. That broader example is product scope, not an extra approved academic template or a working command.
+A bounded app/PG/bucket definition is a useful initial example; the historical academic template count does not constrain the product. A future e-commerce definition can include frontend and backend VM/App Container, PostgreSQL, bucket, private network, subnets/interfaces/volumes, firewall and scoped secrets. That broader example is target product scope, not a working command.
 
 ```mermaid
 flowchart TD
@@ -59,4 +59,4 @@ Cancellation, failure, compensation and data retention are distinct. Define reve
 
 C owns automated cases with B coordinator/SQL, A providers and E CLI/D DTO: create usable app/DB/object flow; concurrent same-key one environment; partial create then restart/retry no duplicate child; wrong account/project denied; quota insufficiency leaves no orphan/reservation; shared dependency survives delete; retained data remains readable and restored known data matches. Test ambiguous provider response and interrupted compensation, not only happy-path mocks.
 
-No current environment service exists. Old stack tables/JSON are reference designs; adding ownership/project/sharing/task/aggregate records needs a separately reviewed schema and contract. [Academic transition](academic-transition.md) retains test 15 rather than silently substituting the e-commerce example.
+No current environment service exists. Old stack tables/JSON are reference designs; adding ownership/project/sharing/task/aggregate records needs a separately reviewed schema and contract. Historical test 15 remains recorded; product environment tests independently cover the selected definition and safe dependency behavior.

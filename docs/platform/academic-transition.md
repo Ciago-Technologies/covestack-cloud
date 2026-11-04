@@ -1,3 +1,9 @@
+# Historical academic scope reference — not product authority
+
+As of 4 November 2026, the user explicitly removed academic CORE-5 as a constraint on the product. The [product catalogue](../product/CoveStack-Product-Architecture-and-Service-Catalogue.md) and [product SRS](../product/CoveStack-Product-SRS.md) define active scope independently. The body below records the previous academic transition discussion, including old limits and approval dependencies; none is a gate on future product functionality. Past approvals, dates and evidence are not rewritten.
+
+<!-- Historical academic transition body preserved below. -->
+
 # Academic obligations and VM architecture transition
 
 Product identity and core/future scope: [canonical architecture and service catalogue](../product/CoveStack-Product-Architecture-and-Service-Catalogue.md).

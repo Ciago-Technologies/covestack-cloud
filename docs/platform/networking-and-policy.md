@@ -4,7 +4,7 @@ Updated: 4 November 2026. **Planned core capabilities 5–9**, not packet-level 
 
 ## Control model
 
-One account owner with project/environment references; network/subnet/interface/IP/rule identities are separate conceptual resources. Initial academic constraint remains one private network/account and no tenant custom CIDR. Product subnet/range configuration is operator-reviewed from allowed pools; tenant custom ranges, cross-project sharing and eventual richer networks need an explicit scope/contract decision. No current VPC kind or new network state is invented.
+One account owner with project/environment references; network/subnet/interface/IP/rule identities are separate conceptual resources. Historical one-network/account and no-custom-CIDR restrictions do not constrain the product. Product subnet/range configuration is operator-reviewed from allowed pools; tenant custom ranges and cross-project sharing require explicit policy, overlap protection and engineering contract review. No current VPC kind or new network state is invented.
 
 | Core capability | Desired/observed and ownership responsibility | Failure/cleanup requirement |
 | --- | --- | --- |

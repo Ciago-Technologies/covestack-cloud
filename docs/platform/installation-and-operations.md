@@ -53,3 +53,7 @@ Off-host backups/key recovery protect against a single-host loss; they do not gi
 | Disk/memory full | Reservations, platform reserve, observed pressure and orphan-review evidence | Blanket prune, release ambiguous reservations or evict arbitrary tenant |
 
 Existing Compose bindings are loopback 5432 PostgreSQL, host 6390 Valkey to 6379, 1025/8025 Mailpit. Defined binds are not live reachability proof. Initialized PostgreSQL credentials require deliberate rotation, not deleting volumes or changing an env value alone. Never use down -v or blanket pruning as a repair recipe.
+
+## RustFS deployment boundary — Planned
+
+RustFS is the preferred candidate, not part of current Compose or a verified installer. The operator must supply an approved immutable artifact, durable volume, reviewed permissions, TLS and a private Java-to-provider admin path. B+C decide protected bootstrap/admin credential custody and rotation; tenant S3 credentials are separate. Before publishing setup commands, test real byte persistence across restart, Java-side bucket/policy/key reconciliation, unauthorized access denial and isolated restore including required metadata/keys. A provider health response is not restore proof. [Provider requirements](provider-evaluation.md#rustfs-compatibility-and-acceptance).

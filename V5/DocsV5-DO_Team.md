@@ -4,7 +4,9 @@
 >
 > The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
 
-Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); wider proposed core is not an approved replacement for academic CORE-5.
+Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); product scope is independent of historical academic CORE-5.
+
+Active requirements: [product SRS](../docs/product/CoveStack-Product-SRS.md). RustFS is the preferred candidate (Planned); [active HLD/LLD](../docs/platform/architecture.md) and [provider findings](../docs/platform/provider-evaluation.md#rustfs-compatibility-and-acceptance) supersede historical MinIO selection.
 
 <!-- Historical body preserved below; see supersession notice above. -->
 

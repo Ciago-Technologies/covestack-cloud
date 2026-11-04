@@ -13,7 +13,7 @@ Updated: 4 November 2026. Status: **Planned**. No supported hardware/VM density 
 | Supported self-hosted production | Hardened single host with approved OS/kernel/Incus/QEMU/KVM/storage/network configuration | None approved; requires measured reservations, endurance, restore, security and upgrade gates |
 | Future multi-host production | Placement, independent host failures and recoverable distributed state | Deferred; requires host identity, topology, network/storage/claim coordination and split-brain design |
 
-The historical 2-cluster cap and 1-server/max-2-agent cluster shape remain academic safety ceilings, not production sizing or guaranteed lab capacity. Reject earlier when measurements require it. No VM count, minimum RAM or vCPU-to-core ratio is invented.
+The historical 2-cluster cap and 1-server/max-2-agent shape describe an old academic profile only; they are not product quotas or supported density. Set tested per-profile limits using measured capacity; reject unsafe requests. No VM count, minimum RAM or vCPU-to-core ratio is invented.
 
 ## Discovery and budget
 

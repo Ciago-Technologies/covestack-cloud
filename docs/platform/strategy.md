@@ -6,7 +6,7 @@ Updated: 4 November 2026. Status: **Proposed product hypotheses; VM target selec
 
 ## Positioning
 
-An open-source, local-first infrastructure control plane for small teams that want account-owned environments, intelligent resource scheduling, reliable provisioning, built-in security and recoverable infrastructure across their own machines. This is intended direction, not a claim of a license grant or implemented multi-host support. It unifies API-driven ownership, durable intent, scheduling, safe reconciliation and operations. Primary compute is a guest-kernel VM; App Containers remain an explicit lower-trust alternative. Read the [resource model](resource-model.md).
+A local-first infrastructure control plane for small teams that want account-owned environments, intelligent resource scheduling, reliable provisioning, built-in security and recoverable infrastructure across their own machines. CoveStack-owned material is licensed under Apache-2.0; this product direction is not a claim of implemented multi-host support. It unifies API-driven ownership, durable intent, scheduling, safe reconciliation and operations. Primary compute is a guest-kernel VM; App Containers remain an explicit lower-trust alternative. Read the [resource model](resource-model.md).
 
 The value proposition is an observable request-to-ready-to-recovery workflow, not a large service count or a claim that other tools lack these mechanisms. Emulators can run inside provisioned environments as optional application-test dependencies. Incus itself already manages infrastructure; CoveStack must demonstrate useful additional integration rather than rename its API.
 

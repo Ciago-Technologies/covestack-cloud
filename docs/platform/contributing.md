@@ -2,7 +2,7 @@
 
 Product identity and core/future scope: [canonical architecture and service catalogue](../product/CoveStack-Product-Architecture-and-Service-Catalogue.md).
 
-Updated: 4 November 2026. Documentation is open to review; the repository has no root license grant yet. Maintainers must resolve contribution/distribution terms in [license and attribution](license-and-attribution.md) before assuming rights.
+Updated: 4 November 2026. CoveStack-owned code and documentation use maintainer-approved Apache License 2.0 (SPDX `Apache-2.0`); read the [root LICENSE](../../LICENSE) and [attribution obligations](license-and-attribution.md). Third-party material retains its own terms.
 
 ## Start safely
 
@@ -36,4 +36,8 @@ Do not run restricted Docker/Kubernetes/MinIO/Terraform/GitHub operations in the
 
 Current architecture belongs in docs/platform. Keep V5 historical body and dated environment/checkpoint/test evidence intact; add explicit supersession or correction, never rewrite historical test outcomes. If a source feature changes, update implementation ledger, API compatibility, feature spec, readiness and affected operating/upgrade steps together. A release must not become production-supported through wording alone. Cite official sources for technical/competitor claims and distinguish absence of evidence from evidence of absence.
 
-No new code license, CLA, DCO, governance contact or security-reporting email is chosen by this guide; maintainers must decide and publish the actual policy.
+## License and contribution rights
+
+The maintainer approved Apache License 2.0, SPDX `Apache-2.0`; the official full text is in [LICENSE](../../LICENSE). Submit only contributions you are authorized to provide for inclusion under these terms, unless separately agreed with the maintainer; section 5 governs intentionally submitted contributions. Preserve existing copyright/license notices and identify third-party origins. Do not replace upstream licenses or claim other authors' rights.
+
+No separate CLA, DCO or copyright assignment is introduced by this update. The maintainer must settle any additional contribution/governance process explicitly. Dependency/image attribution, copied reference material, binary notices and required source obligations remain distribution review items. Licensing does not certify runtime support or security. See [adoption decision](licensing-decision.md).

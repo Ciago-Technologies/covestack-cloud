@@ -2,11 +2,13 @@
 
 Updated: 4 November 2026. **Canonical active product identity, scope and catalogue.** This is a specification, not a list of available services. Source, [implementation evidence](../platform/implementation-status.md), [maturity gates](../platform/readiness.md) and unchanged [wire contract 1.1.0](../../contracts/README.md) determine actual behavior.
 
+Active requirements: [product SRS](CoveStack-Product-SRS.md).
+
 ## 1. Product identity
 
-**An open-source, local-first infrastructure control plane for small teams that want account-owned environments, intelligent resource scheduling, reliable provisioning, built-in security and recoverable infrastructure across their own machines.**
+**A local-first infrastructure control plane for small teams that want account-owned environments, intelligent resource scheduling, reliable provisioning, built-in security and recoverable infrastructure across their own machines.**
 
-Open-source is intended direction: the checkout still lacks a root license grant and distribution needs maintainer action. Across machines is the eventual scope, not implemented multi-host support. Intelligent means explainable resource/capability/quota/constraint decisions, not an AI scheduler claim. No public cloud account is required by the target local capabilities; acquiring images/updates or optional external DNS may require separately disclosed network/provider access.
+CoveStack-owned code and documentation are licensed under [Apache License 2.0](../../LICENSE) (SPDX `Apache-2.0`), approved by the maintainer. Third-party material and bundled artifacts retain their own licenses and redistribution obligations. Across machines is the eventual scope, not implemented multi-host support. Intelligent means explainable resource/capability/quota/constraint decisions, not an AI scheduler claim. No public cloud account is required by the target local capabilities; acquiring images/updates or optional external DNS may require separately disclosed network/provider access.
 
 CoveStack orchestrates established technologies; it is not a hypervisor, Kubernetes distribution, cloud API clone or replacement for Floci, LocalStack, Coolify, Portainer, OpenStack or CloudStack. Potential users are developers, self-hosters, small teams and organizations; demand requires interviews and real pilot use. Education institutes may operate infrastructure, but no student/instructor/lab-management or assessment product is in scope.
 
@@ -24,9 +26,9 @@ These overlap existing products. A coherent demonstrably easier/reliable workflo
 
 ## 3. Scope and status rules
 
-Core here means the **proposed product architecture**, not an academic scope amendment, installed capability or commitment to finish every item immediately. The 22 core entries include supporting capabilities and interfaces, not 22 separate daemons/microservices. Future entries are dependency-bound candidates, not a release plan. Initial implementation must select a safe subset through review without concealing unmet product requirements.
+Core here means the **proposed product architecture**, independent of academic deliverables and not an installed capability or commitment to finish every item immediately. The 22 core entries include supporting capabilities and interfaces, not 22 separate daemons/microservices. Future entries are dependency-bound candidates, not a release plan. Initial implementation must select a safe subset through review without concealing unmet product requirements.
 
-The academic CORE-5 categories, tests 1–15, fixed app/PG/bucket integration, CLI/security/recovery and installer remain visible in [academic transition](../platform/academic-transition.md). New core App Containers/images/firewalls/projects/secrets/monitoring/snapshot foundations enlarge scope; mentor/team approval is required for an academic amendment. No Kubernetes waiver, new deadline or ownership transfer is implied. The old fixed stack is the bounded first environment, not a general DAG engine.
+Product scope is independent of historical academic CORE-5. The 22 core and 31 future classifications below define the product direction; academic service limits, dates and template counts are historical reference only and do not gate product functionality. Engineering schema/security/contract review remains required. Environment definitions are bounded and dependency-aware; no arbitrary DAG engine is promised.
 
 Service maturity vocabulary: **Proposed → Planned → In Progress → Partially Implemented / Implemented → Runtime Verified → Acceptance Gates Passed → Supported**, with **Deferred** and **Blocked** as explicit alternatives. This is evidence tracking, not an automatic linear ladder: code can be implemented while runtime verification is blocked; record both fact and gate. Legacy V5 Gates passed/Extended track are historical labels, mapped in readiness.md. No service is Supported from an API/schema/source file or mock test. None is promoted by this task.
 
@@ -91,7 +93,7 @@ Every row is Deferred as product expansion; no dates, numbered releases or imple
 | 44 | Security Posture Checks | Security | Misconfiguration/weak-policy checks and recommendations | Reliable inventory, versioned rules and IAM/audit | Defer unvalidated compliance claims; findings evidence-based, exceptions explicit | Deferred |
 | 45 | Image Vulnerability Scanning | Security | Expose trusted scanner findings for selected images | Image digest/provenance, scanner/version/feed and policy | Defer user-facing scanning service; baseline release scanning remains required; findings not proof absence | Deferred |
 | 46 | Supply-Chain Security Integrations | Security | Richer provenance/signature/SBOM policy integrations | Core trusted artifact verification, approved signing/attestation backends | Defer integrations, not baseline release trust; reject tampered artifact and preserve provenance | Deferred |
-| 47 | Kubernetes Node Pools | Infrastructure | Worker group sizing/constraints/node lifecycle and future scaling | Tested cluster lifecycle, capacity and node ownership | Defer cluster topology growth; preserve 1-server/max-2-agent academic bound until approved change | Deferred |
+| 47 | Kubernetes Node Pools | Infrastructure | Worker group sizing/constraints/node lifecycle and future scaling | Tested cluster lifecycle, capacity and node ownership | Defer topology expansion until node ownership, measured capacity and lifecycle conformance are established; historical academic node limits are not product limits | Deferred |
 | 48 | Autoscaling Groups | Infrastructure | Bounded desired membership and scaling policy | Reliable compute/health/admission, cooldown and ownership model | Defer automated amplification; min/max/failure/outage tests without quota bypass | Deferred |
 | 49 | Multi-host Scheduling | Infrastructure | Place account/environment resources across owned registered machines | Single-host admission plus network/storage locality, assignments and partition-safe task authority | Defer distributed failure domains; no implicit HA; reject stale hosts and prevent split ownership | Deferred |
 | 50 | Advanced Load Balancing | Infrastructure | Richer protocols/algorithms/topologies and failover | Basic LB, measured health/capacity and gateway policy | Defer breadth; failover proven under partial failure with no cross-account target binding | Deferred |
@@ -145,7 +147,7 @@ The following are conceptual responsibilities, **not new API fields, SQL columns
 | App Container | Docker/approved OCI backend | Restricted shared-kernel workloads and internal services; distinct from VM |
 | Kubernetes | k3d/k3s candidate | Actual local cluster; runtime/capacity limits, not a production Kubernetes SLA |
 | Volume/network | Incus/Linux/host capabilities | Owner-bound disk/NIC/IP/ACL capability adapters; one allocator authority |
-| Object storage | **Provider under evaluation** | Garage/SeaweedFS/Ceph RGW evaluation; legacy MinIO not a new default |
+| Object storage | **RustFS preferred candidate; Planned** | RustFS preferred candidate, integration Planned; SeaweedFS/other adapters remain possible; see provider evaluation |
 | Database | Managed PostgreSQL workload driver | Actual SQL/credential/private-volume/readiness and verified restore |
 | Secrets | Mature provider integration under evaluation | Protected reference/issuance/rotation/audit, no homemade vault |
 | Development mail | Existing Mailpit dependency | Local capture only, no production mail guarantee |
@@ -196,6 +198,8 @@ Current code supports signing/config/lifecycle helpers and a read-only no-execut
 
 No Labs product, assignments, instructor dashboard, learning catalogue/path/marketplace or validation engine; no CI/CD system, hypervisor implementation, Kubernetes distribution or new release-by-release roadmap. Education usage does not create an education product. The existing numbered product roadmap is superseded historical planning only; [future dependencies](../platform/future-services.md) carry no release numbers/dates.
 
-Maintain academic five categories and responsibilities in [academic transition](../platform/academic-transition.md). New core scope is broader and cannot be promised within the old deadline. Confirm the latest 15 December year/scope versus prior January plan; no automatic change here. Product project/organization model, environment sharing/retention, provider default, VM/wire compatibility and scheduler/secret decisions need B+C+A/D and E for CLI; mentor handles academic changes.
+Historical academic material is preserved in [historical reference](../platform/academic-transition.md) and does not constrain this product catalogue. No academic date becomes a product deadline. Project/organization model, sharing/retention, RustFS artifact/custody integration, VM/wire compatibility and scheduler/secret decisions need engineering review by B+C+A/D and E for CLI; no implementation approval is invented.
 
 Research and evaluation: [provider evidence](../platform/provider-evaluation.md), [competitive analysis](../platform/competitive-analysis.md), [references](../platform/references.md). All new functionality requires separately authorized implementation and tests. No API field, resource kind, schema/migration or lifecycle value is changed by catalogue terminology or its reference IDs.
+
+Object-storage implementation preference: **RustFS, integration Planned**, operator-managed process/volumes with Java-side bucket/policy/credential reconciliation. SeaweedFS/other adapters remain possible. See [verified upstream findings and unverified integration requirements](../platform/provider-evaluation.md#rustfs-compatibility-and-acceptance). Apache-2.0 is adopted with maintainer approval and the official root LICENSE: [licensing decision](../platform/licensing-decision.md).

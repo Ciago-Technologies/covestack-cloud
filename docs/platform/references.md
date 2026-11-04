@@ -42,3 +42,9 @@ The requested bestpractices.coreinfrastructure.org URL redirects to bestpractice
 | [OpenBao](https://openbao.org/docs/) | Secrets-provider candidate; custody integration and operational sizing unverified |
 
 No provider is declared maintained, supported or secure from website availability alone. Record exact artifacts, license notices, current security/release evidence and accountable maintainers before selecting a default.
+
+## RustFS and licensing correction sources
+
+Reviewed 4 November 2026: [RustFS S3 matrix](https://docs.rustfs.com/en/reference/s3-compatibility), [IAM](https://docs.rustfs.com/en/security-compliance/iam), [access keys](https://docs.rustfs.com/en/security-compliance/iam/access-token), [installation/container](https://docs.rustfs.com/en/installation/container), [Linux persistent path](https://docs.rustfs.com/en/installation/linux/quick-start), [Kopia destination integration](https://docs.rustfs.com/en/developer/integration/backup/kopia), [RustFS license](https://github.com/rustfs/rustfs/blob/main/LICENSE), [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0.txt), [MIT](https://opensource.org/license/mit). These substantiate candidate/recommendation review, not CoveStack runtime or licensing approval. Older MinIO sources remain historical/provider-comparison evidence only.
+
+Maintainer-approved licensing update: complete official [Apache-2.0 text](https://www.apache.org/licenses/LICENSE-2.0.txt) copied unchanged to [root LICENSE](../../LICENSE). Approval comes from the latest maintainer instruction, not from the research sources; third-party attribution remains separate.

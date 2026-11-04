@@ -47,9 +47,9 @@ G1: DB desired state/generation authoritative. G2: crash-safe inspection/rebuild
 
 All thresholds/profile dimensions, security exceptions and result artifacts need reviewer approval before running qualification; no invented SLA or uptime percentage. Unit-only tests are labelled as such. Benchmarks do not establish resistance to all malicious workloads.
 
-## Academic test continuity
+## Historical test continuity
 
-Preserve V5 tests 1–15 and E1–E8 as historical obligations. New VM/container tests supplement rather than silently replace them. Test 1 previously asserted exactly one container; it must be mapped to exactly one VM plus guest readiness for the new compute target, with separate container coverage. Mapping requires team/mentor acceptance and coordinated contracts; see [academic transition](academic-transition.md). Do not invent approved SRS requirement IDs.
+V5 tests 1–15 and E1–E8 remain historical records, not a cap on product acceptance. Product tests are defined by the selected service and actual boundary. Old exactly-one-container evidence does not prove a VM: verify exactly one owned VM, guest readiness, network/disk ownership and separate container conformance. Engineering schema/contract review is still necessary; academic permission is not a product dependency. See [historical reference](academic-transition.md).
 
 ## Failure domain and support
 

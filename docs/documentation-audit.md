@@ -1,3 +1,124 @@
+# Apache-2.0 adoption and RustFS confirmation — current follow-up
+
+Updated: 4 November 2026. Targeted documentation/licensing update; reused the existing audit and provider analysis. Older reports below preserve the accurate earlier approval-pending history but no longer describe the current license.
+
+Maintainer explicitly approved Apache License 2.0. Root LICENSE is the unmodified official apache.org text (11,358 bytes, 202 lines; SHA256 cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30). SPDX identifier Apache-2.0 now appears consistently in active project/contribution/SRS documentation. No fabricated holder/author or source header added. No NOTICE invented: preserve any applicable upstream NOTICE attribution in actual distributions, after inspecting the selected artifacts. Existing dependency/external-project licenses remain unchanged.
+
+RustFS remains preferred and Planned. Official S3 matrix and IAM docs rechecked; explicit bucket/object/multipart subset documented, ACL authorization excluded and bucket logging/ownership controls planned. Operator storage, account buckets, Java policy/credential reconcile and replaceable adapters retained. Existing real-byte, tenant/foreign denial, restart and verified restore acceptance requirements remain pending; no runtime tests run.
+
+## Files changed in this follow-up
+
+| File | Disposition |
+| --- | --- |
+| `AGENTS.md` | Modified |
+| `COVESTACK-PROJECT-OVERVIEW.md` | Modified |
+| `LICENSE` | Created |
+| `README.md` | Modified |
+| `checkpoint.md` | Modified |
+| `docs/README.md` | Modified |
+| `docs/documentation-audit.md` | Modified |
+| `docs/platform/README.md` | Modified |
+| `docs/platform/contributing.md` | Modified |
+| `docs/platform/decisions.md` | Modified |
+| `docs/platform/implementation-status.md` | Modified |
+| `docs/platform/license-and-attribution.md` | Modified |
+| `docs/platform/licensing-decision.md` | Modified |
+| `docs/platform/provider-evaluation.md` | Modified |
+| `docs/platform/references.md` | Modified |
+| `docs/platform/strategy.md` | Modified |
+| `docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md` | Modified |
+| `docs/product/CoveStack-Product-SRS.md` | Modified |
+
+Scope: 17 existing Markdown files updated; root LICENSE created. Pre-existing changes remain untouched. No source/config/test/schema/migration/contract/dependency/Compose/infrastructure modifications; .gitignore fingerprint unchanged. No installs, commit, push or application execution.
+
+Verification: LICENSE byte equality with official download; active license wording and internal links; Markdown tables/fences/README rendering; historical V5/archive/checkpoint preservation; protected-file fingerprints and git diff whitespace. Existing 48 historical missing local references remain documented. Prior code/runtime reports were not rerun. Remaining concerns: resolved transitive licenses/SBOM, bundled notices/source obligations, image/runtime/firmware rights and copied handbook/reference provenance; contributor governance beyond the license is not invented. RustFS artifact/admin/custody/security/restart/service-wide backup profile still requires implementation and real evidence.
+
+<!-- Earlier audit and correction reports preserved below; historical results. -->
+
+# Targeted corrections — RustFS, independent product scope and licensing
+
+Updated: 4 November 2026. This is a focused follow-up using the existing audit, not a new repository-wide audit. Latest user decisions supersede the earlier approval/scope conditions below; historical results remain preserved. Product core/future classifications are unchanged but independent of academic CORE-5.
+
+## Decisions and evidence
+
+- RustFS preferred candidate, integration Planned. Official S3/IAM/persistence/license material reviewed; compatibility limits and unverified Java admin, scoped credentials, restart and actual service backup/restore are documented in provider-evaluation.md. Java owns bucket/policy/credential reconciliation; operator owns process/volumes; alternatives remain possible.
+- New active product SRS adopts the catalogue independently. Historical V5 bodies and previous academic transition text remain intact under current notices. Old academic dates, counts and caps are not product requirements.
+- Apache-2.0 recommended over MIT for express patent terms, pending rights-holder approval and root publication. No root LICENSE added, no upstream license altered, no final transitive redistribution clearance claimed.
+- README rendered using the already-installed markdown-it parser: one H1, one table/five rows, 22 internal links. No escaped markup/entities. Agent source was read: signed single-account polling/no-execution exists; full provisioning/assignment/claims/runtime execution pending.
+- .gitignore had no staged/unstaged diff at task start. Its SHA256 matches both prior task-start snapshots. Commit 51014ba contains the overview ignore rule; that content predates the previous Codex documentation work. No accidental Codex hunk is established, so no ignore rule was reverted. Earlier author intent is not independently known; preserve existing user work rather than assume it was accidental.
+
+## Every file changed in this correction
+
+| File | Disposition | Change |
+| --- | --- | --- |
+| `AGENTS.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `COVESTACK-PROJECT-OVERVIEW.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `README.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `V5/CoveStack-API-and-Compatibility.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-AntiWrapper-Acceptance.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-Anuj-Next-Steps.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-Complete-Working-Setup.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-Current-Setup-Fixes.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-Database-Schema.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-Extended-Roadmap.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-Go-Handover.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-Implementation-Status.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-Instance-Metadata.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-Operations-and-Recovery.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-PDF-and-Formatting.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-Project-Workflow.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-Publication-Domains-and-Tunneling.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-References-and-Decision-Log.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-Resource-Services.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-SRS-Scope.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-Security-and-ITISS.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-Service-Catalog.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-Service-Gates.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-Stack-Templates.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-Team-START-HERE.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-Terraform-and-Ansible.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-Testing-and-Acceptance.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-UI-CLI-and-Monitoring.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/CoveStack-VPC-IPAM-and-Networking.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/DocsV5-DO_Team.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/Folder_Structure_Explanation.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/README.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/Team_Roles.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `V5/tools.md` | Modified | Historical body preserved; active relocation scope/provider/SRS pointer corrected |
+| `agent/README.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `checkpoint.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `deploy/README.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `docs/README.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `docs/documentation-audit.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `docs/platform/README.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `docs/platform/academic-transition.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `docs/platform/architecture.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `docs/platform/capacity.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `docs/platform/decisions.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `docs/platform/environments.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `docs/platform/feature-specifications.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `docs/platform/future-services.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `docs/platform/implementation-status.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `docs/platform/installation-and-operations.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `docs/platform/license-and-attribution.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `docs/platform/licensing-decision.md` | Created | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `docs/platform/network-and-storage.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `docs/platform/networking-and-policy.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `docs/platform/provider-evaluation.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `docs/platform/readiness.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `docs/platform/references.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `docs/platform/strategy.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md` | Modified | Current product scope/provider/licensing/status/navigation/handoff correction |
+| `docs/product/CoveStack-Product-SRS.md` | Created | Current product scope/provider/licensing/status/navigation/handoff correction |
+
+Result: **57 existing Markdown files modified, 2 new Markdown files created**. The ignored root overview remains ignored by the unchanged existing rule; it will need explicit maintainer publication handling later if desired. No Git mutation is authorized here.
+
+Static verification: Markdown tables/fences and active local links/anchors; unchanged catalogue IDs/classifications; historical-body and protected-file fingerprints; README parse/render; diff whitespace. Existing 48 missing historical references are preserved, not current product link failures. No runtime acceptance or legal clearance is implied. No implementation/config/schema/migration/contract/dependency/test/infrastructure files changed; .gitignore unchanged. No app/infrastructure tests, installs, commits or pushes.
+
+Remaining decisions: exact RustFS artifact and support profile, Java admin adapter/permissions, bootstrap and tenant key custody/rotation, consistent protected backup/restore and independent target, upgrade/security/capacity evidence; rights-holder approval, dependency inventory/notices and published root license. Engineering protocol/schema review remains necessary independently of academic history.
+
+<!-- Earlier documentation audit preserved below; historical task results. -->
+
 # Current documentation catalogue refinement — 4 November 2026
 
 This section records the latest master task. The earlier redesign audit below is retained as historical evidence; its counts are not the totals for this refinement. Scope is Markdown only, with read-only source/config/contract inspection and official research. No application or infrastructure tests, installs, Git mutations or environment provisioning.

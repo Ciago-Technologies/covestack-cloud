@@ -2,13 +2,13 @@
 
 Updated: 4 November 2026. Target requirements, not executable schemas or wire field names. Each feature records the user outcome, account/data/runtime boundary, failure behavior and evidence. Read [status](implementation-status.md) before interpreting a scope designation as available. Every provisioning subset requires baseline security/idempotency/capacity. No release plan is generated or endorsed here.
 
-Historical CORE-5 academic categories and test numbers are preserved by [academic transition](academic-transition.md). Product VM/App Container distinction changes implementation/specs and needs reviewed mapping; no additional academic deliverable or waiver is inferred. No dependency is added by this document.
+Product requirements are independent of historical CORE-5; [historical reference](academic-transition.md) preserves the old records without limiting this specification. Product VM/App Container changes require engineering contract review, not academic scope approval. No dependency is added by this document.
 
 ## VM Instances
 
 | Field | Requirement / evidence boundary |
 | --- | --- |
-| Scope | CORE product; academic compute mapping pending |
+| Scope | Core product |
 | User problem | Need owned general-purpose guest OS |
 | User story | As an account member, request a VM and manage it without hypervisor access |
 | Expected outcome | One ready owned guest-kernel VM with persistent owned disk/NIC |
@@ -26,7 +26,7 @@ Historical CORE-5 academic categories and test numbers are preserved by [academi
 
 | Field | Requirement / evidence boundary |
 | --- | --- |
-| Scope | CORE product; not an automatic extra academic deliverable |
+| Scope | Core product |
 | User problem | Need lightweight trusted applications |
 | User story | As a trusted user, run an approved image under explicit resource limits |
 | Expected outcome | Owned ready shared-kernel app, never represented as VM |
@@ -44,13 +44,13 @@ Historical CORE-5 academic categories and test numbers are preserved by [academi
 
 | Field | Requirement / evidence boundary |
 | --- | --- |
-| Scope | Core proposed product and required academic scope |
+| Scope | Core product |
 | User problem | Need usable local Kubernetes, not cluster metadata |
 | User story | As an authorized account user, obtain a cluster and scoped kubeconfig |
 | Expected outcome | Reachable API and workload result with correct ownership |
 | API responsibilities | Quota/port/capacity reservation, operation and separately authorized kubeconfig export |
 | Data ownership | Account cluster/ports/node/host identity; secrets stored by protected reference |
-| Runtime/backend responsibility | k3d CLI provider; tested pinned pair; historical lab cap retained conservatively |
+| Runtime/backend responsibility | k3d CLI provider; tested pinned pair; profile limits set by measured capacity |
 | Security boundary | Protected kubeconfig and management API; no generic tenant privileged host access |
 | Failure behavior | Recover half-create by recorded identity/task; deletion holds quota until confirmed |
 | Acceptance tests | Existing tests 7–10 plus actual workload and measured capacity |
@@ -62,7 +62,7 @@ Historical CORE-5 academic categories and test numbers are preserved by [academi
 
 | Field | Requirement / evidence boundary |
 | --- | --- |
-| Scope | Core product and academic data |
+| Scope | Core product |
 | User problem | Need actual private durable SQL and restore |
 | User story | As an account user, write rows and recover deleted test data |
 | Expected outcome | Ready private SQL endpoint with scoped credential and verified restore |
@@ -80,13 +80,13 @@ Historical CORE-5 academic categories and test numbers are preserved by [academi
 
 | Field | Requirement / evidence boundary |
 | --- | --- |
-| Scope | Core product and academic data |
+| Scope | Core product |
 | User problem | Need real byte storage with scoped access |
 | User story | As an account user, upload/download an object without administrator keys |
 | Expected outcome | Exact bytes and owned bucket/policy persist |
 | API responsibilities | Java owns bucket/credential reconciliation and authorized retrieval |
 | Data ownership | Tenant bucket records separate from operator-owned object-provider service/storage |
-| Runtime/backend responsibility | Unselected S3-compatible provider; [provider evidence](provider-evaluation.md) |
+| Runtime/backend responsibility | Preferred RustFS candidate through replaceable provider adapter; exact artifact/profile pending; [provider evidence](provider-evaluation.md) |
 | Security boundary | Per-account S3 policy; operator admin custody/console private |
 | Failure behavior | Process restart rebuilds policies, not lost bytes; object restore separate |
 | Acceptance tests | Tests 12–13 plus retained-object checksum and foreign-key denial |
@@ -94,11 +94,13 @@ Historical CORE-5 academic categories and test numbers are preserved by [academi
 | Dependencies | Shared runtime bootstrap, secret custody, network path, data backup |
 | Scope priority | Dependency-bound product target; [canonical core/future classification](../product/CoveStack-Product-Architecture-and-Service-Catalogue.md); no release assignment |
 
+RustFS is preferred; integration remains Planned. Operator-managed storage and Java-side bucket/policy/credential reconcile are distinct from agent process lifecycle. See [compatibility gaps and failure/restore requirements](provider-evaluation.md#rustfs-compatibility-and-acceptance).
+
 ## VPC/IPAM
 
 | Field | Requirement / evidence boundary |
 | --- | --- |
-| Scope | CORE academic/product network |
+| Scope | Core product |
 | User problem | Need predictable private connectivity without collisions |
 | User story | As an account user, connect owned resources while others are denied |
 | Expected outcome | One initial owned network/account with actual allowed/denied paths |
@@ -152,7 +154,7 @@ Historical CORE-5 academic categories and test numbers are preserved by [academi
 
 | Field | Requirement / evidence boundary |
 | --- | --- |
-| Scope | CORE academic/cross-cutting |
+| Scope | Core platform capability |
 | User problem | Need programmable lifecycle without runtime administration |
 | User story | As a user, create/wait/get/list in stable JSON |
 | Expected outcome | Same authoritative API outcome across clients |

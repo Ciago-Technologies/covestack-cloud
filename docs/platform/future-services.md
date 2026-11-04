@@ -2,7 +2,7 @@
 
 Updated: 4 November 2026. **No release-by-release plan, dates or Labs product.** The [canonical catalogue](../product/CoveStack-Product-Architecture-and-Service-Catalogue.md#5-later-candidates-dependencies-and-deferral) owns entry IDs/classification; this index explains the dependency review. Historical numbered roadmap is superseded, not a new release commitment.
 
-Core foundations include snapshots/backup, IAM/secrets, monitoring/health/logs, quotas, network enforcement and environments even while no service is supported. Richer future services must not become excuses to defer those protections. Product core is wider than academic CORE-5; review capacity/scope rather than promise every proposed entry immediately.
+Core foundations include snapshots/backup, IAM/secrets, monitoring/health/logs, quotas, network enforcement and environments even while no service is supported. Richer future services must not become excuses to defer those protections. Product core is independent of academic CORE-5; dependencies and evidence, not historical academic limits, determine implementation priority.
 
 | Future ID | Candidate | Prerequisites | Deferral reason / required proof |
 | --- | --- | --- | --- |
@@ -30,7 +30,7 @@ Core foundations include snapshots/backup, IAM/secrets, monitoring/health/logs, 
 | 44 | Security Posture Checks | Reliable inventory, versioned rules and IAM/audit | Defer unvalidated compliance claims; findings evidence-based, exceptions explicit |
 | 45 | Image Vulnerability Scanning | Image digest/provenance, scanner/version/feed and policy | Defer user-facing scanning service; baseline release scanning remains required; findings not proof absence |
 | 46 | Supply-Chain Security Integrations | Core trusted artifact verification, approved signing/attestation backends | Defer integrations, not baseline release trust; reject tampered artifact and preserve provenance |
-| 47 | Kubernetes Node Pools | Tested cluster lifecycle, capacity and node ownership | Defer cluster topology growth; preserve 1-server/max-2-agent academic bound until approved change |
+| 47 | Kubernetes Node Pools | Tested cluster lifecycle, capacity and node ownership | Defer topology expansion until node ownership, measured capacity and lifecycle conformance are established; historical academic node limits are not product limits |
 | 48 | Autoscaling Groups | Reliable compute/health/admission, cooldown and ownership model | Defer automated amplification; min/max/failure/outage tests without quota bypass |
 | 49 | Multi-host Scheduling | Single-host admission plus network/storage locality, assignments and partition-safe task authority | Defer distributed failure domains; no implicit HA; reject stale hosts and prevent split ownership |
 | 50 | Advanced Load Balancing | Basic LB, measured health/capacity and gateway policy | Defer breadth; failover proven under partial failure with no cross-account target binding |
