@@ -1,3 +1,13 @@
+# Architecture transition notice — 4 November 2026
+
+> **Superseded design reference.** Active guidance: [platform readiness](../docs/platform/readiness.md). Retain G1–G4 and original test obligations. New maturity/evidence categories are separate; no source, mock or documentation edit promotes a service.
+>
+> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
+
+Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); wider proposed core is not an approved replacement for academic CORE-5.
+
+<!-- Historical body preserved below; see supersession notice above. -->
+
 # CoveStack V5 — Service Gates and Promotion Evidence
 
 | Document control        | Value                                                                   |

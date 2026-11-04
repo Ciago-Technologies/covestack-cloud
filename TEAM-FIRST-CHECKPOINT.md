@@ -1,3 +1,9 @@
+# Superseded planning reference — 4 November 2026
+
+> This dated guide/diagram plan is retained for history; use [current platform documentation](docs/platform/README.md) and [academic transition](docs/platform/academic-transition.md) for new work. Primary compute is a real VM Instance; App Container is separate. Old container-Droplet/two-driver/8 GB production implications and January schedule are not current product instructions. Original obligations and results remain below; no mentor waiver or VM implementation is inferred. Existing SVG/PDF exports are historical, not regenerated or runtime proof.
+
+<!-- Historical body preserved below; see supersession notice above. -->
+
 # CoveStack — First Team Checkpoint and GitHub Board Guide
 
 | Document control          | Value                                                                                |

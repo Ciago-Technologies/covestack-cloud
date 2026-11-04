@@ -1,10 +1,51 @@
+# CoveStack — current canonical AI-agent handoff
+
+Updated: **4 November 2026**. Branch inspected: **feat/agent-signed-client**, revision **84975bb**. No Git branch/history changes, commit, push or remote synchronization were performed. Read AGENTS.md, this current section and actual Git status before starting.
+
+## Current task, authority and result
+
+Latest user master task: repository-wide documentation refinement for local-first, account/environment-owned real infrastructure. **Markdown only**; no application/config/SQL/migration/API-contract/test/build/CI changes, installs or infrastructure actions. Read-only source inspection and official research authorized. Pre-existing uncommitted changes (including .gitignore) are preserved and separately fingerprinted. User previously confirmed deleting three redundant PDFs; do not restore them.
+
+Canonical product authority: [Product Architecture and Service Catalogue](docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md). It defines **22 proposed core capabilities and 31 deferred future candidates**, not implemented services, a release plan or an academic amendment. VM Instance is actual guest-kernel compute target; separate App Container is shared-kernel/trusted. Incus/QEMU/KVM is preferred evaluation, no driver exists. Floci is optional external testing integration, not mandatory foundation or rewrite target. Account/environment ownership, bounded dependency/readiness orchestration, capacity scheduling, security and verified recovery are hypotheses to prove. No Labs/assignments/learning-management product and no new release plan.
+
+The object-storage provider has **no selected new default**: evaluate Garage, SeaweedFS and Ceph RGW; legacy MinIO needs current artifact/maintenance/rights review. Secrets should use a reviewed mature provider, not a homemade vault. No root license grant is present; open-source is intended direction. Multi-host is future scope, single-host is not HA, 8 GB is a historical development/lab constraint, not production sizing. No supported production profile.
+
+## Actual implementation and evidence
+
+Go signed client/config/signer/lifecycle helpers, cancellable single-account no-execution poll loop and entry point exist. Returned work stops with ErrWorkAvailable. Timeout/selected HTTP retry exists; general network-failure and real-server behavior are not proven. Java auth/replay/interfaces/helpers and extended V5/V6 SQL exist, but foundational migration chain, runnable scoped APIs, concrete credentials/assignment, VM/container/network/storage execution, full CLI and environment/scheduler behavior remain missing or unverified. Existing tests/reports are historical evidence, not fresh runtime verification. No application/infrastructure tests ran for this documentation task.
+
+Current contract 1.1.0 stays unchanged; conceptual VM/App Container/project/capacity/network fields are not approved wire kinds/fields/states. Claims use exact generation/owner/epoch target fence, progress never acknowledges; stale runtime tasks require outcome inspection. One agent per host with account credential/client contexts is retained pending host-assignment/custody detail review.
+
+## Roles and scope review
+
+A/Anuj owns agent/client/driver/signing/reconcile Go, CI, installer/ITISS and explains code. E thin API-only CLI/JSON/packaging/later provider, never agent implementation. B Java core/all SQL/leases/idempotency/quotas/stacks; C security/all acceptance/Java allocator; D Java API/DTO/schema, no Go. Future scheduler ownership needs explicit team review. Academic CORE-5 categories/tests 1–15, fixed stack and approved cross-cutting obligations remain visible; product VM conversion and wider core require team/mentor approval, not silent scope expansion. Latest user deadline 15 December lacks restated year; historical V5 says 25 January 2027. Do not invent resolution.
+
+Active statuses: Proposed, Planned, In Progress, Partially Implemented, Implemented, Runtime Verified, Acceptance Gates Passed, Supported, Deferred, Blocked. G1 intent, G2 crash-safe reconciliation, G3 ownership/actual isolation and G4 automated failure evidence remain mandatory. Supported additionally needs declared scope, qualified profile and maintenance policy. No gate promotion in this task.
+
+## Verification, files and next action
+
+Current refinement modified 57 existing Markdown files and created 6 Markdown files; exact paths/dispositions and current versus earlier audit are in [documentation audit](docs/documentation-audit.md). Static tables/fences/active links/anchors, catalogue IDs, historical V5/archive bodies and protected-file fingerprints checked. 48 existing missing historical links retained; no active link failures. Mermaid structurally inspected, not visually rendered. Ignore rules unchanged; ignored Markdown needs deliberate maintainer handling if later publishing.
+
+Next action is **team review**, not automatically authorized code: read canonical catalogue, [academic transition](docs/platform/academic-transition.md), [decisions](docs/platform/decisions.md), [provider evaluation](docs/platform/provider-evaluation.md), [capacity](docs/platform/capacity.md), [readiness](docs/platform/readiness.md) and [implementation status](docs/platform/implementation-status.md). B+C+A/D settle protocol, custody, host assignment, VM scope and acceptance mapping; confirm deadline and license. Then separately authorize real-server integration and a capable-host Incus spike. Preserve current restrictions: no Docker/Compose/k3d/MinIO runtime, no manifests, Terraform deferred and unauthenticated GH CLI; VM capability not probed.
+
+## Dated task continuity
+
+- Earlier 4 November redesign: established docs/platform, VM-first target and historical relocation notices; preserved original guide/evidence bodies. Its earlier audit is retained beneath the new audit. No implementation or service promotion.
+- Current 4 November refinement: created canonical core/future catalogue and five focused domain documents, strengthened environment/network/provider/scheduling/observability/comparison coverage, removed active release assignments by superseding the old plan, aligned navigation/status and preserved historical bodies. No source or infrastructure work.
+
+## Preserved previous checkpoint history
+
+Recorded prior actions/results below are unchanged. Old architecture, dates and next-task guidance do not override this current summary or user authorization.
+
+<!-- Historical checkpoint body starts here. -->
+
 # CoveStack — AI agent handoff checkpoint
 
-Updated: **3 November 2026**. This is a continuity note, not proof of deployed features. Read actual files, current user instructions and git status before acting. Do not assume the snapshot below remains current.
+Updated: **4 November 2026**. This is a continuity note, not proof of deployed features. Read actual files, current user instructions and git status before acting. Do not assume the snapshot below remains current.
 
 ## 1. Read this first
 
-The user is **Anuj, Person A**, learning Go. Explain code in simple language and small steps. He wants to build and understand the agent himself. His latest coding direction is the **single-account agent startup and polling loop**. That code has not been written in the inspected tree. The current handoff-maintenance task authorizes AGENTS.md and checkpoint.md only; it is not permission to implement the next coding task automatically.
+The user is **Anuj, Person A**, learning Go. Explain code in simple language and small steps. He wants to build and understand the agent himself. The single-account polling loop and agent entry point now exist in internal/agent/loop.go and cmd/kan-agent/main.go. The current task creates a standalone CoveStack project overview and maintains this checkpoint; no further implementation or Floci replacement is authorized. Next integration work requires B+C-coordinated real-server evidence, not recreation of the existing loop.
 
 Read AGENTS.md and latest user instructions. Current rules restrict work to approved documentation, forbid code/SQL/contracts/deploy/script/HTML/ignore edits and commit/push/network/installs unless a later user request specifically authorizes an exception. Earlier explicit client-code authorization does not grant unrestricted future edits. Preserve unrelated changes. AI-generated agent Go is reference only: A must type and explain it. No automatic delegation is needed.
 
@@ -60,7 +101,7 @@ Observed branch: feat/agent-signed-client. HEAD at inspection: 4ef30f7 (Docs: Ad
 | internal/client/client.go / client_test.go        | Single signed work GET, typed common fields, bounded decoding, HTTP errors and cancellation tests |
 | cmd/auth-smoke/main.go / main_test.go             | Existing authentication diagnostic, not a production agent loop                                   |
 
-Paths in the table are relative to kan-agent except the module row. No internal/agent loop or cmd/kan-agent entry point was found. No root pkg/kanclient or cmd/covestack module is established by this snapshot. No functioning execution driver or service gate is established.
+Paths in the table are relative to kan-agent except the module row. The earlier snapshot lacked a loop/entry point; inspection on 4 November 2026 found internal/agent/loop.go, loop_test.go and cmd/kan-agent/main.go. No root pkg/kanclient or cmd/covestack module is established by this snapshot. No functioning execution driver or service gate is established.
 
 ### Client behavior already present in source
 
@@ -112,9 +153,9 @@ Timing values are selected initial operational defaults, not new environment var
 
 B+C+A must finalize credential-to-agent lookup/provisioning; existing KeyService exposes account/key/kind but does not itself prove host assignment. Use mocks for isolated development if needed; keep real-server exit criteria pending.
 
-## 7. Next coding task — where to start
+## 7. Historical loop implementation plan — now present; verify integration
 
-The user asked where to write the startup/poll loop. Suggested files below **do not exist in the inspected tree**. They are proposed locations inside the existing agent module, not a new module or shared-client move.
+The following was the original plan. On 4 November 2026, these files exist and the loop/entry point were read. Do not recreate them. Review remaining integration and recorded verification before another authorized code change.
 
 ```text
 kan-agent/
@@ -301,3 +342,41 @@ Before continuing: check git status, applicable instructions, actual code and ta
 **Remaining issues:** only the permanently excluded environment capabilities remain unavailable. The Go lint gate is clean. No commit or push was performed; branch remains `feat/agent-signed-client`.
 
 **Next action:** in the next authorized agent batch, review the five corrected Go files against the preserved working-tree changes, then collect B/C-coordinated live Java-server evidence for `200 []`, outage recovery, invalid-auth stop, and Ctrl+C cancellation using non-production credentials. Do not attempt Docker, Compose runtime, k3d/k3s, Kubernetes, MinIO/S3, Terraform, GitHub authentication or container-backed acceptance.
+
+## Floci comparison task — 4 November 2026
+
+**Objective:** explain Floci versus CoveStack using current primary documentation and local source. **Approach:** inspected floci-io/floci README at https://github.com/floci-io/floci and local loop/main, SRS, AGENTS.md and latest checkpoint records. This was a documentation-level comparison, not a full source audit or runtime benchmark of Floci. No Floci installation or workload was run.
+
+**Findings:** Floci documents AWS-shaped APIs for local development/testing/CI, existing SDK/CLI/IaC integration, configurable persistence, real Docker compute/databases and k3s-backed EKS. Do not claim these mechanisms are unique to CoveStack, or assume Floci lacks identity/isolation/recovery without a dedicated audit. CoveStack targets the smaller CORE-5 account-scoped relational control plane, split Java/Go execution, explainable recovery and usable fixed-stack lab. These are target guarantees until evidenced, not proven superiority.
+
+**Current source correction:** loop.go and cmd/kan-agent/main.go exist; the loop polls without execution, handles errors/waits and stops on unexecutable work. Updated stale opening/section 7 statements accordingly. Previously recorded race/vet/lint passes remain historical; no tests or live server checks were rerun for this comparison. No service gate advanced.
+
+**Changes/checks:** checkpoint.md only. Read-only git status showed feat/agent-signed-client with a clean working tree before this update; no remote sync checked. Local links/fences and file fingerprints checked during task. No code, SQL, contracts or other documentation changed; no commit/push/install.
+
+**Next:** when explicitly authorized, collect B+C real-server evidence for 200 [], outage/recovery, invalid-auth stop and Ctrl+C against existing loop. Respect environment restrictions in the latest environment documentation; no Docker/container-backed acceptance or new product scope is authorized by the comparison.
+
+## Floci ITISS clarification — 4 November 2026
+
+**Task/approach:** explain IT infrastructure/security learning relevance using the Floci upstream README (https://github.com/floci-io/floci); no installation or runtime audit. Its documented IAM/STS, secrets/KMS, CloudTrail/CloudWatch and actual compute/DB runtimes provide potential lab exercises, not proof of production-equivalent controls or mentor acceptance. API resource configuration is not proof of packet filtering or isolation; verify actual permitted/denied behavior for a chosen exercise.
+
+**Result/progress:** research answer prepared; no implementation or gate changed. Relevant learning can include authorization tests, protected secrets, audit investigation, service operation and recovery. CoveStack's ITISS evidence must demonstrate its own implemented controls; security relevance is not exclusive to either project. No claim of an official C-DAC marks allocation or approval.
+
+**Changes/verification:** only checkpoint.md updated for handoff; inspected git status showed existing checkpoint changes on feat/agent-signed-client, preserved. No code/tests/runtime executed, no commit/push/install. Next implementation action remains authorized B+C real-server integration of the existing agent loop, under current environment restrictions.
+
+## ITISS mechanism comparison clarification — 4 November 2026
+
+**Request/result:** compare how IT infrastructure/security is performed in Floci versus CoveStack, rather than generic security-topic lists. Read upstream docs/services/iam.md and ec2.md and local V5 security rules/Java auth-filter references. Floci documents optional IAM enforcement (default permissive, test-key bypass) and opt-in network-namespace/nftables security-group filtering; legacy disabled-enforcement publication does not enforce source CIDRs. Do not generalize every Floci network record into actual routing or assume default security enforcement.
+
+**CoveStack distinction:** target mandatory verified credential/account/assignment, tenant predicates, HMAC+nonce replay checks, private network helper, scoped secrets, persisted audit and crash-safe reconcile/restore evidence. Signing/filter/client/loop source exists but full identity provisioning, network/runtime/restore and live integration remain pending. Neither stronger security nor full runtime enforcement was benchmarked/proven by this research.
+
+**Evidence/changes:** documentation-level primary-source comparison only; no runtime/tests/installation/commit/push. Only this existing checkpoint updated, preserving prior handoff entries. Current implementation next step unchanged: authorized B+C real-server tests of the existing agent loop. No new implementation authorized.
+
+## Standalone project overview task — 4 November 2026
+
+**Request/authorization:** one root Markdown document explaining CoveStack, use cases, workflow and infrastructure; ordinary checkpoint maintenance. **Approach:** inspect actual agent entry/loop/client paths, Java source inventory, deploy Compose and V5 scope/HLD/stack. Write COVESTACK-PROJECT-OVERVIEW.md as a readable target/current-state overview with architecture diagram, infrastructure bindings, control/data paths, CORE-5 and extended boundaries, recovery/security, roles and evidence requirements.
+
+**Result:** overview created, no implementation changed. It explicitly records latest user-stated deadline 15 December versus old V5 25 January 2027; year/revised scope not confirmed and no replacement schedule invented. No Floci fork or lab-assessment pivot was approved; they remain discussions. Runtime capabilities/gates are not inferred from source.
+
+**Files/checks:** overview and checkpoint.md only; Markdown table widths, fences, local file links and file fingerprints passed. No Go/Java test rerun or live backend validation for this docs task. Pre-existing checkpoint changes preserved; inspected branch feat/agent-signed-client. No commit/push/install or infrastructure operations.
+
+**Remaining/next:** user should review the overview and decide any revised submission scope with mentor before changing CORE-5. Technical integration next step remains B+C real-server credentials/assignment and no-execution agent tests, respecting environment limits; no new coding task is authorized by this document.

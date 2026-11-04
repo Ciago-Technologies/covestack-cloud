@@ -1,3 +1,13 @@
+# Architecture transition notice — 4 November 2026
+
+> **Superseded design reference.** Active guidance: [platform academic-transition](../docs/platform/academic-transition.md). The five academic categories and tests 1–15 remain obligations. VM compute is the new target; its SRS mapping and separate container scope require mentor/team review. No requirement was waived.
+>
+> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
+
+Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); wider proposed core is not an approved replacement for academic CORE-5.
+
+<!-- Historical body preserved below; see supersession notice above. -->
+
 # CoveStack V5 — CORE-5 SRS Scope for Integration
 
 | Document control        | Value                                                                   |

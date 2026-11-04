@@ -1,3 +1,13 @@
+# Architecture transition notice — 4 November 2026
+
+> **Superseded design reference.** Active guidance: [platform roadmap](../docs/platform/roadmap.md). Old January dates are historical; the latest user deadline is 15 December with year/scope confirmation pending. Product releases have no promised academic dates.
+>
+> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
+
+Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); wider proposed core is not an approved replacement for academic CORE-5.
+
+<!-- Historical body preserved below; see supersession notice above. -->
+
 # CoveStack V5 — Delivery Workflow to 25 January 2027
 
 | Document control        | Value                                                                   |
