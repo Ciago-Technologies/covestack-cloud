@@ -1,75 +1,52 @@
-# Architecture transition notice — 4 November 2026
+# CoveStack V5 — Go Ownership and CLI Learner Handover
 
-> **Superseded design reference.** Active guidance: [platform README](../docs/platform/README.md). Old container-Droplet architecture, two-driver ceiling, fixed sizing and delivery claims below are historical. The active platform docs define VM compute, a distinct App Container and evidence-based releases.
->
-> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
+| Document control | Value |
+| --- | --- |
+| Updated | 4 November 2026 |
+| Authority | Detailed current product specification; aligned to the [canonical catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) and [product SRS](../docs/product/CoveStack-Product-SRS.md) |
+| Evidence | Target design, not a completion certificate; source and actual test results determine implementation status |
+| Compatibility | V5 is a documentation label; current wire contract remains 1.1.0; future fields/kinds/versions require coordinated review |
 
-Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); product scope is independent of historical academic CORE-5.
+## 1. A versus E boundary
 
-<!-- Historical body preserved below; see supersession notice above. -->
+| Area | A / Anuj | E |
+| --- | --- | --- |
+| Agent/client/signing/reconcile/runtime providers | Owns and explains implementation | Does not modify/implement |
+| Shared pkg/kanclient target | Reviews/designs with B+C and consumer E; not moved yet | Uses approved API boundary; any shared change needs A+B+C review |
+| CLI/cobra/JSON/wait/errors | Reviews Go and runtime/API separation | Owns thin authenticated user client |
+| Packaging | Reviews toolchain/CI/security | Owns approved CLI OS builds and later real OS-run evidence |
+| Optional provider | Reviews Go/boundary with B/C/D | Later thin Terraform/OpenTofu provider only after APIs/CLI |
 
-# CoveStack V5 — Go Ownership and Learner Handover
+All shared/API/module moves are Planned. No current CLI/provider module is established. Ordinary CLI user auth differs from agent service signing; do not accidentally reuse privileged credentials to make a demo work.
 
-| Document control        | Value                                                                   |
-| ----------------------- | ----------------------------------------------------------------------- |
-| Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **27 October 2026**                                                     |
-| Submission deadline     | **Monday, 25 January 2027**                                             |
-| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
-| Status                  | Target design and implementation guidance; not a completion certificate |
+## 2. E's four learning stages — not dated delivery promises
 
-## 1. Boundary
+| Stage | Learn and deliver | Review gate |
+| --- | --- | --- |
+| W1 | Go modules/structs/errors, explainable cobra hello after module layout review; target OS build exercise | A reviews imports; linux/amd64, darwin/arm64, windows/amd64 build evidence when produced |
+| W2 | net/http, JSON, context, timeout/cancel/errors against clearly labelled mock | A+C negative tests, bounded HTTP, no redirects/credential logs |
+| W3 | Practice owned compute create/list/get/delete, idempotency, finite wait and JSON against mock; network/Kubernetes list/get is mock-only practice | No fake provisioned resources or VM driver claims; approved API shapes only |
+| W4 | Table tests/httptest and real user-server integration when available | A code review, C actual auth/owner/idempotency assertions; packaging is not proof runtime runs on every OS |
 
-| Owner                | May change                                                                              | Must not change                                |
-| -------------------- | --------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| A — Anuj             | kan-agent, container/k3d drivers, network helper, reconcile, signing, pkg/kanclient, CI | Do not hand agent responsibility to E silently |
-| E — other Go learner | cmd/covestack thin cobra client, JSON, cross-build packaging; later thin provider       | Agent, signing, drivers and reconcile          |
-| B/C/D                | Java/SQL/policy/schema/API roles                                                        | D writes no Go                                 |
-
-**AI-generated code is reference only: A types and can explain agent Go.** Any Go change needs A review; pkg/kanclient needs A+B+C; k3d driver A+B+C; schema B+C+A. The module layout and signer move are planned decisions, not changes in this task.
-
-### 1.1 A's first implementation milestone — Planned
-
-A starts with [single-account signed communication](CoveStack-Anuj-Next-Steps.md#23-first-milestone-decision--single-account-communication-planned), not multi-account concurrency or Docker execution. Reuse current config/sigv1/auth-smoke, agree module layout, then implement bounded HTTP polling, no-work decoding, retries and cancellation. Same-host contract origin is localhost:4700; no-work is 200 []; remote access requires verified HTTPS. Initial capabilities are empty; required heartbeat versions must be truthful.
-
-Selected starting defaults are 10-second requests, 5-second polling base and temporary-failure backoff from 1 to 30 seconds with bounded jitter. Honor valid 429 retry guidance and stop the account loop on 401/403; fresh signature each attempt, no redirects or credential logs. C owns real-server acceptance; B supplies boot/assignment, C credentials and D schema alignment. These agent defaults do not automatically become CLI/provider retry policy; E reviews those separately. New claim/lease/report fields still require coordinated contract work before execution.
-
-## 2. E's four-week learning plan
-
-Weeks are learning stages, not invented calendar dates. Production CLI service order remains droplet → vpc → k8s → db → bucket → stack, with each previous failure test in CI before the next service starts.
-
-| Week | Deliverable                                                                                            | Review gate                                                              |
-| ---- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
-| W1   | Basics/modules/structs/errors; cobra hello; linux/amd64, darwin/arm64, windows/amd64 builds            | A: explain types/errors/module boundary; binaries build                  |
-| W2   | net/http, JSON, context/timeouts against mock API                                                      | A: timeout/cancel/non-2xx/JSON tests; no runtime dependencies            |
-| W3   | Droplet create/list/get/delete, --wait, JSON and auto idempotency; mock-only vpc/k8s list/get practice | A: API-only boundaries; mock practice does not start production K8s work |
-| W4   | Table tests, httptest and CLI against real server                                                      | A+C: ownership/idempotency/generation results; actual OS run evidence    |
+The learning stages do not select future CLI command names or wire kinds. Do not copy historical Droplet/container specs into VM requests. Real service order follows available owned APIs and failure tests, not a hardcoded old academic chain.
 
 ## 3. CLI rules
 
-| Rule             | Requirement                                                |
-| ---------------- | ---------------------------------------------------------- |
-| Platform imports | pkg/kanclient only; cobra and standard-library use allowed |
-| Backend          | Authenticated API only; no Docker/k3d/DB access            |
-| Config           | Server URL, key ID, profile only; no local database        |
-| Secrets          | Env/OS keychain; not arguments/logs                        |
-| Transport        | Finite timeouts and no credential redirects                |
-| Mutations        | Every request carries an idempotency key                   |
-| Create           | Returns pending immediately; --wait polls convergence      |
-| Get              | Desired/converged generation, lease, observed state        |
-| Automation       | Every list/get supports -o json                            |
+API-only, no Docker/Incus/k3d/DB import or privileged socket. Config file stores endpoint/profile/key identifier only; no local resource DB. Secrets from approved environment/keychain/custody, not command arguments/logs. Mutations use logical idempotency; retries use reviewed API semantics. Create returns pending; finite wait/cancel shows actual convergence/error. List/get stable JSON and scoped redacted table view. Secret export separately authorized; no kubeconfig in ordinary output.
 
 ## 4. A's review checklist
 
-| Check               | Evidence                                           |
-| ------------------- | -------------------------------------------------- |
-| Understand code     | E explains each changed flow and error path        |
-| Dependency boundary | Go dependency scan contains no Docker/k3d          |
-| API policy          | C's account/idempotency tests cover real server    |
-| Wait/result         | Pending, cancellation and convergence are distinct |
-| Output              | Stable JSON and no credential output               |
-| Packaging           | Three target builds; two actual OS demonstrations  |
+- Explainable code and correct module/user-versus-agent auth boundary.
+- Context/timeout/cancel and strict HTTP/JSON/error handling; no credential redirects/log leaks.
+- Idempotency and observed wait semantics match real API; no pretend ready from process/row presence.
+- Table/mock tests labelled; real auth/foreign ID and negative behavior shown separately.
+- No runtime driver or DB dependency in user CLI; exact packaging artifacts and later OS-run evidence.
+- No arbitrary package/signer relocation or speculative provider before actual lifecycle API.
 
-Ask the mentor in writing whether ITISS students may own agent/driver Go. Confirmation is pending; if prohibited, name an agent developer and record handover. No mentor decision is asserted here.
+## 5. Current first task and next handshake
 
-[Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Gates](CoveStack-Service-Gates.md) · [Schema](CoveStack-Database-Schema.md) · [SRS](CoveStack-SRS-Scope.md) · [Roadmap](CoveStack-Extended-Roadmap.md).
+A uses existing signed no-execution loop with B+C real assigned server credentials. E agrees module/client plan with A and can learn mocks without bypassing a missing server. B/D/C review API/DTO/security; C owns acceptance. [Team checkpoint](../TEAM-FIRST-CHECKPOINT.md), [Anuj tasks](CoveStack-Anuj-Next-Steps.md), [automation](CoveStack-Terraform-and-Ansible.md).
+
+## Historical traceability
+
+The [previous body of this file](../docs/archive/V5-before-full-product-alignment-2026-11-04.md#v5-covestack-go-handover) is preserved unchanged as historical reference, including earlier requirements/DDL/acceptance text. It is not current VM/RustFS setup guidance. Use this active body, the linked canonical domain specifications and [actual implementation evidence](CoveStack-Implementation-Status.md) for new work. No source, migrations, contracts, tests, configuration or runtime state is changed by this document.

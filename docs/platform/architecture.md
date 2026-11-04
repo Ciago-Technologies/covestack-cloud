@@ -10,7 +10,7 @@ Updated: 4 November 2026. **Target design; Experimental implementation.** No pro
 | --- | --- | --- |
 | User management | CLI first; eventual UI; authenticated CRUD, operations and exports | No runtime sockets or direct DB; CLI not present |
 | Control | Java/Spring Boot validation, account/membership policy, intent, quotas, operations and scheduling coordination | Current auth libraries are not a bootable resource service |
-| Resource state | PostgreSQL 17 authoritative ownership, spec, generation, row version, reservations, attempts, lease/epoch and idempotent result | Foundational migrations missing; V5 DDL is historical reference only |
+| Resource state | PostgreSQL 17 authoritative ownership, spec, generation, row version, reservations, attempts, lease/epoch and idempotent result | Foundational migrations missing; [current V5 schema](../../V5/CoveStack-Database-Schema.md) is an updated non-executable design; only the former full DDL is preserved as [historical reference](../archive/V5-before-full-product-alignment-2026-11-04.md) |
 | Agent/worker | Go signed outbound client, assignment validation, capability/health reporting, claims and serialized execution | Read-only poll loop exists; full assignment/claim protocol and execution absent |
 | Runtime execution | Incus VM provider (preferred evaluation); App Container, k3d, storage and network capabilities | Drivers have no accepted implementation; no fixed two-driver ceiling |
 | Tenant data | Guest OS/disks/NICs, app traffic, SQL/S3 and Kubernetes workloads | Management connectivity denied; real isolation must be proven |
@@ -52,7 +52,7 @@ Arrows specify target responsibilities, not a deployed topology. Tenants cannot 
 4. Agent discovers assigned scoped work, then uses a future reviewed idempotent claim exchange. GET work stays read-only.
 5. Driver inspects exact backend ownership; an existing uncertain action must settle before another creation. A host lock and serialized resource operations supplement DB fencing.
 6. Apply VM/container/network/storage changes; verify actual readiness. Persist redacted attempt/observed evidence through authorized report APIs, never direct agent SQL.
-7. Accept convergence only for the current account/assignment/resource/generation/owner/epoch and unexpired lease; release claim and retain ownership tombstones/reservations per cleanup policy.
+7. Accept convergence only for the current account/assignment/resource/generation/owner/epoch and the explicitly reviewed claim-validity/expiry policy; release claim and retain ownership tombstones/reservations per cleanup policy.
 8. Schedule future inspection; drift repair uses current intent without inventing a new desired revision. Failed polls/partial inventory never authorize deletion.
 
 ## Database design requirements, not schema changes

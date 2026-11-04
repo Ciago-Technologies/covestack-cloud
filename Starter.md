@@ -1,351 +1,277 @@
-# Superseded planning reference — 4 November 2026
+# CoveStack — teammate start guide
 
-> This dated guide/diagram plan is retained for history; use [current platform documentation](docs/platform/README.md) and [academic transition](docs/platform/academic-transition.md) for new work. Primary compute is a real VM Instance; App Container is separate. Old container-Droplet/two-driver/8 GB production implications and January schedule are not current product instructions. Original obligations and results remain below; no mentor waiver or VM implementation is inferred. Existing SVG/PDF exports are historical, not regenerated or runtime proof.
+Updated: **4 November 2026**. For **A/Anuj, B, C, D and E**. Read this after cloning, then work on one small reviewed task at a time. Use [the team checkpoint and board guide](TEAM-FIRST-CHECKPOINT.md) for shared acceptance, dependencies and suggested issue cards.
 
-<!-- Historical body preserved below; see supersession notice above. -->
+**CoveStack is Experimental.** This guide explains how to contribute to the project; it is not a full-product installation guide. Architecture describes what we intend to build. Source and actual test evidence establish what currently exists.
 
-# CoveStack — Teammate Start Guide
+## 1. Understand what we are building
 
-| Document control           | Value                                                               |
-| -------------------------- | ------------------------------------------------------------------- |
-| Updated                    | 15 October 2026                                                     |
-| Audience                   | A — Anuj, B, C, D and E                                             |
-| Submission deadline        | Monday, 25 January 2027                                             |
-| Repository                 | https://github.com/Ciago-Technologies/covestack-cloud               |
-| Current planning authority | V5 documentation and reviewed team decisions                        |
-| Implementation status      | Planned targets; source presence is not service acceptance evidence |
+CoveStack is a local-first infrastructure control plane: users request account-owned infrastructure on machines they control, and CoveStack should create, observe, isolate and recover it through an API and CLI.
 
-## 1. What you are joining
+| Part | Current direction |
+| --- | --- |
+| Compute Instance | A real VM with its own guest kernel; Incus/QEMU/KVM is the preferred backend to evaluate; driver is Planned |
+| App Container | Separate shared-kernel resource for trusted applications; never described as a VM |
+| Kubernetes | k3d/k3s candidate; host capacity and supported limits must be measured |
+| Networks, disks and databases | Owned resources with capacity, access controls, durable intent and verified recovery |
+| Object storage | RustFS preferred planned provider; operator manages the service/volumes; Java reconciles account-owned buckets, policies and scoped credentials |
+| Control plane | Java/Spring Boot, JdbcClient/plain SQL and PostgreSQL; no JPA/Hibernate |
+| Agent | Go; signed outbound communication and future trusted runtime execution |
+| CLI | Go/cobra thin authenticated API client; does not call Docker/Incus/k3d or access the platform database |
 
-**A local cloud control plane with an account-scoped, crash-safe resource model. Docker and k3d are replaceable execution backends.**
+The [product catalogue](docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) defines core and future scope. Historical academic CORE-5, dates, template counts and cluster caps do not limit the product. They are not current delivery promises.
 
-| CORE-5 service     | Required boundary                                                                               |
-| ------------------ | ----------------------------------------------------------------------------------------------- |
-| Compute/Droplets   | Containers on one host; never VMs                                                               |
-| Kubernetes         | Required; max 2 clusters per host; 1 server + max 2 agents per cluster; one tested version pair |
-| Managed PostgreSQL | Backup/restore, scoped credentials and private networking                                       |
-| Object storage     | S3-compatible MinIO; per-account credentials and bucket scoping                                 |
-| VPC/IPAM           | One private network per account; simple allocator; no custom CIDR                               |
+## 2. Know what exists before starting
 
-Security, Recovery, CLI, optional Terraform, one fixed PostgreSQL + MinIO + app Droplet stack, and Ansible Part 1 are cross-cutting work, not additional services. Optional Terraform covers Droplets/Kubernetes only. No UI work during CORE-5. Deferred requirements belong to the [extended roadmap](V5/CoveStack-Extended-Roadmap.md), not the SRS deliverables.
+| Present in source | Still pending |
+| --- | --- |
+| Go config loader, signer and signed HTTP client | Full credential provisioning and trusted account/host assignment |
+| Single-account cancellable signed polling and agent entry point | Claims, runtime drivers, resource execution and reconciliation |
+| Java auth/replay components and lifecycle helpers | Runnable scoped resource APIs and foundational DB migration chain |
+| Unit-test sources and dated test reports | Real VM/RustFS provisioning, isolation, restore and supported deployment evidence |
 
-Clone the **whole repository**. Java developers work inside kan-server; A owns kan-agent; E owns the planned CLI. Nobody pushes into a folder: Git pushes repository commits on a branch.
+**The agent deliberately stops when work arrives.** It does not claim, execute, acknowledge or delete the returned work. Do not rebuild the existing loop, call it a runtime driver, or treat a mock/unit test as successful resource provisioning.
 
-## 2. Before cloning — confirm access and baseline
+Use the [implementation ledger](docs/platform/implementation-status.md) for evidence. Use [updated V5 guidance](V5/README.md) with the canonical product docs; do not copy runnable-service assumptions from archived V5 bodies or old diagrams.
 
-Anuj shares the repository URL, agreed baseline branch/revision, role letter and first task. Confirm GitHub access and the PR target. Do not infer merge status from this guide.
+## 3. Read these files in order
 
-| Situation                               | Baseline to use                                                                                                                          |
-| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Reviewed baseline is merged into main   | Updated origin/main                                                                                                                      |
-| Baseline PR is still pending            | The exact shared branch Anuj confirms; feat/agent-config was used for this documentation work, but do not assume it remains the baseline |
-| Your task depends on another pending PR | Agree the dependency branch and review target with its owner before coding                                                               |
+| Order | Read | What you should understand |
+| --- | --- | --- |
+| 1 | [README](README.md) | Product, actual status and limits |
+| 2 | [Product SRS](docs/product/CoveStack-Product-SRS.md) and [catalogue](docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) | Current requirements and core/future classification |
+| 3 | [Architecture](docs/platform/architecture.md) and [resource model](docs/platform/resource-model.md) | Java/Go/backend boundaries; VM versus container |
+| 4 | [Contribution guide](docs/platform/contributing.md) | Roles, review responsibilities and working process |
+| 5 | [Implementation status](docs/platform/implementation-status.md) and [decisions](docs/platform/decisions.md) | Existing code, blockers and missing decisions |
+| 6 | [API/CLI boundary](docs/platform/api-and-cli.md) and [contracts README](contracts/README.md) | Actual contract 1.1.0; proposed concepts are not current wire fields |
+| 7 | [Security](docs/platform/security.md), [capacity](docs/platform/capacity.md) and [readiness](docs/platform/readiness.md) | Required isolation, admission and failure evidence |
+| 8 | Your role section below | Your first discussion, files and reviewable output |
 
-Use one agreed baseline across the team. A missing V5 folder can mean you cloned a branch without the documentation; check the branch before recreating files or copying ZIP source over the checkout.
+For storage work also read [RustFS requirements](docs/platform/provider-evaluation.md#rustfs-compatibility-and-acceptance); for combined applications read [environments](docs/platform/environments.md). AI assistants must read [AGENTS.md](AGENTS.md) and maintain [checkpoint.md](checkpoint.md).
 
-## 3. Tools to prepare
+## 4. Prepare your development tools
 
-Install tools appropriate to your role using your operating system's normal setup. This guide does not select new versions or package-manager commands. Match [tools](V5/tools.md), the checked-out manifests and CI, and record actual versions.
+| Who | Tools / source of version truth | Safe first check |
+| --- | --- | --- |
+| Everyone | Git, editor and repository access | `git --version` |
+| A and E | Go; inspect kan-agent/go.mod and CI | `go version` |
+| B, C and D | JDK and Maven; inspect kan-server/pom.xml and CI | `java -version`, `javac -version`, `mvn -version` |
+| Contract contributors | Python 3 and checker prerequisites | `python3 --version` |
+| Backend integration owners | Separately approved capable host and reviewed runtime/profile | Agree requirements before installing or creating resources |
 
-| Who                               | Tools needed to start                                                    | Check                                                          |
-| --------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------- |
-| Everyone                          | Git, editor, repository/GitHub access                                    | git --version                                                  |
-| A and E                           | Go matching reviewed go.mod/CI; Git                                      | go version                                                     |
-| B, C and D                        | JDK matching pom.xml/CI; Maven                                           | java -version; javac -version; mvn -version                    |
-| Contract/integration contributors | Python 3 and existing contract checker prerequisites                     | python3 --version                                              |
-| Local infrastructure/integration  | Docker Engine/Desktop and Compose with reviewed network/VM configuration | docker version; docker compose version                         |
-| A later                           | Tested k3d+k3s pair and Ansible toolchain                                | Select/pin only after host spike/installer review              |
-| E later                           | Terraform/framework                                                      | Optional provider work after CLI; not required for W1 learning |
+The inspected repository declares Go toolchain **1.27.2** and Java **25**. Recheck your checkout; do not silently change pins to match your machine. A missing or unavailable toolchain is a blocker to report. No Maven wrapper is assumed.
 
-Inspected repository inputs are Go toolchain 1.27.2, Java 25 and control-plane PostgreSQL 17; verify the actual checkout before installing/changing versions. No Maven wrapper is assumed. If a dependency/toolchain cannot be downloaded, record the blocker; do not call an incomplete verification a pass.
+You do not need to create a VM, Docker container, cluster or RustFS service just to read the code or start a bounded task. Follow [installation boundaries](docs/platform/installation-and-operations.md); Compose contains dependencies, not the whole application. No supported production host profile exists yet.
 
-Shell examples use Bash/Git Bash. Windows PowerShell users should use their equivalent syntax or Git Bash. Application resource creation remains a target until the relevant main/API/CLI exists.
+## 5. Clone and create your feature branch
 
-## 4. Clone and inspect the repository
+Shell examples use Bash/Git Bash. They are instructions for teammates; this documentation update did not run them against GitHub.
 
-Run from the directory where you keep projects:
+### 5.1 Clone once
 
 ```bash
 git clone https://github.com/Ciago-Technologies/covestack-cloud.git
 cd covestack-cloud
-git remote -v
 git status -sb
 git fetch origin
 git branch -r
 ```
 
-If you already have a checkout, start with git status -sb and preserve your work. Do not clone over an existing directory, reset changes, or reapply historical patches.
+If you already cloned it, start with `git status -sb`. Preserve your work; do not clone over it or use reset/clean to get past changes.
 
-Set the baseline to the value Anuj confirmed. The following main value is correct **only after the baseline merge**; otherwise replace it with the agreed branch name before continuing:
+### 5.2 Confirm the starting branch with Anuj
+
+Use `main` only when Anuj confirms the needed baseline changes are merged. Otherwise use the exact reviewed baseline branch he provides. Do not assume another person's feature branch is the agreed baseline.
 
 ```bash
 COVESTACK_BASELINE_BRANCH=main
 ```
 
-This variable is a local shell convenience, not a CoveStack application setting. Commands below use the fetched origin branch directly so an old local main does not become your starting point.
+Replace `main` before continuing if a different baseline was agreed. This is a shell variable, not an application setting.
 
-## 5. Create your own feature branch
+### 5.3 Create one branch for your task
 
-Choose **one** first-task branch. These names are suggestions, not existing branches or protocol identifiers.
+These are suggested names, not branches that already exist:
 
-| Role | Suggested first branch   | First slice                                                        |
-| ---- | ------------------------ | ------------------------------------------------------------------ |
-| A    | feat/a-agent-client      | Shared-client module review and single-account agent client        |
-| B    | feat/b-server-foundation | Server configuration/main and reviewed schema/migration foundation |
-| C    | feat/c-auth-acceptance   | Concrete credentials/authentication and acceptance foundation      |
-| D    | feat/d-api-contracts     | Java DTO/API inventory and reviewed fixtures                       |
-| E    | feat/e-cli-foundation    | Cobra learning/client skeleton and packaging                       |
+| Person | Suggested branch | First task |
+| --- | --- | --- |
+| A | feat/a-agent-server-integration | Existing signed loop against real assigned server credentials |
+| B | feat/b-server-foundation | Bootable Java foundation and reviewed migration plan |
+| C | feat/c-auth-acceptance | Real credential/authentication path and acceptance foundation |
+| D | feat/d-api-contract-review | Actual endpoint/DTO inventory and compatibility review |
+| E | feat/e-cli-foundation | Reviewed CLI module/client boundary and mock API learning slice |
 
-For example, B runs:
+Example for B; substitute your own branch name:
 
 ```bash
 git switch -c feat/b-server-foundation "origin/$COVESTACK_BASELINE_BRANCH"
 git status -sb
 ```
 
-A, C, D and E substitute their own branch name. Do not run all five branch-creation examples, reuse someone else's feature branch, or push directly to main. If your branch already exists, switch to it instead of trying to create it again.
+Create only your own branch. If it exists already, switch to it rather than recreate it. Everyone clones the whole repository and pushes a branch for the repository; nobody pushes “into kan-server”.
 
-## 6. Read these files before implementation
+## 6. Agree a small first issue
 
-| Order | Required reading                                               | What to take away                                            |
-| ----- | -------------------------------------------------------------- | ------------------------------------------------------------ |
-| 1     | [V5 index](V5/README.md)                                       | Current document map                                         |
-| 2     | [SRS scope](V5/CoveStack-SRS-Scope.md)                         | Exactly five services and deliverables                       |
-| 3     | [Main design](V5/DocsV5-DO_Team.md)                            | Authority, reconciliation and agreed host/account model      |
-| 4     | [Team roles](V5/Team_Roles.md)                                 | Your boundaries and required reviewers                       |
-| 5     | [Workflow](V5/CoveStack-Project-Workflow.md)                   | Dependencies, dated checkpoints and freeze                   |
-| 6     | [Setup](V5/CoveStack-Complete-Working-Setup.md)                | Baseline commands, target installation and Known constraints |
-| 7     | [Service gates](V5/CoveStack-Service-Gates.md)                 | Evidence before service promotion                            |
-| 8     | [Acceptance](V5/CoveStack-AntiWrapper-Acceptance.md)           | Exact tests 1–15; C owns acceptance                          |
-| 9     | [Implementation status](V5/CoveStack-Implementation-Status.md) | Open work and decisions; no assumed live platform            |
+Before coding, record the following in one GitHub issue:
 
-For integration, read [contract overview](contracts/README.md), [internal API](contracts/internal-api.yaml), [lifecycle reference](contracts/FROZEN-STATES.md) and [signing reference](contracts/CANONICAL-REQUEST.md). Contract 1.1.0 wins on wire strings. Missing values are TBD with B; new messages require coordinated schemas, fixtures and generated outputs.
+| Field | What to write |
+| --- | --- |
+| Outcome | One concrete behavior to deliver |
+| Owner and reviewer | Who changes it and who reviews it |
+| Files / boundary | Which existing module is affected; which interface needs agreement |
+| Dependency | Another person's server, credential, fixture or schema decision you need |
+| Acceptance | The exact assertion that demonstrates the behavior |
+| Evidence | Command/result and whether it is unit, mock, real-server or runtime evidence |
+| Next action | One clear step or blocker; no guessed completion percentage |
 
-Historical team/handoff ZIPs in [docs/archive](docs/archive/README.md) preserve earlier work. Their December schedule, role assignments, paths and commands are not active instructions. The old combined V5 HTML is also a historical snapshot.
+Use the existing project board consistently:
 
-## 7. Run baseline checks for your part
+| Column | Meaning |
+| --- | --- |
+| Backlog | Idea or task whose scope/dependencies are not ready |
+| Todo | One owner, clear acceptance and dependencies ready |
+| In progress | Owner is actively working or verifying |
+| In Review | Reviewable PR opened with actual evidence |
+| Done | Reviewed/merged task with acceptance evidence; this does not mean a whole service is Supported |
 
-From the repository root, contract contributors can run:
+GitHub issues own live task status. Documentation owns architecture; checkpoint.md owns AI-agent continuity. Link them rather than maintaining conflicting task copies. If an issue is blocked, name the dependency and owner instead of inventing an API or credential.
+
+## 7. A / Anuj — your next work
+
+**Start with integration of the existing signed polling loop, not another loop or VM driver.**
+
+| Step | What you do | Files / people | Reviewable result |
+| --- | --- | --- | --- |
+| 1 | Walk through how configuration creates the client, how signing works and how polling stops | kan-agent/cmd/kan-agent/main.go; internal/config/, internal/client/, internal/agent/loop.go; sigv1/ | You can explain the current path and its no-execution boundary |
+| 2 | Agree real server URL, protected test credentials and trusted account/agent assignment | B+C; [API boundary](docs/platform/api-and-cli.md) | Written integration agreement; no secret values in issue/docs |
+| 3 | Check existing unit/static baseline and attach actual results | kan-agent/ and current CI | Pass or precise blocker; no runtime claim |
+| 4 | With B+C's server ready, test signed no-work polling, invalid/revoked credentials, cancellation and errors | Existing client/loop and C's integration tests | Real-server evidence; record any retry gaps instead of assuming they work |
+| 5 | Review future work-claim, VM/type and network contracts before execution code | A+B+C+D; contracts/ read first | Coordinated design/fixture plan; no invented current fields |
+
+Actual discovery is `GET /internal/v1/agent/work`; a successful empty array means no work. `KAN_SERVER_URL`, `KAN_ACCESS_KEY`, `KAN_SECRET_KEY` and optional `KAN_RULES_PATH` are current config names. The loader does not automatically read .env. B+C must supply real assigned credentials securely; a localhost URL shown in a contract is not proof a listener exists.
+
+Later you own provider/runtime drivers, inspection/reconciliation, capacity reporting, signing, CI, installer and ITISS evidence. Incus evaluation requires a separately approved capable host. Preserve the agent's privileged boundary; no tenant runtime sockets, arbitrary host commands or direct DB access. Explain the Go you contribute. A shared pkg/kanclient layout is still a reviewed future task; do not move the signer independently.
+
+## 8. B — Java core and database foundation
+
+1. Inspect kan-server/pom.xml, existing Java packages and migration files. Current source does not establish a bootable product server or foundational schema; existing extended migrations reference prerequisite tables.
+2. Agree the next minimal server/auth/assignment slice with C, D and A. Review current V5 VM-first schema requirements; old full DDL is archived and not executable/migration-ready.
+3. Own Java application startup/configuration, the forward-only migration plan and all lease/fencing/idempotency/quota SQL. Never edit an already applied migration; establish actual history first.
+4. Make the reviewed foundation testable from an empty approved database, with real authentication and owner-scoped queries. C owns acceptance; A needs a real endpoint/assignment path for signed polling.
+5. Record startup/migration/auth evidence and unresolved protocol decisions in your PR.
+
+**First output:** a reviewed foundation/migration dependency plan, followed by the smallest bootable authenticated slice. Locations: kan-server/src/main/java/ and kan-server/src/main/resources/db/migration/. B owns SQL; use JdbcClient/plain SQL, not JPA.
+
+## 9. C — security, credentials and acceptance
+
+1. Read kan-server/src/main/java/com/ciagotech/kan/server/auth/ and contracts/ signing/lifecycle rules.
+2. Agree credential creation/lookup, revocation, secret custody, replay behavior and trusted assignment with B+A. A caller-provided account/agent identifier is not trusted assignment.
+3. Keep hash-only API tokens separate from encrypted signing credentials. No shared default key, plaintext secret logs or unauthenticated shortcut.
+4. Establish acceptance tests from the first slice: missing/bad/replayed signatures, wrong assignment/account and revocation. Distinguish mocks from real Java/Valkey evidence.
+5. Later own Java IPAM allocation and all domain-specific acceptance, including actual packet/storage denial and restore verification.
+
+**First output:** reviewed credential/assignment behavior and reproducible authentication tests that A can exercise against B's server. RustFS-scoped policies, credential rotation and cross-account denial are future acceptance work, not already verified.
+
+## 10. D — Java API and compatibility
+
+1. Read contracts/internal-api.yaml, lifecycle-rules.json and existing Java auth/contract helpers before defining DTOs.
+2. Inventory existing endpoints versus interfaces that still need implementation. Coordinate public account/resource API boundaries with B+C and internal assignment/claim needs with A.
+3. Document the VM Instance/App Container compatibility gap. Current contract 1.1.0 is unchanged and must not silently reinterpret an old container specification as a VM request.
+4. Agree request/response/error fixtures and DTO ownership before implementing the reviewed endpoint slice. No full /v2/provider parity promise.
+5. Later help with Terraform compatibility fixtures and API mappings once actual resources exist.
+
+**First output:** reviewed endpoint/DTO/fixture plan for the next server slice. Location: kan-server/ and reviewed contract sources. **D writes Java, not Go.** Contract changes need coordinated schemas, fixtures and generated outputs.
+
+## 11. E — Go CLI learner
+
+1. Learn the current API/client boundary and review the proposed CLI/module layout with A before adding modules or moving shared signing code.
+2. Start with a small cobra command and three-OS packaging exercise after that layout is agreed. Future targets are linux/amd64, darwin/arm64 and windows/amd64.
+3. Practice net/http, JSON, context cancellation, finite timeouts and HTTP error handling against a clearly labelled mock API. Mock responses are learning/test fixtures, not provisioned resources.
+4. Add reviewed lifecycle commands only as the real APIs become available; use idempotency for mutations and stable JSON for list/get. Keep credentials out of command arguments/logs and hold no local resource database.
+5. With A/C review, move the same thin client to the real server and verify actual user authorization. A later Terraform provider stays a thin API layer; it does not become a second control plane.
+
+**First output:** an agreed module/client plan and small CLI/mock test slice. cmd/covestack/ and pkg/kanclient/ are planned locations, not claims that those modules exist. E does not implement agent, signing, drivers or reconcile; no direct Docker/Incus/k3d/DB calls.
+
+## 12. First shared integration checkpoint
+
+| Order | Owner | Outcome before moving on |
+| --- | --- | --- |
+| 1 | B+C+A; D compatibility | Agree real credential provisioning, trusted assignment and the current discovery/no-work response |
+| 2 | B+C | Bring up the reviewed server/auth/foundation on an authorized development setup; record actual evidence |
+| 3 | A+C | Existing signed client polls real no-work safely; test auth rejection, cancellation and observed failure behavior |
+| 4 | B+D+C; A review | Agree future mutation/claim/type/schema/fixture changes before runtime execution |
+| 5 | A+B+C+D | Implement a bounded owned resource lifecycle with capacity/security and meaningful failure tests under separate task approval |
+| 6 | E with A/C | Expose the real authenticated workflow through the CLI; retain clear mock versus runtime evidence |
+
+RustFS integration remains Planned: operator manages the process/persistent volumes; Java reconciles bucket/policy/credential intent. Test actual object bytes, foreign-account denial, key revocation, restart persistence and verified backup/restore. Recreating an empty bucket does not restore lost data. See [provider acceptance](docs/platform/provider-evaluation.md#rustfs-compatibility-and-acceptance).
+
+## 13. Verify your work without overstating it
+
+Run the checks appropriate to your changed module on your authorized development environment. These match current repository CI; this documentation update did not execute them.
+
+From kan-agent/:
+
+```bash
+go test -race ./...
+go vet ./...
+```
+
+From kan-server/:
+
+```bash
+mvn --batch-mode --no-transfer-progress verify
+```
+
+For relevant contract changes, from the repository root with checker prerequisites available:
 
 ```bash
 python3 contracts/sign_example.py
 python3 contracts/check_lifecycle.py
 ```
 
-A/E run existing agent checks from the actual module; this does not assert that the future CLI shares that module:
+Report missing tools/network/dependencies as blockers. A successful Java build does not prove the server boots; a passing signer test does not prove trusted assignment; mock create does not prove a VM boots. Do not invent startup commands for a missing application or bypass authentication to get green output.
 
-```bash
-cd kan-agent
-go test -race ./...
-go vet ./...
-cd ..
-```
+A service becomes **Acceptance Gates Passed** only with persisted authoritative intent (G1), crash-safe reconciliation (G2), ownership and actual isolation (G3), and meaningful automated failure acceptance (G4). **Supported** additionally requires a qualified profile and maintenance policy. Follow [readiness](docs/platform/readiness.md); no status promotion from documentation alone.
 
-B/C/D run Java verification:
+## 14. Commit, push and raise a PR
 
-```bash
-cd kan-server
-mvn --batch-mode --no-transfer-progress verify
-cd ..
-```
-
-Record revision, command, actual tool versions and result. Race checks need a compatible local C compiler/platform setup; record environment blockers rather than silently skipping them. Builds may need dependency downloads. A library/test pass is not a server boot, Docker lifecycle or tenant-isolation pass.
-
-**Do not run a fictional server or CLI.** B must first add and verify the application entry point/configuration. A must add the production agent executable. E must add the CLI in the reviewed module layout. Publish startup commands only after those artifacts exist and have been tested.
-
-## 8. Prepare infrastructure only when your task needs it
-
-A/B/C coordinate shared integration on the AlmaLinux VM. Teammates may use approved local dependencies for their tests; do not expose the shared DB/cache to the internet or assume a remote VM's localhost is your laptop.
-
-| File / dependency                | What to do                                                                                       |
-| -------------------------------- | ------------------------------------------------------------------------------------------------ |
-| deploy/.env                      | Create from the tracked template only if absent; use reviewed actual image references            |
-| deploy/secrets/postgres_password | Generate a private local database password                                                       |
-| deploy/secrets/valkey.conf       | Copy the reviewed template and set a private credential                                          |
-| deploy/secrets/agent.env         | A configures approved service credentials supplied through C's reviewed process                  |
-| Java configuration               | B/C configure datasource and replay-store access separately using the reviewed private mechanism |
-
-Follow [Setup sections 5–7](V5/CoveStack-Complete-Working-Setup.md#5-private-infrastructure-configuration) for exact preparation. Never overwrite existing secrets or put real values in Git, chat, screenshots or PRs.
-
-After required files and exact image references exist, from repository root:
-
-```bash
-docker compose --env-file deploy/.env -f deploy/docker-compose.yml config --quiet
-docker compose --env-file deploy/.env -f deploy/docker-compose.yml up -d
-docker compose --env-file deploy/.env -f deploy/docker-compose.yml ps
-```
-
-Compose starts private dependencies, not the unfinished Java server/full agent. Preserve volumes; do not use down -v or blanket prune for repair. A changed password file does not rotate credentials in an initialized database volume. E can start against a mock API without running the infrastructure.
-
-## 9. A — Anuj: start here
-
-| Step | Work / location                                                    | Evidence and dependency                                                                                                |
-| ---- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| 1    | Review kan-agent/internal/config/, kan-agent/sigv1/ and contracts/ | Explain configuration, authenticated bytes and scope; agree credential provisioning/assignment with B+C                |
-| 2    | Plan pkg/kanclient/ signer/HTTP client and module layout           | A+B+C review before relocation; no new root package assumption                                                         |
-| 3    | Build client and production agent coordination in kan-agent/       | One account first; finite timeout/cancellation, bounded responses, no redirects, fresh signed retries                  |
-| 4    | Generic container driver and reconcile                             | Tests 1–6 with C/B: one resource after crash, fenced stale owner, no outage cleanup                                    |
-| 5    | Add a second account context                                       | One process/host, separate immutable credential/client/poll context per account; one auth failure does not stop others |
-| 6    | Docker network helper inside container driver                      | C allocator/B records; test 14; no invented VPC wire kind                                                              |
-| 7    | One-day host spike, then k3d CLI driver                            | Tested pair/flags; max 2 clusters/host; tests 7–10; scoped kubeconfig/owned cleanup                                    |
-| 8    | PostgreSQL/MinIO process and volume lifecycle                      | Generic container inputs; tests 11–13; Java owns bucket/credential reconcile                                           |
-| 9    | Fixed-stack execution, Ansible Part 1, CI and ITISS evidence       | Test 15, repeat install changed=0, failure/restore/security evidence                                                   |
-
-Read [Anuj Next Steps](V5/CoveStack-Anuj-Next-Steps.md), [Go Handover](V5/CoveStack-Go-Handover.md), [Security](V5/CoveStack-Security-and-ITISS.md) and [Operations](V5/CoveStack-Operations-and-Recovery.md). The personal Anuj_Working guide may be shared separately; it is not required to exist in a fresh clone.
-
-A owns all agent Go and reviews every Go change. AI-generated agent code is reference only; A types and explains it. A's first PR should be a small client/module slice, not both drivers and every account at once.
-
-## 10. B — Java core/database: start here
-
-| Step | Work / location                                                                                   | Review or acceptance                                                                                  |
-| ---- | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| 1    | Read kan-server/pom.xml and existing Java auth/contract packages                                  | Run Java baseline; agree service boundaries with C/D                                                  |
-| 2    | Review [Database Schema](V5/CoveStack-Database-Schema.md), including migration order              | Reference DDL is not executable/migration-ready; no live schema was established by the docs           |
-| 3    | Add real application main/configuration and staged Flyway migrations in later implementation work | B owns all migration files/SQL; C tests; A agent-column review; D DTO review                          |
-| 4    | Implement scoped repositories/core resource and operation transactions                            | Account predicates/composite ownership; atomic idempotency                                            |
-| 5    | Implement work/lease/fencing/observations with C/A                                                | Exact generation/owner/epoch ack; clear both lease fields; progress never acknowledges                |
-| 6    | Canonical host/assignment, quotas, IP/port records                                                | One host across accounts; reserve ports before create; third-cluster rejection under transaction lock |
-| 7    | PostgreSQL/storage records, Java bucket/credential reconcile and fixed stack orchestration        | C acceptance; A runtime integration; no DAG engine                                                    |
-
-Your Java root is kan-server/src/main/java/com/ciagotech/kan/server/. Coordinate exact new package names; do not copy proposed schema placeholders into a migration. Enable packaged startup only after main/configuration exist and are verified. D's endpoint mappings must call the same scoped core services.
-
-Read [API](V5/CoveStack-API-and-Compatibility.md), [Resource Services](V5/CoveStack-Resource-Services.md) and [Stack](V5/CoveStack-Stack-Templates.md). First slice: reviewed schema foundation and server boot/configuration, coordinated with C's required beans.
-
-## 11. C — Authentication/security/tests/IPAM: start here
-
-| Step | Work / location                                                                  | Review or acceptance                                                                                    |
-| ---- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| 1    | Inspect existing auth classes and tests under kan-server/src/                    | Understand KeyService, BearerTokenService, filters, nonce store and current principal                   |
-| 2    | Review signing rules/vectors with A and schema/security with B                   | Hash-only api_tokens; encrypted service-kind signing_credentials; key custody remains reviewed decision |
-| 3    | Implement real active credential/token lookup, revocation/expiry and permissions | No development fallback or public unrestricted key issuer                                               |
-| 4    | Own all acceptance tests from day 1                                              | Add cases while B/A build slices; do not wait until their last milestone                                |
-| 5    | Run real Java/Valkey/Go smoke with A/B when server exists                        | Valid request, replay/tamper denial, no nonce poisoning, fail-closed store outage                       |
-| 6    | Test assigned agent/account scope and credential lifecycle                       | Cross-account requests denied; separate account contexts and shared host quota                          |
-| 7    | Implement Java IPAM allocator with B's transaction model                         | Test 14: ten IP allocations and ten account VPCs without overlap                                        |
-| 8    | Review DB/S3 isolation, MinIO admin custody/path and audit policy                | Tests 11–13; no secrets in ordinary list/get/spec/observed                                              |
-
-Read [Security](V5/CoveStack-Security-and-ITISS.md), [Schema](V5/CoveStack-Database-Schema.md), [Testing](V5/CoveStack-Testing-and-Acceptance.md) and [Networking](V5/CoveStack-VPC-IPAM-and-Networking.md). First slice: credential lookup design/implementation with test fixtures and negative authentication cases. B owns migrations/SQL; you review tenancy/secrets and implement Java allocator/auth logic.
-
-## 12. D — Java APIs/DTOs: start here
-
-| Step | Work / location                                                                                            | Review or acceptance                                                                                |
-| ---- | ---------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| 1    | Read kan-server auth/contract classes, internal API and [API guide](V5/CoveStack-API-and-Compatibility.md) | Know existing schemas versus proposed endpoints                                                     |
-| 2    | Review IDs/request/response mapping with B                                                                 | Internal uuid, CLI public_id and numeric /v2 provider_id; finalize mappings rather than invent them |
-| 3    | Build Java /v2 endpoints and DTO mappings against B's scoped services                                      | Authenticated ownership and explicit unsupported behavior                                           |
-| 4    | Include the bounded /v2/kubernetes/clusters subset                                                         | Coordinate execution shape with A and tenant tests with C                                           |
-| 5    | Provide reviewed API/schema and optional Terraform test fixtures                                           | E writes Go provider; you write Java mappings/fixtures                                              |
-| 6    | Exercise real HTTP behavior as endpoints land                                                              | Test inputs/errors/pagination and no secret/kubeconfig content in ordinary views                    |
-
-Read [Resource Services](V5/CoveStack-Resource-Services.md), [Schema](V5/CoveStack-Database-Schema.md) and [Terraform/Ansible scope](V5/CoveStack-Terraform-and-Ansible.md). Existing examples are fixture evidence, not proof every service runs. First slice: DTO/endpoint inventory and agreed request/response fixtures with B/C. **D writes no Go.**
-
-## 13. E — Go CLI learner: start here
-
-| Stage | Work / planned location                                                   | A's review gate                                                        |
-| ----- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| W1    | Go basics/modules/structs/errors; cobra hello; planned cmd/covestack/     | Explain code and reviewed module layout; three target builds           |
-| W2    | HTTP/JSON/context/timeouts against a mock API                             | Non-2xx/invalid JSON/timeout/cancellation handled                      |
-| W3    | Droplet create/list/get/delete, --wait, -o json and automatic idempotency | API-only; mock-only VPC/K8s list/get practice                          |
-| W4    | Table tests/httptest, then real-server CLI                                | C's account/idempotency checks with actual backend; packaging evidence |
-
-These are learning stages, not new calendar promises. Production command order is **droplet → vpc → k8s → db → bucket → stack**; previous service's failure test must pass in CI before the next production service starts.
-
-Read [Go Handover](V5/CoveStack-Go-Handover.md), [Folder Map](V5/Folder_Structure_Explanation.md), [Tools](V5/tools.md) and [API](V5/CoveStack-API-and-Compatibility.md).
-
-| CLI boundary            | Requirement                                                                                   |
-| ----------------------- | --------------------------------------------------------------------------------------------- |
-| Access                  | Authenticated API through reviewed pkg/kanclient; never Docker/k3d/DB                         |
-| Credentials             | User API authentication, not agent service secrets; env/keychain; no secrets in args/logs     |
-| Local config            | Server URL, key ID, profile; no local resource database                                       |
-| Mutation                | Idempotency key; create returns pending immediately                                           |
-| Wait/get/list           | Finite --wait; desired/converged generation, lease and observed state; every list/get -o json |
-| Packaging               | linux/amd64, darwin/arm64, windows/amd64; actual CLI demonstrations on two OSes               |
-| Later optional provider | Thin Droplet/K8s Terraform layer after CLI; A Go review; D Java fixtures                      |
-
-Do not add Go modules or move the signer independently; agree imports with A first. Do not touch agent/signing/drivers/reconcile or take Java management/mail work from the historical role guide. No UI work during CORE-5. First slice: reviewed module plan, cobra skeleton/mock client and meaningful client tests.
-
-## 14. First shared integration
-
-| Order | Lead       | Required result                                                                     |
-| ----- | ---------- | ----------------------------------------------------------------------------------- |
-| 1     | B+C+A      | Reviewed schema, trusted agent assignment and credential delivery model             |
-| 2     | B+C        | Real server/private dependencies and concrete authenticated identity                |
-| 3     | A+C        | Real auth-smoke against Java/Valkey; distinct account/user credentials              |
-| 4     | B+D        | One authenticated resource create/read flow with durable desired intent             |
-| 5     | A+B+C      | One container converges and reports; crash/fence/tenant/idempotency failures tested |
-| 6     | E with A/C | Same resource flow through thin CLI once its reviewed client exists                 |
-
-Mocks may unblock learning or local unit tests; they do not replace this integration or justify bypassing authentication. Do not run a fake and real agent against the same resource assignment.
-
-## 15. Daily work, commit and PR
-
-Before starting a task, agree behavior, owner, dependencies and acceptance with its reviewers. Check your branch and work tree:
+Review your own diff first. Replace the staged path with the exact files for your task; do not blindly stage teammates' changes or secrets.
 
 ```bash
 git status -sb
-git branch --show-current
-```
-
-Implement a small slice; run the checks for affected code and required contracts. Inspect your diff. Stage exact paths you changed; replace the path placeholder below:
-
-```bash
 git diff --check
 git diff --stat
 git add path/to/your/changed/files
 git diff --cached --check
 git diff --cached --stat
-git commit -m "Describe the concrete behavior and tests"
+git commit -m "Describe the concrete change"
 ```
 
-Push your actual feature branch. Example for B:
+Then push **your feature branch**; example for B:
 
 ```bash
 git push -u origin feat/b-server-foundation
 ```
 
-Open a PR against the agreed target, normally main after the baseline merge. Include behavior, tests/commands/results, contract/schema impact, dependencies and unresolved limitations. Ask the correct reviewers before merge.
+Open a PR into the agreed baseline, usually main once integration prerequisites are merged. Include behavior, evidence, dependencies, limitations and contract/schema impact. Do not push directly to main or force-push over another person's work.
 
-| Change                               | Required reviewers                          |
-| ------------------------------------ | ------------------------------------------- |
-| Any Go                               | A                                           |
-| pkg/kanclient or signing integration | A+B+C                                       |
-| k3d driver                           | A+B+C                                       |
-| Schema                               | B+C+A; D DTO alignment                      |
-| Java core/API/auth                   | Relevant B/C/D owners; A for agent boundary |
-| Acceptance                           | C owns tests; relevant implementer pairs    |
+| Change | Review |
+| --- | --- |
+| Any Go | A |
+| Shared client/signing or VM/backend boundary | A+B+C; D for wire/DTO impact |
+| SQL/schema | B+C+A; D for DTO alignment |
+| Authentication/security/acceptance | C plus affected implementers |
+| Java API/DTO | B/C/D as affected; A for agent-facing changes |
 
-## 16. Get updates without losing work
+## 15. Daily follow-up
 
-Before a new task, fetch and use the latest agreed baseline. For an existing feature branch with committed work, this is a simple merge-based update:
+- Check your GitHub issue and the latest agreed baseline before starting.
+- Keep local work committed/stashed safely before merging updates; never discard changes to force a clean tree.
+- Fetch and merge the agreed origin baseline into your feature branch after confirming the branch name; do not silently switch everyone to a new baseline.
+- Update the issue with behavior delivered, actual test results, blocker/owner and the next small step.
+- Update affected current documentation; AI agents also maintain checkpoint.md. Preserve dated evidence instead of rewriting past results.
+- Ask for review when your slice is concrete; do not wait for an entire service to be finished.
 
-```bash
-git status --short
-git fetch origin
-git merge "origin/$COVESTACK_BASELINE_BRANCH"
-```
+Never commit real .env files, deploy/secrets/, signing/master/private keys, credential-bearing kubeconfigs, Terraform state or secret logs. Never give tenants Docker/Incus sockets or host root access. Keep kan-server, kan-agent, KAN1 and existing contract names until a coordinated compatibility change is approved.
 
-Run the merge only with a clean work tree; the baseline variable must still be set in this terminal. In a new terminal, set it again to the agreed branch. Resolve conflicts with the affected owner and rerun checks before pushing. Do not reset, force-push or silently overwrite teammates' changes. If integration dependencies changed, confirm the PR target/baseline with Anuj first.
-
-## 17. Before marking a service Gates passed
-
-| Gate | Required evidence                                                                   |
-| ---- | ----------------------------------------------------------------------------------- |
-| G1   | DB intent and generation are authoritative                                          |
-| G2   | Crash-safe reconcile; inspect/rebuild from DB without duplicates                    |
-| G3   | Other-account API request returns 404; required protocol/network denial also tested |
-| G4   | Relevant failure test runs in CI                                                    |
-
-Use **Planned / In progress / Gates passed / Extended track**. Supported is permitted only after all four gates pass. Tests 1–15 remain mandatory; C owns acceptance. No new CORE-5 features after 10 January 2027. Extended work never delays CORE-5; if A is one week behind, stop all extended work.
-
-Never commit actual .env/secret files, credentials, master/private keys, credential-bearing kubeconfigs, Terraform state or logs containing them. Keep CoveStack capitalization and kan-server/kan-agent/KAN1/KAN\__/X-Kan-_ compatibility identifiers. Never assume proposed kan.\* reserved labels already exist in the compatibility contract.
-
-## 18. First-day checklist
-
-- Confirm GitHub access, role, baseline and first task with Anuj.
-- Clone the whole repository and create your own feature branch.
-- Read SRS, design, roles, workflow, setup, gates and acceptance.
-- Check your toolchain and run relevant baseline tests.
-- Record blockers and actual results; do not bypass security to make a demo pass.
-- Review assigned files and agree your first small slice with reviewers.
-- Implement on your feature branch, verify, commit only intended files and push.
-- Raise a PR and update task evidence; no direct main push.
+CoveStack-owned code/documentation uses [Apache License 2.0](LICENSE), SPDX **Apache-2.0**. Third-party notices and rights remain separate. The previous starter is preserved as [historical reference](docs/archive/pre-vm-redesign-2026-11-04/Starter-original.md); follow this current guide for new work.

@@ -1,9 +1,11 @@
 # Pre-VM redesign entry-point snapshots
 
-These six copies preserve the full original bodies of root/nested entry points rewritten on 4 November 2026. They are not current instructions. Their old links, dates, container-compute design and source-status claims describe their original layout/time. Read [current platform docs](../../platform/README.md) and [academic transition](../../platform/academic-transition.md).
+These snapshots preserve the full original bodies of root/nested entry points rewritten on 4 November 2026. They are not current instructions. Their old links, dates, container-compute design and source-status claims describe their original layout/time. Read [current platform docs](../../platform/README.md) and [academic transition](../../platform/academic-transition.md).
 
 | Snapshot | Original path |
 | --- | --- |
+| [Previous first-team checkpoint](TEAM-FIRST-CHECKPOINT-original.md) | TEAM-FIRST-CHECKPOINT.md, superseded on 4 November 2026; active team guide remains at repository root |
+| [Previous teammate starter](Starter-original.md) | Starter.md, superseded on 4 November 2026; active guide remains at repository root |
 | [Root README](README-original.md) | README.md |
 | [Overview](overview-original.md) | COVESTACK-PROJECT-OVERVIEW.md |
 | [Documentation index](docs--README.md) | docs/README.md |

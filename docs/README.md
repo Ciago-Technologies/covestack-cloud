@@ -6,6 +6,7 @@ Updated: 4 November 2026. Start with [current platform docs](platform/README.md)
 
 | Documentation | Role |
 | --- | --- |
+| [Teammate starter](../Starter.md) / [team checkpoint](../TEAM-FIRST-CHECKPOINT.md) | Clone, branch, first A–E tasks, shared acceptance, board and PR follow-up |
 | [Product strategy](platform/strategy.md) / [competition](platform/competitive-analysis.md) | User hypotheses, fair comparisons and proof of value |
 | [Architecture](platform/architecture.md) / [resource model](platform/resource-model.md) | VM-first target and distinct App Container; no implicit contract change |
 | [Security](platform/security.md) / [network and storage](platform/network-and-storage.md) | Trust, actual isolation, secrets and verified recovery |
@@ -15,7 +16,7 @@ Updated: 4 November 2026. Start with [current platform docs](platform/README.md)
 | [Contribution](platform/contributing.md) / [license](platform/license-and-attribution.md) | Ownership, Apache-2.0 adoption and remaining third-party distribution review |
 | [Academic transition](platform/academic-transition.md) | Historical five-service/test records; not current product constraints |
 | [Documentation audit](documentation-audit.md) | Per-file inventory/disposition, historical artifacts and verification |
-| [V5](../V5/README.md) / [archive](archive/README.md) | Superseded design and historical requirements; not current VM instructions |
+| [V5](../V5/README.md) / [archive](archive/README.md) | Updated detailed product/team/schema/acceptance guidance; original bodies preserved separately as history |
 | [Environment](development-environment.md) / [toolchain evidence](development-toolchain-status.md) | Dated original results and current sandbox restrictions |
 | [Checkpoint](../checkpoint.md) | Canonical AI task handoff; GitHub issues separately own live task status |
 

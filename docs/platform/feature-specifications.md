@@ -194,7 +194,7 @@ RustFS is preferred; integration remains Planned. Operator-managed storage and J
 | User problem | Need restart/drift recovery without duplicates |
 | User story | As a user, retry an interrupted request and retain one resource |
 | Expected outcome | Durable convergence/attempt visibility and owner-safe repair |
-| API responsibilities | Atomic intent/idempotency/claims; exact generation/owner/epoch/expiry guards |
+| API responsibilities | Atomic intent/idempotency/claims; mandatory exact generation/owner/epoch guards. Lease-expiry/renewal/acknowledgement acceptance policy remains an explicit B+C+A decision; D reviews any wire/DTO impact |
 | Data ownership | DB intent plus observed freshness/provider-task identity; progress not acknowledgment |
 | Runtime/backend responsibility | Inspect before mutation, serialize and settle backend outcomes |
 | Security boundary | DB fence plus host exclusion; no cleanup from failed inventory |
@@ -203,6 +203,8 @@ RustFS is preferred; integration remains Planned. Operator-managed storage and J
 | Current implementation status | Planned |
 | Dependencies | Claims, durable attempts, provider conformance and host exclusion |
 | Scope priority | Dependency-bound product target; [canonical core/future classification](../product/CoveStack-Product-Architecture-and-Service-Catalogue.md); no release assignment |
+
+Expiry is not silently a second fence or a runtime cancellation signal. Before implementation, B+C+A must agree consistent DB-time predicates for renewal, convergence and observations, including delayed/current-epoch reports and takeover races. Progress never advances acknowledgement; accepted convergence clears lease owner and expiry together while preserving epoch. An expired lease alone never permits conflicting backend work: inspect/settle the actual provider task under resource exclusion. [Open decision](decisions.md#lease-expiry-renewal-and-acknowledgement--open), [current V5 concurrency reference](../../V5/CoveStack-Database-Schema.md#73-exact-generation-acknowledgement-and-separate-progress).
 
 ## Snapshots and Backups
 

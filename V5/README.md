@@ -1,130 +1,81 @@
-# Architecture transition notice — 4 November 2026
+# CoveStack V5 — Detailed Product and Team Documentation
 
-> **Superseded design reference.** Active guidance: [platform README](../docs/platform/README.md). V5 is the preserved previous design bundle, not the active product architecture. Read the new platform index before implementation.
->
-> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
-
-Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); product scope is independent of historical academic CORE-5.
-
-<!-- Historical body preserved below; see supersession notice above. -->
-
-# CoveStack V5 — Documentation Index and Reading Guide
-
-| Document control        | Value                                                                   |
-| ----------------------- | ----------------------------------------------------------------------- |
-| Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **15 October 2026**                                                     |
-| Submission deadline     | **Monday, 25 January 2027**                                             |
-| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
-| Status                  | Target design and implementation guidance; not a completion certificate |
+| Document control | Value |
+| --- | --- |
+| Updated | 4 November 2026 |
+| Authority | Detailed current product specification; aligned to the [canonical catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) and [product SRS](../docs/product/CoveStack-Product-SRS.md) |
+| Evidence | Target design, not a completion certificate; source and actual test results determine implementation status |
+| Compatibility | V5 is a documentation label; current wire contract remains 1.1.0; future fields/kinds/versions require coordinated review |
 
 ## 1. Start here
 
-**Submission: Monday, 25 January 2027.** Product spelling is **CoveStack**; existing server/agent modules remain **kan-server** and **kan-agent**. V5 replaces the older planning timetable, but does not change running code or the current wire-contract version.
+**V5 is retained and its bodies are updated for the current product.** It is not a folder to delete or a wrapper notice over old requirements. Product is local-first account-owned infrastructure: real VM Instance primary, App Container separate, Java/Spring/JDBC authority, Go trusted agent and thin CLI, RustFS preferred Planned object provider, capacity/safe reconciliation/security/verified recovery.
 
-This directory contains the reviewed CORE-5 plan, acceptance/schema references and a separate deferred roadmap. Planned services and illustrative commands are explicitly separated from implementation evidence.
+[Root Starter](../Starter.md) explains clone/branch/first work; [team checkpoint](../TEAM-FIRST-CHECKPOINT.md) explains shared acceptance and board; [canonical AI checkpoint](../checkpoint.md) preserves task continuity. The [product catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) and [product SRS](../docs/product/CoveStack-Product-SRS.md) remain shared scope authorities. V5 supplies detailed aligned working guidance.
 
-## 2. Requested file replacements
+## 2. Product status and boundaries
 
-| Previous guide/topic              | V5 replacement                                |
-| --------------------------------- | --------------------------------------------- |
-| DocsV4-DO_Team / technical design | [DocsV5-DO_Team](DocsV5-DO_Team.md)           |
-| Folder structure explanation      | [Folder map](Folder_Structure_Explanation.md) |
-| Complete working setup            | [Setup](CoveStack-Complete-Working-Setup.md)  |
-| Project workflow                  | [Workflow](CoveStack-Project-Workflow.md)     |
-| Team Roles                        | [Ownership](Team_Roles.md)                    |
-| tools                             | [Tools](tools.md)                             |
+Current Go config/signer/client/no-execution loop/main exist; Java auth/replay/helpers and partial extended SQL exist. Full server/credential/host assignment, claims, real VM/container/Kubernetes/data services and clients still require implementation/evidence. No service becomes Supported here; no qualified production profile. Current actual wire is 1.1.0, not V5 or an invented future version.
 
-## 3. Complete document index
+Core/future scope follows the catalogue, independent of old academic limits/dates/template/node/network caps. No new Labs product or release-by-release plan is introduced. RustFS Java bucket/policy/key reconcile is separate from operator service/volumes and actual byte restore. Apache-2.0 is adopted for CoveStack-owned material; third-party obligations remain.
 
-| File                                                                                             | Purpose                                                              |
-| ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
-| [CoveStack-SRS-Scope.md](CoveStack-SRS-Scope.md)                                                 | CORE-5 scope and five deliverables; examiner reading                 |
-| [CoveStack-Service-Gates.md](CoveStack-Service-Gates.md)                                         | Promotion rule and evidence register                                 |
-| [CoveStack-AntiWrapper-Acceptance.md](CoveStack-AntiWrapper-Acceptance.md)                       | Tests 1–15, CORE-5 viva; separate extended appendix                  |
-| [CoveStack-Database-Schema.md](CoveStack-Database-Schema.md)                                     | Reference schema, migration order and open decisions; not executable |
-| [CoveStack-Go-Handover.md](CoveStack-Go-Handover.md)                                             | A/E boundary and learner plan                                        |
-| [CoveStack-Extended-Roadmap.md](CoveStack-Extended-Roadmap.md)                                   | Extended track and Optional future work; preserved design            |
-| [DocsV5-DO_Team.md](DocsV5-DO_Team.md)                                                           | Technical Design and Team Architecture                               |
-| [CoveStack-Service-Catalog.md](CoveStack-Service-Catalog.md)                                     | Services, Capabilities and Release Boundaries                        |
-| [Folder_Structure_Explanation.md](Folder_Structure_Explanation.md)                               | Folder and File Responsibilities                                     |
-| [CoveStack-Complete-Working-Setup.md](CoveStack-Complete-Working-Setup.md)                       | Setup, Deployment and Verification                                   |
-| [CoveStack-Project-Workflow.md](CoveStack-Project-Workflow.md)                                   | Delivery Workflow to 25 January 2027                                 |
-| [Team_Roles.md](Team_Roles.md)                                                                   | Ownership, Reviews and ITISS Responsibilities                        |
-| [tools.md](tools.md)                                                                             | Tools, Versions and Why They Are Used                                |
-| [CoveStack-Stack-Templates.md](CoveStack-Stack-Templates.md)                                     | One Stack Integration Template                                       |
-| [CoveStack-VPC-IPAM-and-Networking.md](CoveStack-VPC-IPAM-and-Networking.md)                     | VPC, IPAM and Connectivity Policy                                    |
-| [CoveStack-Publication-Domains-and-Tunneling.md](CoveStack-Publication-Domains-and-Tunneling.md) | Application Publication, Domains and Tunnels                         |
-| [CoveStack-Instance-Metadata.md](CoveStack-Instance-Metadata.md)                                 | Instance Metadata and Identity Boundaries                            |
-| [CoveStack-Terraform-and-Ansible.md](CoveStack-Terraform-and-Ansible.md)                         | Terraform, Ansible and Controlled Automation                         |
-| [CoveStack-UI-CLI-and-Monitoring.md](CoveStack-UI-CLI-and-Monitoring.md)                         | React UI, CLI Parity and Monitoring                                  |
-| [CoveStack-Security-and-ITISS.md](CoveStack-Security-and-ITISS.md)                               | Security, Infrastructure and ITISS Evidence                          |
-| [CoveStack-Operations-and-Recovery.md](CoveStack-Operations-and-Recovery.md)                     | Operations, Failure Handling and Data Recovery                       |
-| [CoveStack-Testing-and-Acceptance.md](CoveStack-Testing-and-Acceptance.md)                       | Test Matrix and Gate Evidence                                        |
-| [CoveStack-Implementation-Status.md](CoveStack-Implementation-Status.md)                         | Baseline Status, Missing Work and Contract Changes                   |
-| [CoveStack-Anuj-Next-Steps.md](CoveStack-Anuj-Next-Steps.md)                                     | Anuj Implementation and ITISS Work Order                             |
-| [CoveStack-Team-START-HERE.md](CoveStack-Team-START-HERE.md)                                     | Team Onboarding and Shared Working Rules                             |
-| [CoveStack-Current-Setup-Fixes.md](CoveStack-Current-Setup-Fixes.md)                             | Baseline Audit and Extension Checklist                               |
-| [CoveStack-PDF-and-Formatting.md](CoveStack-PDF-and-Formatting.md)                               | Markdown and PDF Export                                              |
-| [CoveStack-References-and-Decision-Log.md](CoveStack-References-and-Decision-Log.md)             | References, Assumptions and Decisions                                |
-| [CoveStack-Resource-Services.md](CoveStack-Resource-Services.md)                                 | Resource Specifications and Service Behavior                         |
-| [CoveStack-API-and-Compatibility.md](CoveStack-API-and-Compatibility.md)                         | API Boundaries and Compatibility Matrix                              |
+## 3. Full current document index
 
-### 3.1 HLD and LLD entry points
+| File | Current responsibility |
+| --- | --- |
+| [DocsV5-DO_Team.md](DocsV5-DO_Team.md) | HLD/LLD, authority, provider planes, safe lifecycle and decisions |
+| [CoveStack-Service-Catalog.md](CoveStack-Service-Catalog.md) | 22 core / 31 future catalogue and ownership boundaries |
+| [CoveStack-SRS-Scope.md](CoveStack-SRS-Scope.md) | Independent product requirements, domain deliverables and acceptance |
+| [Team_Roles.md](Team_Roles.md) | A–E ownership, pair reviews, first tasks and ITISS |
+| [CoveStack-Project-Workflow.md](CoveStack-Project-Workflow.md) | Dependency-driven integration/implementation/review workflow |
+| [CoveStack-Complete-Working-Setup.md](CoveStack-Complete-Working-Setup.md) | Actual checks, missing setup, future profile/install and constraints |
+| [CoveStack-Current-Setup-Fixes.md](CoveStack-Current-Setup-Fixes.md) | Concrete current blockers and owners before coding |
+| [CoveStack-Database-Schema.md](CoveStack-Database-Schema.md) | VM-first proposed relational model, exact current states, concurrency and migration boundaries |
+| [CoveStack-Service-Gates.md](CoveStack-Service-Gates.md) | Core/future promotion, domain failure evidence and profile qualification |
+| [CoveStack-AntiWrapper-Acceptance.md](CoveStack-AntiWrapper-Acceptance.md) | Exact current 1–15/E1–E8 assertions and truthful viva answers |
+| [CoveStack-Testing-and-Acceptance.md](CoveStack-Testing-and-Acceptance.md) | Evidence levels, current checks, real acceptance and CI boundaries |
+| [CoveStack-Go-Handover.md](CoveStack-Go-Handover.md) | A/E boundaries, staged CLI learning and review |
+| [CoveStack-Anuj-Next-Steps.md](CoveStack-Anuj-Next-Steps.md) | Existing loop integration first, later driver/infra/ITISS dependencies |
+| [CoveStack-Team-START-HERE.md](CoveStack-Team-START-HERE.md) | Team entry point, clone/issue/read/review rules |
+| [Folder_Structure_Explanation.md](Folder_Structure_Explanation.md) | Actual source tree versus planned modules and generated/secrets policy |
+| [CoveStack-API-and-Compatibility.md](CoveStack-API-and-Compatibility.md) | Actual 1.1.0 versus future VM/type/claim/network/capacity protocols |
+| [CoveStack-Resource-Services.md](CoveStack-Resource-Services.md) | Owned VM/container/Kubernetes/SQL/RustFS/network/storage lifecycle |
+| [CoveStack-VPC-IPAM-and-Networking.md](CoveStack-VPC-IPAM-and-Networking.md) | IPAM/NIC/firewall/traffic/route ownership, actual denial and recovery |
+| [CoveStack-Stack-Templates.md](CoveStack-Stack-Templates.md) | Bounded environment dependencies/readiness/retry/retention |
+| [CoveStack-Terraform-and-Ansible.md](CoveStack-Terraform-and-Ansible.md) | Thin provider, operator installer, future inventory and automation safety |
+| [CoveStack-UI-CLI-and-Monitoring.md](CoveStack-UI-CLI-and-Monitoring.md) | API-only client/UI, core fresh health/logs and advanced observability |
+| [CoveStack-Security-and-ITISS.md](CoveStack-Security-and-ITISS.md) | Threat model, actual isolation/custody, host controls and evidence |
+| [CoveStack-Instance-Metadata.md](CoveStack-Instance-Metadata.md) | Management inspection versus future guest identity/delivery |
+| [CoveStack-Publication-Domains-and-Tunneling.md](CoveStack-Publication-Domains-and-Tunneling.md) | Future opt-in gateway/routes/domain/TLS/actual reachability |
+| [CoveStack-Operations-and-Recovery.md](CoveStack-Operations-and-Recovery.md) | Incident, retention, independent backup/verified restore and upgrade |
+| [CoveStack-Implementation-Status.md](CoveStack-Implementation-Status.md) | Source evidence, missing code, environment restrictions and next integration |
+| [CoveStack-References-and-Decision-Log.md](CoveStack-References-and-Decision-Log.md) | Authority, existing research, open decisions and relocation record |
+| [CoveStack-Extended-Roadmap.md](CoveStack-Extended-Roadmap.md) | Future dependency catalogue, not release dates or academic ceiling |
+| [CoveStack-PDF-and-Formatting.md](CoveStack-PDF-and-Formatting.md) | Markdown formatting, stale export/tooling limits and sharing |
+| [README.md](README.md) | This current V5 reading and authority map |
+| [tools.md](tools.md) | Existing pins versus evaluated providers/tooling and rights/profile checks |
 
-| View | Authoritative section | What was clarified |
-|---|---|---|
-| HLD | [Main design 2.2–2.3](DocsV5-DO_Team.md#22-hld--control-execution-and-data-paths) | Control/data paths, network prerequisite, shared MinIO and failure/capacity boundaries |
-| LLD | [Main design 3.1](DocsV5-DO_Team.md#31-lld--mutation-sequence-and-contract-gate) and [Schema 7](CoveStack-Database-Schema.md#7-concurrency-and-reference-queries) | Claims/expiry, runtime exclusion, scheduled drift/health, network execution and bootstrap |
-| Proof | [Acceptance variants](CoveStack-AntiWrapper-Acceptance.md#32-hldlld-regression-variants--existing-test-numbers) | Additional scenarios under existing tests 1–15 |
 
-All are target design. New wire schemas, secret custody, measured values and actual runtime tests remain required; documentation does not promote a service to Gates passed.
+## 4. Implementation reading order
 
-## 4. Reading order and teammate sharing
+1. Product catalogue/SRS → main design → roles/workflow → source status and current fixes.
+2. Team onboarding → actual setup/known constraints → first real signed no-execution server integration.
+3. API/compatibility → VM-first schema/concurrency → resources/network/environment design.
+4. Gates/acceptance/tests → security/ITISS/recovery → provider/interface/capacity decisions.
+5. Future dependencies and advanced topics only after their prerequisites are reviewable; no plan is implementation evidence.
 
-Share the whole reviewed V5 folder and exact source branch/revision. Ask everyone to read these in order:
+A–E first responsibilities stay in roles/root team guide. A integrates the existing loop with B+C actual credentials/server before runtime work; E uses labelled mock learning and an agreed API/module boundary. Do not recreate source that already exists or use historical fake setup commands.
 
-| Order | Main file                                                   | Why everyone needs it                                |
-| ----- | ----------------------------------------------------------- | ---------------------------------------------------- |
-| 1     | [START-HERE](CoveStack-Team-START-HERE.md)                  | Clone/branch rules and first team task               |
-| 2     | [SRS scope](CoveStack-SRS-Scope.md)                         | What the team must deliver                           |
-| 3     | [Main design](DocsV5-DO_Team.md)                            | Architecture, owned logic and boundaries             |
-| 4     | [Team roles](Team_Roles.md)                                 | Exact A–E tasks and required reviews                 |
-| 5     | [Workflow](CoveStack-Project-Workflow.md)                   | Dates, dependencies, freeze and cut rules            |
-| 6     | [Setup](CoveStack-Complete-Working-Setup.md)                | Real baseline checks, target installation and limits |
-| 7     | [Service gates](CoveStack-Service-Gates.md)                 | When a service may be promoted                       |
-| 8     | [Acceptance](CoveStack-AntiWrapper-Acceptance.md)           | Tests 1–15 and honest CORE-5 viva answers            |
-| 9     | [Implementation status](CoveStack-Implementation-Status.md) | Planned work versus source/CI evidence               |
+## 5. History and preservation
 
-| Owner          | Additional required reading                                                                             |
-| -------------- | ------------------------------------------------------------------------------------------------------- |
-| A — Anuj       | Go Handover; Anuj Next Steps; Resource Services; Networking; Security; Operations; Schema agent columns |
-| B              | Database Schema; API; Resource Services; Stack Templates; Current Setup Fixes                           |
-| C              | Database Schema; Security; Acceptance/Testing; Networking; credential and audit decisions               |
-| D              | API/Compatibility; Database Schema; Resource Services; Terraform fixtures                               |
-| E              | Go Handover; API; Folder Structure; tools; Terraform/Ansible bounded scope                              |
-| Everyone later | Extended Roadmap before starting any deferred task                                                      |
+One [historical V5 snapshot](../docs/archive/V5-before-full-product-alignment-2026-11-04.md) preserves all 31 previous bodies unchanged, including full old DDL, old audit, timelines and acceptance variants. Every active V5 file links its exact snapshot section. Use those only for traceability; do not treat old container/MinIO/cap/count/version proposals as current implementation. Existing source/contracts/generated code/config are unchanged by this doc alignment.
 
-Runtime contracts are authoritative: read contracts/README.md, contracts/internal-api.yaml, contracts/lifecycle-rules.json and signing rules/vectors for assigned integration work. Clone the whole repo; share repository links rather than stale separate source copies. The Java team works in kan-server; A agent work in kan-agent; E planned CLI in cmd/covestack. These are paths within one repository, not push destinations.
+## 6. Sharing, export and review
 
-## 5. Agreed offering — CORE-5 only
+Share this index, Starter, team roles/workflow, design/SRS/catalogue, setup/status, API/schema and acceptance/security links from the agreed branch/revision. Ordinary GitHub issues hold live task status; checkpoint.md is AI continuity. No secret config, Terraform state, signing/admin keys or credential kubeconfig in shared material.
 
-| Service            | Bound                                                           | Status  |
-| ------------------ | --------------------------------------------------------------- | ------- |
-| Compute/Droplets   | Container-backed, single host; not VMs                          | Planned |
-| Kubernetes         | Required; max 2 clusters/host; 1 server + max 2 agents          | Planned |
-| Managed PostgreSQL | Backup/restore, scoped credentials and private networking       | Planned |
-| Object storage     | S3-compatible MinIO, per-account credentials and bucket scoping | Planned |
-| VPC/IPAM           | One private network/account; simple allocator; no custom CIDR   | Planned |
+Old HTML/PDF/print validator has obsolete calendar/audit assumptions and remains unchanged; no fresh bundle is claimed. Read [formatting/export limits](CoveStack-PDF-and-Formatting.md) before sharing exports. Runtime/profile promotion requires actual gates and operational evidence, not correct Markdown.
 
-Security, Recovery, CLI first, optional Terraform Droplet/K8s, one Postgres + MinIO + app Droplet stack and Ansible Part 1 are cross-cutting. The separate [roadmap](CoveStack-Extended-Roadmap.md) is not SRS scope or deliverables. No UI work during CORE-5.
+## Historical traceability
 
-**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
-
-Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
-
-## 6. Print, Git and sharing
-
-All comparisons use real Markdown tables. Wider gate/schema tables and Mermaid ERD require suitable rendering; see [PDF limitations](CoveStack-PDF-and-Formatting.md). The existing HTML/print scripts are unchanged and do not represent these edits. No current PDF is generated.
-
-V5 is tracked in Git; checkpoint **40291e6** preserves the first batch, and later commits record subsequent changes. Earlier local/ignored statements describe historical snapshots. GitHub links show only the revision actually pushed; check the branch/revision before sharing. Historical team/handoff ZIPs are indexed in [docs/archive](../docs/archive/README.md), not active instructions. Share only reviewed docs/source, never deployment secrets, private .env, state, kubeconfigs or backups containing credentials.
+The [previous body of this file](../docs/archive/V5-before-full-product-alignment-2026-11-04.md#v5-readme) is preserved unchanged as historical reference, including earlier requirements/DDL/acceptance text. It is not current VM/RustFS setup guidance. Use this active body, the linked canonical domain specifications and [actual implementation evidence](CoveStack-Implementation-Status.md) for new work. No source, migrations, contracts, tests, configuration or runtime state is changed by this document.

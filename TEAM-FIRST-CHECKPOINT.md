@@ -1,235 +1,216 @@
-# Superseded planning reference — 4 November 2026
+# CoveStack — first team checkpoint and GitHub board guide
 
-> This dated guide/diagram plan is retained for history; use [current platform documentation](docs/platform/README.md) and [academic transition](docs/platform/academic-transition.md) for new work. Primary compute is a real VM Instance; App Container is separate. Old container-Droplet/two-driver/8 GB production implications and January schedule are not current product instructions. Original obligations and results remain below; no mentor waiver or VM implementation is inferred. Existing SVG/PDF exports are historical, not regenerated or runtime proof.
+Updated: **4 November 2026**. Audience: **A/Anuj, B, C, D and E**.
 
-<!-- Historical body preserved below; see supersession notice above. -->
+**Keep this file and Starter.md.** [Starter.md](Starter.md) covers cloning, branching and getting started. This file defines the team's next integration checkpoint: who does what, what blocks progress, which evidence to collect and how to track it on GitHub. It does not claim the checkpoint has passed or impose a product deadline.
 
-# CoveStack — First Team Checkpoint and GitHub Board Guide
+## 1. Which record should you follow?
 
-| Document control          | Value                                                                                |
-| ------------------------- | ------------------------------------------------------------------------------------ |
-| Updated                   | 27 October 2026                                                                      |
-| Scope                     | First implementation checkpoint; target work, not acceptance evidence                |
-| Team                      | A: Anuj; B: Java core/SQL; C: security/tests; D: Java API/DTO; E: CLI                |
-| Existing first checkpoint | 31 October 2026; report missing evidence honestly rather than marking tasks finished |
-| Submission deadline       | Monday, 25 January 2027                                                              |
-| Service status            | Planned until actual evidence justifies a change under G1–G4                         |
+| Record | Authority | What to update |
+| --- | --- | --- |
+| [Product SRS](docs/product/CoveStack-Product-SRS.md) and [catalogue](docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) | Product requirements and core/future scope | Reviewed architecture/scope decisions |
+| [Architecture](docs/platform/architecture.md), [API boundaries](docs/platform/api-and-cli.md) and actual contracts | Target boundaries versus current wire behavior | Coordinated design/schema/fixture changes, never invented wire strings |
+| [Starter.md](Starter.md) and this file | Team onboarding, role boundaries and checkpoint acceptance | Update when the agreed next slice changes; do not maintain daily completion ticks here |
+| GitHub issues/project board | Live assignee, status, dependencies, blocker and linked PR | Owner updates the same issue as work progresses |
+| PR/CI/runtime evidence | Exact revision, commands and actual results | Attach evidence to the issue; label source/unit/mock/integration/runtime scope |
+| [checkpoint.md](checkpoint.md) | Single canonical AI-agent handoff | Agent records task authorization, decisions, changes, verification and next action |
 
-## 1. How to maintain this and GitHub
+Do not make this team guide a second AI handoff or a second live task database. Link issues to this checkpoint; the board is a view of those issues. No GitHub items were created or inspected live by this documentation update.
 
-Use two connected records with different responsibilities, rather than two competing sources of truth:
+## 2. Current architecture and actual starting point
 
-| Record                                     | Authoritative for                                             | How to maintain it                                                     |
-| ------------------------------------------ | ------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| This file and linked V5/contract documents | Checkpoint scope, ownership, dependencies and exit criteria   | Change through a reviewed PR; do not tick live progress here           |
-| GitHub issues and project board            | Assignee, current task status, blockers, PR and test evidence | Update the same issue as work progresses; link this file/section       |
-| PR/CI results                              | Exact code revision reviewed and tests actually executed      | Attach links to the issue; mocks do not establish real runtime results |
+| Area | Current direction / evidence boundary |
+| --- | --- |
+| Product | Local-first, account-owned real infrastructure; scope is independent of historical academic CORE-5 |
+| Compute | Real VM Instance is the primary target; Incus/QEMU/KVM preferred evaluation. App Container is separate and shared-kernel |
+| Control plane | Java/Spring Boot with JdbcClient/plain SQL; PostgreSQL owns desired state/operations. No JPA/Hibernate |
+| Agent | Go signed client and single-account polling exist; returned work deliberately stops the loop without execution |
+| Missing integration | Concrete credential provisioning, trusted account/host assignment, runnable scoped server foundation and real-server evidence remain pending |
+| Execution | Claims, VM/container/network/storage drivers, reconciliation and capacity admission are target work, not verified service support |
+| Object storage | RustFS preferred planned provider; operator-managed process/volumes, account-owned buckets/keys, Java-side policy and credential reconciliation |
+| CLI | E's thin authenticated Go API client is Planned; no direct runtime socket or platform DB access |
+| License | [Apache License 2.0](LICENSE), SPDX Apache-2.0, adopted for CoveStack-owned material; third-party terms remain separate |
 
-The board is a view of issues, not a separate task list. Create one issue per bounded task and add that issue to the project. Do not duplicate an issue as a draft card. Use repository links from the agreed branch, then a stable merged revision when available. Never include credentials or secret configuration in either record.
+Existing Go test sources, Java auth components or extended SQL files do not establish a bootable platform, live schema or provisioned service. Read the [implementation ledger](docs/platform/implementation-status.md) before assigning a task. Old academic dates, cluster caps and template counts are historical, not product requirements. No new delivery date or runtime approval is invented here.
 
-A task in the board's Done column is not a service at Gates passed. Service status remains **Planned | In progress | Gates passed | Extended track**. Supported requires G1 DB-authoritative intent/generation, G2 crash-safe reconciliation/rebuild without duplicates, G3 other-account 404 plus applicable protocol/network denial, and G4 a failure test running in CI. C owns tests 1–15 and E1–E8. This first communication checkpoint passes no resource service gate by itself.
+## 3. The next shared checkpoint
 
-## 2. Everyone: start after cloning
+**Goal: the existing single-account signed agent polls a real authenticated Java endpoint with trusted assignment, handles no work/errors and stops cleanly—without executing resources.**
 
-Use the whole repository; do not clone just kan-server or kan-agent. These are instructions to run deliberately, not commands already executed by this document.
+The immediate checkpoint is a safe management-plane integration, not a VM/RustFS feature demo. A must not recreate the client/loop; B+C must not bypass identity to supply work. D reviews real versus proposed interfaces. E can learn with labelled mocks while the server dependencies are pending.
 
-```bash
-git clone https://github.com/Ciago-Technologies/covestack-cloud.git
-cd covestack-cloud
-git status -sb
-git switch main
-git pull --ff-only origin main
-git switch -c feat/your-specific-task
-```
+| Step | Lead / collaborators | Concrete exit evidence | Dependency |
+| --- | --- | --- | --- |
+| 1. Agree the handshake | B+C+A; D compatibility | Recorded endpoint/no-work behavior, credential kind/provisioning path, trusted host/account assignment and protected delivery; no secret values | Read source and current contract together |
+| 2. Make the server slice testable | B+C; D API mapping | Reviewed Java startup/auth and prerequisite migration path on an authorized environment; actual results recorded | Credential/assignment design and migration history review |
+| 3. Prove authentication | C+B; A client review | Real signed request accepted for the assigned identity; invalid/revoked/replayed/wrong-assignment cases rejected | Runnable server and protected test identities |
+| 4. Integrate existing agent | A+C | Actual no-work polling, cancellation/auth-stop/error observations; returned work never claimed or executed | Steps 1–3 |
+| 5. Review next execution design | D+B+A+C | Future claim/renew/report, VM/type/network/capacity gaps and fixture plan recorded | Current integration evidence; no silent contract reinterpretation |
+| 6. Connect CLI later | E with A/C; B/D API | Thin API behavior against a real available endpoint with user auth and truthful JSON/error output | Agreed module boundary and real user API; mock work remains separately labelled |
 
-If the checkout already has uncommitted work, preserve it before switching branches. If your task already has a branch, switch to it rather than creating another. Anuj's existing task branch is feat/agent-signed-client. Branch from the reviewed baseline; coordinate shared changes rather than copying unfinished files between teammates.
+Steps 1–4 define the immediate integration exit. Steps 5–6 prepare later work; do not block a clear account of what did and did not pass. No step is pre-marked complete by this document.
 
-| Read                                                                                           | Purpose                                              |
-| ---------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| [Team onboarding](V5/CoveStack-Team-START-HERE.md)                                             | Shared rules and first tasks                         |
-| [SRS scope](V5/CoveStack-SRS-Scope.md)                                                         | Exactly CORE-5 and approved cross-cutting scope      |
-| [Roles](V5/Team_Roles.md)                                                                      | Code ownership and reviewers                         |
-| [Workflow](V5/CoveStack-Project-Workflow.md)                                                   | Dates and dependency order                           |
-| [Setup](V5/CoveStack-Complete-Working-Setup.md)                                                | Existing commands, prerequisites and warnings        |
-| [Agent API](contracts/internal-api.yaml) and [lifecycle rules](contracts/lifecycle-rules.json) | Actual contract; version 1.1.0, not guessed messages |
+## 4. A / Anuj — first tasks and limits
 
-Open your assigned issue before coding. Write its expected result and dependencies. Run the existing relevant checks and record the baseline, including failures. Each person creates private local configuration from reviewed templates; never copy another person's real .env, keys or deployment secrets.
+| Order | Your work | Relevant files / review | Evidence to attach |
+| --- | --- | --- | --- |
+| 1 | Explain the existing config → client/signing → poll → cancellation/no-execution path | kan-agent/cmd/kan-agent/main.go; internal/config/; internal/client/; internal/agent/loop.go; sigv1/ | Short explanation and exact source revision; no duplicate implementation |
+| 2 | Agree real URL, credential delivery and trusted assignment with B+C | Current [internal API](contracts/internal-api.yaml); [API boundary](docs/platform/api-and-cli.md) | Written non-secret agreement and blockers |
+| 3 | Run relevant existing Go checks on the authorized dev environment | kan-agent/; CI commands in Starter.md | Actual command/results; mocks and unit checks clearly labelled |
+| 4 | Test the existing loop against B+C's real server | Existing client/loop; C's integration tests | Empty-array behavior, auth rejection, cancellation, observed outage/retry behavior |
+| 5 | Review future execution boundary before coding drivers | A+B+C+D, VM/type and claim design | Agreed scope/fixtures and separately approved backend evaluation plan |
 
-## 3. Person A — Anuj: signed communication first
+Current discovery is `GET /internal/v1/agent/work`; `200` with `[]` means no work. Environment names are `KAN_SERVER_URL`, `KAN_ACCESS_KEY`, `KAN_SECRET_KEY`, optional `KAN_RULES_PATH`. The loader does not automatically read .env. A localhost example is not a verified server URL. Do not paste secrets into an issue, command argument, shared screenshot or this file.
 
-**First task:** understand the existing client and integrate one-account signed communication. client.go/client_test.go exist; source presence does not prove current review, real-server connectivity or a production loop. Review the code and explain it before extending it. AI-generated agent code is reference only; A types and can explain its behavior.
+Your later ownership remains agent/shared client/signing/drivers/reconcile, CI, installer and ITISS evidence. You review E's Go but do not take over the CLI. Runtime evaluation requires an authorized capable host; no tenant privileged sockets, host root mounts or arbitrary host execution. Explain the code you contribute.
 
-| Order | Your action                                                                                        | Evidence / dependency                                                                                                          |
-| ----- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| 1     | Read config/config.go, sigv1/request.go, internal/client/client.go and its tests; study auth-smoke | Explain configuration, signing, HTTP errors, decoding and cancellation                                                         |
-| 2     | Review client tests and run relevant Go checks from kan-agent                                      | Record actual output/revision; distinguish local test server from Java server                                                  |
-| 3     | Pair with B+C on URL, one account, service credential and trusted host assignment                  | B supplies real server; C securely provisions key; no caller-selected account                                                  |
-| 4     | Use client.GetWork for one real signed GET                                                         | HTTP 200 with [] when no work; no dispatch/acknowledgment                                                                      |
-| 5     | Add agent startup and polling integration after reviewing entry-point/file placement               | One account, 10-second requests, 5-second polling base, cancellable waits                                                      |
-| 6     | Add temporary-failure backoff, authentication stop and shutdown tests                              | 1-to-30-second backoff cap with bounded jitter; valid 429 guidance; 401/403 stops account loop; Ctrl+C interrupts request/wait |
-| 7     | Pair with C against the real Java server                                                           | Outage/restart recovery, invalid key, no work and no secret logs; attach results                                               |
+## 5. B — server foundation and durable state
 
-Relevant locations: kan-agent/internal/config/, kan-agent/sigv1/, kan-agent/internal/client/, kan-agent/cmd/auth-smoke/. Agent production entry point/poll files and shared pkg/kanclient module layout still require review; do not claim they exist or move the signer blindly.
+| Order | Your work | First output / evidence |
+| --- | --- | --- |
+| 1 | Inspect kan-server source/pom and actual migration prerequisites; do not assume V5/V6 form a clean schema chain | Reviewed startup/migration dependency plan and blockers |
+| 2 | Agree credential lookup/auth wiring with C and assignment/discovery needs with A+D | A bounded authenticated server slice, not a fake key or anonymous fallback |
+| 3 | Own application/configuration and all SQL/migrations, idempotency, claims/fencing, quota/reservations | Reviewed forward-only migration plan; actual empty-DB/startup evidence when implemented |
+| 4 | Make the real signed no-work path testable with C | Reproducible server/test setup, sanitized results and integration dependencies |
 
-The client currently has a local response-size bound; review it with B+C before release. GetWork is discovery, not permission to execute. Start with supportedKinds empty; heartbeat requires truthful version inputs, including dockerVersion. No invented Docker version. Empty/failed polls never authorize cleanup.
+Work in kan-server/. B owns SQL; C reviews tenancy/secrets/tests, A agent-facing state and D DTO alignment. Establish applied history before migrations; never edit an applied migration or copy historical container reference DDL directly into a VM schema. Java's RustFS reconciliation is later work; object data still requires independent persistence/restore evidence.
 
-**Exit:** you can explain the code; unit/client checks pass; one assigned credential communicates with the real server; no work is normal; outage recovery and shutdown are demonstrated. C records integration evidence. **Next:** reviewed claim/network schemas, then one Droplet lifecycle with crash recovery and fencing; do not jump to multi-account concurrency or extended publication.
+## 6. C — identity, security and acceptance from day one
 
-Full details: [Anuj first milestone, section 2.3](V5/CoveStack-Anuj-Next-Steps.md#23-first-milestone-decision--single-account-communication-planned).
+| Order | Your work | First output / evidence |
+| --- | --- | --- |
+| 1 | Read existing auth/replay interfaces and current signing rules with B+A | Credential/assignment/custody decision and threat boundary |
+| 2 | Design real credential lookup/provisioning, protected storage, rotation/revocation and replay behavior | Valid/invalid/revoked/replayed/wrong-assignment cases; no shared default key |
+| 3 | Own acceptance for the real server/client integration | Reproducible tests and exact evidence class/revision; no unit-only runtime claim |
+| 4 | Later own Java IPAM and service isolation/recovery acceptance | Actual allocation/traffic/storage denial and verified restoration, not merely DB records |
 
-## 4. Person B — Java application and database foundation
+Work in kan-server auth/test areas and reviewed acceptance specifications. Keep hash-only API tokens separate from encrypted signing credentials; agent service identity is not ordinary CLI user identity. A request's claimed account/agent is not trusted assignment by itself. C owns acceptance; implementers contribute evidence and fixes.
 
-**First task:** provide a bootable server and safe reviewed foundation, not every table at once.
+## 7. D — Java API, DTO and contract review
 
-| Order | Your action                                                                                                  | Exit evidence                                                                       |
-| ----- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
-| 1     | Read schema, inspect current Flyway files and determine any applied history                                  | Written prerequisite/order review with C+A and D for DTOs                           |
-| 2     | Resolve the missing foundation before existing V5/V6 extended migrations can run                             | Empty PostgreSQL 17 migration test; no rewriting an applied migration               |
-| 3     | Implement the reviewed initial identity, credential, resource, operation, idempotency/event/audit foundation | Tenant constraints and transaction tests; staged scope from schema section 9.1      |
-| 4     | Add/verify actual application entry point, configuration and packaging                                       | Real Java process starts using reviewed configuration; no imaginary startup command |
-| 5     | Pair with C on credential lookup and trusted account/agent assignment                                        | Persisted assignment is checked; no global/default credential                       |
-| 6     | Expose existing read-only work behavior with D/C                                                             | Authenticated assigned account, capability filtering, 200 [] for no work            |
+| Order | Your work | First output / evidence |
+| --- | --- | --- |
+| 1 | Inventory actual Java endpoints/interfaces versus missing server APIs | Reviewed list of existing behavior, gaps and next DTO/fixture slice |
+| 2 | Review discovery/no-work/error/ownership semantics with B+C+A | Fixtures aligned with actual contract; no invented fields |
+| 3 | Record future VM/App Container, assignment/claims/network/capacity changes | Coordinated schema/fixture/generated-output proposal, not an assumed current wire version |
+| 4 | Later map bounded public APIs and Terraform fixtures | Exact supported subset verified against real server behavior |
 
-**Exit:** teammate can follow the verified startup procedure; foundation migrates cleanly; real authentication integrates and the empty work path behaves correctly. **Next:** scoped resource transactions and B-owned lease/fencing/idempotency SQL after coordinated schemas. Agent/client never writes the DB directly.
+Work in kan-server/ and reviewed authoritative contract sources. Current contract remains 1.1.0; do not silently reinterpret container specs as guest VMs or publish a fictional next wire version. D writes Java, **no Go**. New execution requests require coordinated A+B+C+D review before implementation.
 
-Read [database schema](V5/CoveStack-Database-Schema.md), especially migration inventory and open decisions. Existing publication/domain SQL does not establish a functioning CORE-5 database. Share settings names and startup instructions, never DB passwords.
+## 8. E — CLI learner and user-facing client
 
-## 5. Person C — credentials, security and acceptance from day one
+| Order | Your work | First output / evidence |
+| --- | --- | --- |
+| 1 | Agree CLI/shared-client module boundary with A before adding modules or moving signer code | Reviewed imports/layout; cmd/covestack and pkg/kanclient are planned locations |
+| 2 | Learn Go/errors/structs and a bounded cobra command/build exercise | Explainable CLI slice and actual three-OS build evidence when produced |
+| 3 | Practice JSON, HTTP/context/timeouts/errors against a labelled mock | Table/httptest evidence; mocks never claim infrastructure creation |
+| 4 | Connect to the real user API when available | Actual authorization, finite waits, JSON output and useful error evidence |
 
-**First task:** make authentication real and own the tests that prove the first integration.
+CLI calls the authenticated API only; no Docker/Incus/k3d or direct DB operations. Mutations use idempotency keys; config is endpoint/profile/key identifier, secrets are protected separately, and no local resource DB exists. E owns CLI/packaging and later a thin provider, never agent/signing/drivers/reconcile. Terraform and advanced integrations are not shortcuts around missing resource APIs.
 
-| Order | Your action                                                            | Exit evidence                                                                               |
-| ----- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| 1     | Review auth filters, KeyService, nonce store and B's credential schema | Agree ciphertext key custody, service eligibility and account/agent assignment              |
-| 2     | Implement real active service-credential lookup with B                 | Unknown/revoked keys rejected; no fallback development key                                  |
-| 3     | Provision one dedicated service credential securely                    | Restricted issuance, secret delivered once by protected channel, no Git/chat/log leakage    |
-| 4     | Verify signature/replay behavior and store outages                     | Valid request accepted; replay/tampering denied; unavailable replay protection fails closed |
-| 5     | Own real-server communication tests with A+B/D                         | Empty work, wrong credentials, account scope, outage/restart and sanitized errors           |
-| 6     | Prepare CORE-5 acceptance tests incrementally                          | Tests 1–15 remain C-owned; no resource gate promoted by the communication test              |
+## 9. Acceptance checklist for the immediate checkpoint
 
-**Exit:** real stored credential authenticates; invalid/revoked/replayed requests are denied; assignment and secrets are reviewed; tests run reproducibly. **Next:** tests 1–6 with B+A and Java IPAM allocator/test 14 in agreed dependency order. Do not wait until the end to add acceptance tests.
+These are required assertions to implement/run, **not checked-off results**.
 
-## 6. Person D — exact Java API/DTO contract
+| Assertion | Owner | Evidence required |
+| --- | --- | --- |
+| Clean foundation | B; C verifies | Real server startup and reviewed DB prerequisites; build-only evidence labelled separately |
+| Protected identity | C+B; A review | Trusted account/host/credential binding; test secrets delivered outside ordinary logs/docs |
+| Signed discovery | A+C+B | Assigned signed request returns actual `200` and `[]`; current endpoint/contract matched |
+| Negative auth | C with A/B | Invalid/revoked/replayed/wrong-assignment cases fail; record exact actual response without inventing error codes |
+| No execution | A+C | Returned resource work stops safely; no claim/ack/backend create/delete is performed |
+| Cancellation and failure | A+C | Ctrl+C/cancellation exits cleanly; record actual timeout/server-down/auth-stop behavior and retry gaps |
+| Reproducibility | All relevant owners | Revision, sanitized setup, commands/results and reviewer; another teammate can follow it |
 
-**First task:** align the real Java HTTP boundary with the existing contract and identify missing execution messages.
+Do not enable or test untrusted assignment by accepting arbitrary work for the sake of a demo. Contract change requirements remain explicit blockers, not omitted fields. A failure is useful evidence when its scope and next action are recorded.
 
-| Order | Your action                                                                  | Exit evidence                                                                                  |
-| ----- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| 1     | Read internal-api.yaml and generated/base-source instructions; pair with B+C | Agreed existing route, auth context and 200 array response                                     |
-| 2     | Implement/review existing work DTO/controller mapping with B                 | Scoped query, capability filter, server-owned kinds excluded; empty result is []               |
-| 3     | Add or pair on Java HTTP serialization/negative fixtures                     | Missing/invalid requests fail; no accidental secret fields; C owns acceptance suite            |
-| 4     | Review UUID, CLI public ID and numeric /v2 ID mappings                       | Written mapping decisions with B; no invented wire IDs                                         |
-| 5     | Specify claim/renew/report gaps with B+A/C before execution                  | Coordinated schema/base source, examples and generated outputs in a later reviewed code change |
+## 10. Set up and use the GitHub board
 
-**Exit:** Java wire response matches existing contract; open message gaps are explicit; A can consume the real response without guessed fields. **Next:** bounded /v2 Droplet/Kubernetes mappings and fixtures. D writes no Go and does not take B's SQL ownership.
+Create **one issue per bounded task**, add that issue to the project and assign the real teammate. Suggested fields: Status, Assignee, Area, Priority, Blocked by and linked PR. These are instructions, not claims that fields/cards already exist remotely.
 
-## 7. Person E — CLI foundation and learning boundary
+| Board status | Meaning | Move it when |
+| --- | --- | --- |
+| Backlog | Needs scope, owner or dependency resolution | Outcome/acceptance and dependencies are understood |
+| Todo | Ready task with one owner and a concrete test | Owner starts the task |
+| In progress | Active coding/review preparation/verification | A reviewable PR and evidence exist |
+| In Review | PR open; reviewers can assess it | Required review/checks pass and PR is merged |
+| Done | Accepted task with merged PR and evidence | Keep evidence linked; no automatic service-status promotion |
 
-**First task:** build a thin cobra CLI foundation, not an agent or frontend.
+A blocked task names the dependency and its owner. Use the project's available blocked field/label or record it in the issue body; do not hide an unavailable Java server behind a fake integration result. Do not run two parallel task lists with conflicting statuses.
 
-| Order | Your action                                                        | Exit evidence                                                                   |
-| ----- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
-| 1     | Read Go handover; agree module/import layout with A                | No conflicting root module or premature signer move                             |
-| 2     | Learn structs/errors/modules; create agreed cobra entry point/help | Explain command flow; no fake resource success                                  |
-| 3     | Practice HTTP/JSON/context against a mock API                      | Timeout, cancellation, non-2xx and malformed response checks                    |
-| 4     | Establish packaging for linux/amd64, darwin/arm64, windows/amd64   | Cross-build artifacts; build success is not actual OS-run evidence              |
-| 5     | Agree JSON/error/idempotency/wait behavior with A+B/D/C            | API-only path; no Docker/k3d/DB dependency; separate user auth from service key |
+### Suggested first cards
 
-**Exit:** bounded CLI foundation reviewed by A; mock tests and builds recorded; no agent ownership. **Next:** real droplet create/list/get/delete once corresponding API is available; production order droplet → vpc → k8s → db → bucket → stack, previous failure test passing in CI first. W3 Kubernetes practice remains mock-only. Terraform and read-only UI are not first tasks.
+These are **suggested titles and initial disposition rules**, not created issues or verified board statuses.
 
-Read [Go handover](V5/CoveStack-Go-Handover.md). CLI must not reuse the agent's service key as ordinary user authorization; C+B define the correct API-token flow.
+| Owner | Issue title | Dependencies / initial disposition |
+| --- | --- | --- |
+| A | Integrate existing signed poll loop with real Java no-work endpoint | Backlog/blocked until B+C server, credentials and assignment are ready; source review can proceed |
+| A | Review VM/claim driver boundary and unknown-outcome safety | Design discussion with B+C+D; no driver execution before protocol/host approval |
+| B | Establish bootable authenticated Java foundation and migration prerequisites | Review actual schema history/dependencies first |
+| C | Define credential provisioning, trusted assignment and negative auth acceptance | Pair B+A; run real acceptance once server slice exists |
+| D | Review discovery fixtures and versioned VM/claim compatibility gaps | Pair B+C+A; preserve current 1.1.0 semantics |
+| E | Agree thin CLI/module layout and build mock HTTP learning slice | A review; mocks may proceed once layout is agreed, real CLI waits for user API |
 
-## 8. Shared first-checkpoint exit and permission to advance
+Do not create a new “implement poll loop” issue as if the existing code were absent. If earlier client/loop work has a merged PR and accepted evidence, link that record; the separate real-server integration can remain pending.
 
-| Check                   | Owners   | Required evidence before marking this checkpoint accepted                                                 |
-| ----------------------- | -------- | --------------------------------------------------------------------------------------------------------- |
-| Real server             | B        | Reviewed startup and clean-DB migration results                                                           |
-| Real identity           | C+B      | Dedicated service credential, eligibility/replay checks and trusted assignment                            |
-| Exact API               | D+B/C    | Read-only scoped work response; 200 [] with no advertised execution kinds                                 |
-| Agent communication     | A with C | Valid request, outage/recovery, invalid-auth stop and prompt shutdown                                     |
-| CLI foundation          | E with A | Explainable cobra skeleton, transport practice and cross-build evidence                                   |
-| Next execution contract | B+D+A/C  | Missing claim/renew/report/network encoding identified; approved schemas required before backend mutation |
-
-Parallel work is allowed: A can test transport and E can learn against mocks while B/C/D implement the real server. Neither mock path passes live integration. If blocked, update the issue with the dependency, owner and next action; do not pretend the dependency is finished.
-
-At handoff attach PR, commit, executed checks, runtime prerequisites and known gaps. Service/core acceptance remains governed by [Service Gates](V5/CoveStack-Service-Gates.md) and [tests 1–15](V5/CoveStack-AntiWrapper-Acceptance.md). Do not move to extended work to bypass an unmet core checkpoint.
-
-## 9. Configure the board shown in the screenshot
-
-Recommended visual order: **Backlog → Todo → In progress → In Review → Done**. Your screenshot places Done before In Review; reorder if helpful. These are task states, not lifecycle or service-state strings.
-
-| Board column | What belongs here                                                   | Move forward when                                                   |
-| ------------ | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Backlog      | Later tasks and ideas not ready for execution                       | Dependencies and acceptance are clear enough to schedule            |
-| Todo         | Small ready tasks with one owner, acceptance and known dependencies | Assignee actually starts                                            |
-| In progress  | Task actively being implemented or verified                         | Reviewable PR exists with relevant test evidence                    |
-| In Review    | PR awaiting review/checks or requested revisions                    | Review requirements and checks pass; PR merged into agreed baseline |
-| Done         | Accepted task with merged PR and required evidence                  | No automatic service-gate promotion                                 |
-
-Keep the screenshot's In progress limit of five for the team: normally one active issue per person. For Anuj, one active implementation task at a time. A blocked task keeps its honest status plus a blocked label/dependency; moving it to Done is not a blocker workaround. Partial code can be a draft PR and remain In progress.
-
-Suggested issue/project fields: Assignee, Status, Priority, Area, Checkpoint, linked PR and blocked-by issue. Start with the current checkpoint; use the existing workflow for later dates. Do not invent teammate usernames, issue numbers or completed dates. Add labels by component/owner role if useful; role A/B/C/D/E does not replace an actual assignee.
-
-### 9.1 Anuj's first issue cards
-
-These are issue-title suggestions, not issues already created. Choose status from actual evidence; this document does not assert current board status.
-
-| Suggested title                                  | Initial placement guidance                                                      | Acceptance / dependency                                                    |
-| ------------------------------------------------ | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| A: Review and explain the signed work client     | In progress if you are doing this now; otherwise Todo                           | Explain New/GetWork and failure paths; run checks; review changed files    |
-| A: Verify signed client against Java server      | Todo if B/C server/key ready; otherwise Backlog with dependencies               | Valid signed GET gives 200 []; no secrets; C records result                |
-| A: Add one-account agent startup and poll loop   | Todo after client review and agreed entry-point layout                          | No execution; 10-second timeout; normal wait and no-work handling          |
-| A: Add polling backoff and safe shutdown         | Backlog until polling slice is ready                                            | Bounded retry/jitter, 429 policy, auth stop, cancellation tests            |
-| A+C: Demonstrate real-server outage and recovery | Backlog until loop and B/C environment ready; A assigned, C reviewer/test owner | Stop/restart server, invalid credential and Ctrl+C scenarios recorded      |
-| A+B+C: Review shared-client module layout        | Todo when reviewers available; A assigned                                       | Decide layout; no unreviewed move/import changes                           |
-| A: Implement container reconciliation            | Backlog                                                                         | Requires execution/claim/network schema and C's tests; test 1 no duplicate |
-| A: Integrate VPC, Kubernetes and persistence     | Backlog as planning epic; split before execution                                | Existing staged CORE-5 dependencies; not one giant active task             |
-
-Do not mark client implementation Done just because client.go exists or an earlier chat reported tests. Locate the relevant PR/revision, rerun appropriate checks when needed and attach evidence. If already merged and accepted, record that actual PR and move the issue to Done; the separate real-server milestone can still be pending.
-
-### 9.2 First cards for the other owners
-
-| Owner | Initial issue title                                           | Dependency / exit                                                   |
-| ----- | ------------------------------------------------------------- | ------------------------------------------------------------------- |
-| B     | B: Bootstrap Java server and reviewed foundational migrations | Inspect V5/V6 prerequisites; clean PostgreSQL 17 migration and boot |
-| C     | C: Provision service credentials and verify replay protection | B identity/store integration; valid and invalid real-server cases   |
-| D     | D: Align scoped work endpoint DTO and HTTP contract           | B query and C identity; 200 [] plus negative HTTP cases             |
-| E     | E: Build reviewed cobra CLI foundation                        | A module review; help, tests and three-target builds                |
-
-Split these into reviewable issues when they span several PRs. A task can be ready for design/test work while blocked on later integration; describe the boundary instead of hiding it.
-
-### 9.3 Copy this into each issue body
+### Issue body template
 
 ```markdown
 ## Outcome
+One observable behavior.
 
-One observable result for this task.
-
-## Scope and owner
-
-Assignee: actual teammate username
-Role/component:
-Checkpoint: first integration
+## Owner and scope
+Assignee: actual teammate
+Affected files/modules:
+Reviewers:
 Reference: TEAM-FIRST-CHECKPOINT.md, relevant section
 
-## Acceptance
-
-- [ ] Expected behavior and error cases described.
-- [ ] Relevant unit/integration checks executed and linked.
-- [ ] Real runtime evidence attached where promised; mocks labelled clearly.
-- [ ] No secrets in source, output or screenshots.
-- [ ] PR reviewed by the boundary owners and merged.
-
 ## Dependencies
+Blocked by: actual issue link/owner, or none
+Missing contract/schema decision:
 
-Blocked by: actual issue links, or none
-Reviewers:
+## Acceptance
+- [ ] Exact behavior asserted, including relevant negative/failure case
+- [ ] Actual results and evidence class attached
+- [ ] Relevant reviewers agree; secrets redacted
 
 ## Evidence
-
-PR / commit:
+Revision:
 Commands and actual results:
-Known gaps / next action:
+Evidence class: source review / unit / mock / real-server / runtime
+PR:
+
+## Next action
+One concrete step or blocker with owner.
 ```
 
-No GitHub changes are performed by this document. Create the issues manually or authorize a separate board-update task. Keep live checkboxes/status in those issues; change this file only when the agreed checkpoint or acceptance changes.
+## 11. Move from this checkpoint to resource execution safely
+
+The next coding slice follows evidence and dependencies, not an old calendar. Existing discovery does not establish a lease/claim protocol. Before execution, review trusted assignment, exact-generation/owner/epoch fencing, progress versus acknowledgement, unknown provider task outcomes, type/version compatibility and capacity/ownership reservations. These are target requirements; add coordinated authoritative schemas/fixtures/generated outputs before claiming new wire support.
+
+| Later boundary | Acceptance to establish |
+| --- | --- |
+| VM Instances | Actual guest kernel/readiness, owned disk/NIC, safe lifecycle, interrupted create exactly one VM and owned cleanup |
+| App Containers | Explicit shared-kernel trust class, restricted privileges/volumes, health and safe retry |
+| Kubernetes | Actual cluster/workload, authorized kubeconfig, measured capacity and recovery/cleanup; no inherited academic density promise |
+| Networking/IPAM | Parallel reservations have no collisions; allowed traffic passes and forbidden cross-account traffic actually fails |
+| PostgreSQL | Real SQL readiness, scoped credentials, persistence, backup and known-row restore |
+| RustFS | Real object bytes/checksums, scoped policy/key revocation and cross-account denial, restart persistence, protected backup and verified restoration |
+| Environments | Owned children/readiness, safe retry after partial failure and preservation of shared/retained resources |
+
+RustFS is **Planned**, not Implemented. Operator owns service/volumes; Java owns bucket/policy/credential reconcile behind a provider adapter. SeaweedFS/alternatives remain possible. Unsupported ACL authorization and planned bucket logging/ownership controls remain explicit; [provider requirements](docs/platform/provider-evaluation.md#rustfs-compatibility-and-acceptance) define the tested subset and gaps. Recreating bucket records does not restore lost data.
+
+G1 durable authoritative intent; G2 crash-safe reconcile/no duplicates; G3 account and actual isolation; G4 meaningful automated failure acceptance. A service reaches **Acceptance Gates Passed** only with evidence. **Supported** also needs a qualified deployment profile and maintenance policy. No product-wide completion claim or supported production profile is established by this checkpoint. [Readiness](docs/platform/readiness.md) owns the full promotion criteria.
+
+## 12. Daily follow-up and review
+
+1. Read your current issue, baseline and blockers; use [Starter.md](Starter.md) for branch/update/PR commands.
+2. Work only in your reviewed slice. If a missing schema/assignment/runtime behavior blocks you, record it with its owner.
+3. Run relevant existing checks on the authorized environment and attach actual output scope. This documentation update did not run application/infrastructure tests.
+4. Open a small PR; A reviews Go, A+B+C shared-client/VM boundaries, B+C+A schema, D DTO and C security/acceptance as affected. Extended ownership is reviewed, never silently assigned.
+5. Update the same issue/card with PR, result and next action. Do not mark a mock/runtime gap Done by changing prose.
+6. Update current docs when behavior changes. AI agents also update root checkpoint.md; retain past test evidence as dated history.
+
+Keep kan-server, kan-agent and existing wire/module names until a coordinated change is approved. Never put .env files, signing/master/private keys, credential-bearing kubeconfigs or secret logs into issues/commits. Do not grant tenants host administration. Source/contract behavior, not an architecture diagram, determines actual current functionality.
+
+CoveStack-owned material uses [Apache License 2.0](LICENSE), SPDX **Apache-2.0**; upstream terms remain separate. The [previous first-team checkpoint](docs/archive/pre-vm-redesign-2026-11-04/TEAM-FIRST-CHECKPOINT-original.md) is preserved as historical planning. Use this active file for the next team discussion and Starter.md for onboarding.

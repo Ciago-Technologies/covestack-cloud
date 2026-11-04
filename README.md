@@ -33,6 +33,8 @@ The current wire contract remains 1.1.0. VM/type, trusted assignment, claim and 
 
 ## Documentation
 
+**Teammates: start with [Starter.md](Starter.md)** for clone/branch instructions, your first task, checks and PR workflow. Then use [TEAM-FIRST-CHECKPOINT.md](TEAM-FIRST-CHECKPOINT.md) for shared acceptance and GitHub board follow-up.
+
 - [Product SRS](docs/product/CoveStack-Product-SRS.md) and [service catalogue](docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md)
 - [Architecture and HLD/LLD](docs/platform/architecture.md), [VM/container model](docs/platform/resource-model.md) and [environments](docs/platform/environments.md)
 - [Security](docs/platform/security.md), [capacity](docs/platform/capacity.md) and [acceptance/readiness](docs/platform/readiness.md)
@@ -47,4 +49,4 @@ Read the [contribution guide](docs/platform/contributing.md), [open decisions](d
 
 **License: Apache License 2.0 — SPDX `Apache-2.0`.** The maintainer approved adoption; the complete text is in [LICENSE](LICENSE). Existing third-party material, dependencies and external projects retain their own licenses and notices. See the [licensing decision](docs/platform/licensing-decision.md) and [attribution review](docs/platform/license-and-attribution.md) for outstanding distribution checks. License adoption does not establish production support.
 
-Historical V5 guides and evidence retain their original statements under supersession notices. They do not constrain product scope or establish current functionality.
+[V5](V5/README.md) contains updated detailed architecture, roles, workflow, schema and acceptance guidance. The [previous V5 bodies](docs/archive/V5-before-full-product-alignment-2026-11-04.md) remain historical evidence; neither documentation nor old test reports establish current runtime support.

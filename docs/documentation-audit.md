@@ -1,3 +1,105 @@
+# Full V5 body alignment — 4 November 2026
+
+Latest user explicitly requested full modification of the V5 documentation bodies. **All 31 V5 Markdown files are retained and updated**, not deleted and not merely prefixed with notices. Canonical product scope remains 22 core capabilities / 31 future candidates, independent of academic counts/dates/caps. V5 now provides detailed current design, roles/workflow/setup, API/schema/concurrency, services/network/environment, security/recovery, gates/acceptance/ITISS and client/tool guidance.
+
+## Decisions, relocation and evidence
+
+- Real guest-kernel VM primary, App Container separate; Incus/QEMU/KVM preferred evaluation. No driver is claimed. Java/JDBC control authority and trusted Go agent retained.
+- RustFS preferred Planned operator-managed process/volumes; Java account bucket/policy/key reconciliation, actual bytes/deny/restart/independent restore. Unsupported ACL/planned logging/ownership behavior remains explicit; alternatives behind adapter.
+- Existing signed client/main/no-execution polling source acknowledged; real foundation/credentials/trusted assignment/claims/runtime remain pending. A's immediate task is real-server integration with B+C, D review and E thin mock/CLI boundary.
+- Exact unchanged lifecycle 1.1.0 kinds/owners/states copied into the active schema reference; future VM/type/claim/capacity/network protocol and physical schema need B+D+A/C review. No future wire version invented.
+- Current product acceptance IDs 1–15/E1–E8 retain traceability but have explicit VM/RustFS/measured-capacity target definitions; original definitions and any historical outcomes remain intact in the snapshot. Core snapshot/freshness foundations are not incorrectly demoted as future merely because IDs start E.
+- Single historical Markdown file preserves every previous V5 body unchanged: docs/archive/V5-before-full-product-alignment-2026-11-04.md. This includes full earlier 32-table/extended DDL, 38-issue audit, moved alternatives, calendars/caps and original requirements/acceptance. Each active V5 file links its exact old-body anchor. No unique historical text was erased.
+- Active schema updates all 32 prior table responsibilities and adds VM/project/task/assignment/NIC/firewall/capacity requirements as proposals. It is explicitly not executable/migration-ready; previous complete DDL is preserved only as historical reference and cannot safely be copied into VM migrations. B finalizes physical model and applied-history/migration strategy.
+- Catalogue/SRS/authority/index/reading-flow references now identify V5 as current detailed guidance. Full Markdown flow is refreshed against existing files, with current V5 before reference history; absent local overview was already absent at this task's start and was not restored.
+
+## Every path changed in this task
+
+| File | Disposition | Reason |
+| --- | --- | --- |
+| `AGENTS.md` | Modified | Authority/navigation/claim-validity/traceability/handoff consistency |
+| `DOCUMENTATION-IMPLEMENTATION-FLOW.md` | Modified | Authority/navigation/claim-validity/traceability/handoff consistency |
+| `README.md` | Modified | Authority/navigation/claim-validity/traceability/handoff consistency |
+| `Starter.md` | Modified | Authority/navigation/claim-validity/traceability/handoff consistency |
+| `V5/CoveStack-API-and-Compatibility.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-AntiWrapper-Acceptance.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-Anuj-Next-Steps.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-Complete-Working-Setup.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-Current-Setup-Fixes.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-Database-Schema.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-Extended-Roadmap.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-Go-Handover.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-Implementation-Status.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-Instance-Metadata.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-Operations-and-Recovery.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-PDF-and-Formatting.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-Project-Workflow.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-Publication-Domains-and-Tunneling.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-References-and-Decision-Log.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-Resource-Services.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-SRS-Scope.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-Security-and-ITISS.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-Service-Catalog.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-Service-Gates.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-Stack-Templates.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-Team-START-HERE.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-Terraform-and-Ansible.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-Testing-and-Acceptance.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-UI-CLI-and-Monitoring.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/CoveStack-VPC-IPAM-and-Networking.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/DocsV5-DO_Team.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/Folder_Structure_Explanation.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/README.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/Team_Roles.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `V5/tools.md` | Modified | Active document body fully aligned; original preserved at exact snapshot anchor |
+| `checkpoint.md` | Modified | Authority/navigation/claim-validity/traceability/handoff consistency |
+| `docs/README.md` | Modified | Authority/navigation/claim-validity/traceability/handoff consistency |
+| `docs/archive/README.md` | Modified | Authority/navigation/claim-validity/traceability/handoff consistency |
+| `docs/archive/V5-before-full-product-alignment-2026-11-04.md` | Created | Historical preservation |
+| `docs/documentation-audit.md` | Modified | Authority/navigation/claim-validity/traceability/handoff consistency |
+| `docs/platform/README.md` | Modified | Authority/navigation/claim-validity/traceability/handoff consistency |
+| `docs/platform/academic-transition.md` | Modified | Authority/navigation/claim-validity/traceability/handoff consistency |
+| `docs/platform/agent-and-reconciliation.md` | Modified | Authority/navigation/claim-validity/traceability/handoff consistency |
+| `docs/platform/architecture.md` | Modified | Authority/navigation/claim-validity/traceability/handoff consistency |
+| `docs/platform/contributing.md` | Modified | Authority/navigation/claim-validity/traceability/handoff consistency |
+| `docs/platform/readiness.md` | Modified | Authority/navigation/claim-validity/traceability/handoff consistency |
+| `docs/platform/resource-model.md` | Modified | Authority/navigation/claim-validity/traceability/handoff consistency |
+| `docs/product/CoveStack-Product-SRS.md` | Modified | Authority/navigation/claim-validity/traceability/handoff consistency |
+
+Task scope: 47 existing Markdown paths modified; 1 new Markdown snapshot created. All pre-existing source/config/contracts/SQL/tests/dependencies/CI/.gitignore/LICENSE/HTML/CSS/Python/build artifacts and user Releases Docs/ work are fingerprint-preserved. No source moves, new directories with .gitkeep, deletes, installs, application/runtime tests, Git branch/history changes, commits, pushes or network actions.
+
+## Verification and important limitations
+
+Static checks passed: all 31 V5 active bodies parsed/rendered through installed markdown-it, 67 active documents checked, 222 tables and 733 local file/heading links, correct one-H1/fences and 2–8 column structure, basic Mermaid flowchart/ERD source syntax, canonical 53 catalogue identities/status/classification and exact lifecycle matrix, matching 1–15/E1–E8 definitions, snapshot preservation for all 31 originals and protected-file fingerprints. Reading flow includes each other existing Markdown once; count is inventory-dependent, not a product claim. Mermaid was not visually rendered; no PDF/browser layout qualification or runtime evidence.
+
+Existing V5 validator/renderer remain unchanged. Source inspection shows obsolete fixed academic deadline/38-audit-ID checks; therefore the legacy export path remains blocked until a separately authorized tooling update. Do not restore false dates or claim regenerated HTML/PDF. Current generic structural checks do not certify the old script or qualify production.
+
+Remaining engineering decisions: concrete server/credentials/host assignment, approved VM/type/claim/network/capacity protocol, DB physical model/applied migration history/expiry policy, tested host/provider artifact and quotas, RustFS admin/custody/consistent recovery, module/CLI boundary and actual domain acceptance. Apache-2.0 adoption is retained; third-party distribution/provenance still reviewed. No Supported/profile/maturity promotion.
+
+<!-- Earlier task audits preserved below; historical results. -->
+
+# Team checkpoint retained and updated — 4 November 2026
+
+User rejected deletion of TEAM-FIRST-CHECKPOINT.md and requested a current team guide plus refreshed canonical checkpoint.md. Both Starter.md and TEAM-FIRST-CHECKPOINT.md are retained. The team guide now defines current architecture/status, A–E first work and dependencies, real signed no-execution integration exit, suggested issue cards/template, board semantics and evidence/review rules. No live GitHub task status, runtime result, product deadline or service gate is invented.
+
+Complete prior team-guide text is preserved in docs/archive/pre-vm-redesign-2026-11-04/TEAM-FIRST-CHECKPOINT-original.md under a historical notice; archive index and active Starter/README/docs navigation updated. Root checkpoint.md records current authorization, preserved history and exact next integration action. Changed paths for this task: TEAM-FIRST-CHECKPOINT.md, checkpoint.md, Starter.md, README.md, docs/README.md, archive README, new TEAM-FIRST-CHECKPOINT-original.md and this audit. No further deletion. Prior ignored Workflow_Diagrams deletion remains the only approved cleanup; user work including untracked Releases Docs/ is preserved.
+
+Verification passed: 53 tables across changed Markdown, 111 active local links/anchors, team-guide rendering, eight-file scope/protected fingerprints, historical text preservation and git diff whitespace.
+
+No implementation/config/schema/migration/contract/CI/test/dependency/license/ignore changes; no application/infrastructure tests, installs, Git mutations or remote operations. Old snapshot links retain the original root layout and may not resolve from the archive; active links are checked separately. Earlier audit/task evidence follows as history.
+
+# Teammate starter retained and updated — 4 November 2026
+
+User rejected deletion of Starter.md and requested a current teammate guide. Updated it in place for VM-first product scope, Planned RustFS, actual signed no-execution agent status, A–E initial tasks/dependencies, baseline/branch/PR steps, GitHub board usage and verified CI command references. No code/tests/infrastructure commands executed. Root README and docs index now link it. Prior starter text is preserved unchanged in docs/archive/pre-vm-redesign-2026-11-04/Starter-original.md; archive index updated. Old relative links in that snapshot describe the original root location and may not resolve from the archive. Active Starter.md links are checked separately.
+
+Verification: 45 Markdown tables across changed files, 91 active local links/anchors, Starter Markdown render, seven-file scope/fingerprint check, preserved old starter/checkpoint text and git diff whitespace all passed. No application/infrastructure tests executed.
+
+Files for this task: Starter.md, README.md, docs/README.md, docs/archive/pre-vm-redesign-2026-11-04/README.md, the new Starter-original.md snapshot, checkpoint.md and this audit. Earlier approved Workflow_Diagrams deletion remains recorded below; no further file was deleted. TEAM-FIRST-CHECKPOINT.md remains only a proposed cleanup candidate and needs separate permission. Preserve untracked Releases Docs/ and all pre-existing user work. No implementation/config/contract/dependency changes, installs, commits or pushes.
+
+# Approved cleanup record — 4 November 2026
+
+The user explicitly approved deletion of `Workflow_Diagrams/` after reviewing its five-file scope. Removed the old Markdown diagram source, two PNG exports and two SVG exports; verified the directory is absent. It was Git-ignored/untracked, so Git does not record or restore this deletion. Earlier inventory entries below remain accurate historical records, not claims the directory still exists. No other deletion is approved; root Starter.md is only the next proposed candidate. No implementation files changed.
+
 # Apache-2.0 adoption and RustFS confirmation — current follow-up
 
 Updated: 4 November 2026. Targeted documentation/licensing update; reused the existing audit and provider analysis. Older reports below preserve the accurate earlier approval-pending history but no longer describe the current license.

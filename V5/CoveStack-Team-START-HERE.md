@@ -1,109 +1,53 @@
-# Architecture transition notice — 4 November 2026
-
-> **Superseded design reference.** Active guidance: [platform README](../docs/platform/README.md). Old container-Droplet architecture, two-driver ceiling, fixed sizing and delivery claims below are historical. The active platform docs define VM compute, a distinct App Container and evidence-based releases.
->
-> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
-
-Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); product scope is independent of historical academic CORE-5.
-
-<!-- Historical body preserved below; see supersession notice above. -->
-
 # CoveStack V5 — Team Onboarding and Shared Working Rules
 
-| Document control        | Value                                                                   |
-| ----------------------- | ----------------------------------------------------------------------- |
-| Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **27 October 2026**                                                     |
-| Submission deadline     | **Monday, 25 January 2027**                                             |
-| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
-| Status                  | Target design and implementation guidance; not a completion certificate |
+| Document control | Value |
+| --- | --- |
+| Updated | 4 November 2026 |
+| Authority | Detailed current product specification; aligned to the [canonical catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) and [product SRS](../docs/product/CoveStack-Product-SRS.md) |
+| Evidence | Target design, not a completion certificate; source and actual test results determine implementation status |
+| Compatibility | V5 is a documentation label; current wire contract remains 1.1.0; future fields/kinds/versions require coordinated review |
 
 ## 1. Read first
 
-Start from the [V5 index and teammate reading order](README.md#4-reading-order-and-teammate-sharing). Everyone reads:
+Start [root Starter.md](../Starter.md) for clone/baseline/branch/check/PR instructions. Then [TEAM-FIRST-CHECKPOINT.md](../TEAM-FIRST-CHECKPOINT.md) for each owner, shared integration acceptance and GitHub card template. [V5 index](README.md) is the current detailed architecture/team map, not a history-only folder.
 
-| Order | File                                              | Purpose                                                    |
-| ----- | ------------------------------------------------- | ---------------------------------------------------------- |
-| 1     | [SRS scope](CoveStack-SRS-Scope.md)               | Exactly five services and cross-cutting deliverables       |
-| 2     | [Design](DocsV5-DO_Team.md)                       | Control plane, not direct runtime handlers                 |
-| 3     | [Roles](Team_Roles.md)                            | A agent Go; E thin CLI; B/C/D Java boundaries              |
-| 4     | [Workflow](CoveStack-Project-Workflow.md)         | CORE-5 schedule to Monday, 25 January 2027                 |
-| 5     | [Setup](CoveStack-Complete-Working-Setup.md)      | Baseline checks, target installation and Known constraints |
-| 6     | [Gates](CoveStack-Service-Gates.md)               | G1–G4 promotion evidence                                   |
-| 7     | [Acceptance](CoveStack-AntiWrapper-Acceptance.md) | Tests 1–15 and CORE-5 viva                                 |
-| 8     | [Status](CoveStack-Implementation-Status.md)      | No service promoted from source presence                   |
+| Order | Document | What to learn |
+| --- | --- | --- |
+| 1 | [Product SRS](CoveStack-SRS-Scope.md) and [catalogue](CoveStack-Service-Catalog.md) | Core/future product scope independent of academic limits |
+| 2 | [Main design](DocsV5-DO_Team.md) and [resource behavior](CoveStack-Resource-Services.md) | Real VM versus App Container; Java/Go/provider authority |
+| 3 | [Roles](Team_Roles.md) and [workflow](CoveStack-Project-Workflow.md) | First issue/owner/dependency and no invented dates |
+| 4 | [Setup](CoveStack-Complete-Working-Setup.md) and [status](CoveStack-Implementation-Status.md) | Current code versus missing runnable foundation/runtime |
+| 5 | [API](CoveStack-API-and-Compatibility.md) and [schema](CoveStack-Database-Schema.md) | Actual 1.1.0 versus proposed VM/claims/owned DB model |
+| 6 | [Gates](CoveStack-Service-Gates.md), [acceptance](CoveStack-AntiWrapper-Acceptance.md), [security](CoveStack-Security-and-ITISS.md) | Required real failure/isolation/recovery evidence |
 
-Then read assigned schema/API/Go/security guides from the index. Clone the entire repository. Java developers work in kan-server; A works in kan-agent/pkg/kanclient; E in planned cmd/covestack and later thin provider. Git pushes repository commits, not into a service folder.
+## 2. First shared work
 
-### 1.1 What we are building for users — Planned
+A already has signed config/client/main/no-execution polling. B+C must supply reviewed real Java foundation/credentials/trusted assignment; D reviews actual discovery/fixtures. A+C prove signed []/negative auth/cancel/outage without resource execution. E can agree thin module/client layout and learn labelled mocks. Do not recreate existing agent code or turn a fake endpoint/default credential into accepted integration.
 
-A team can create account-isolated local environments and understand recovery when something fails. Success means a usable application and tested boundaries, not a count of API handlers. Our existing fixed stack must run an app that uses PostgreSQL and a scoped bucket; Kubernetes must yield a usable cluster. Another account must be denied, and an agent restart must not duplicate resources.
+## 3. Shared product rules
 
-Before your slice, read the [experience assertions](CoveStack-AntiWrapper-Acceptance.md#33-user-experience-assertions--planned-existing-tests) and [stack walkthrough](CoveStack-Stack-Templates.md#21-usable-application-and-recovery-walkthrough--planned). Agree interface details with the named owners, implement a small end-to-end path, and attach actual evidence. No service is promoted until its gates pass; CLI first, with no extra service scope.
+VM Instance is actual guest-kernel compute target; App Container separate. RustFS is preferred Planned provider, operator process/volumes separate from Java tenant bucket/policy/credential reconcile. CLI/UI/providers/inventory use only authenticated API; backend sockets and platform DB remain private. B owns SQL, C acceptance, D no Go, E CLI not agent; A review all Go. Host capacity is measured, not inferred from 8 GB/two-cluster academic history. Product scope has no academic service/template/network/node ceiling.
 
-### 1.2 Start the first integration together — Planned
+## 4. Branch and review workflow
 
-Read [Anuj's single-account checklist](CoveStack-Anuj-Next-Steps.md#23-first-milestone-decision--single-account-communication-planned). B supplies the real server and trusted account/agent assignment; C provisions the dedicated service key and owns integration checks; A reuses signing/config and builds one-account communication. D reviews any new schema; E continues thin CLI learning.
+Confirm Anuj's reviewed baseline, clone whole repo and branch for one task; never push into a subdirectory or directly to main. Each issue has owner, concrete assertion, dependency/blocked-by and exact evidence scope. Board is view of issues, not another state registry. A PR/CI record establishes what ran; file presence and board Done do not establish service support. No remote issue or branch state is claimed by this guide.
 
-First target: signed read-only GET /internal/v1/agent/work returns 200 [] with empty capabilities; temporary outage/restart recovers with backoff, invalid authentication stops safely and Ctrl+C cancels promptly. localhost:4700 is the documented same-host development origin, not a running-server claim. Selected timeout/poll defaults are in the checklist. No container execution or success acknowledgment until reviewed claim/network schemas and an actual driver exist. Missing server prerequisites remain B+C dependencies; they are not resolved by this documentation.
+## 5. Documentation and secrets
 
-## 2. Branch workflow
+Share repository links on the agreed branch/revision, not stale ZIP copies. V5 remains detailed current guidance; canonical product/domain specs resolve shared scope/evidence. The previous V5 snapshot is explicitly historical. Keep root checkpoint.md as AI handoff and issues as live task status. Never share real .env/deploy secrets/signing/private/admin keys, secret kubeconfigs/state or raw logs. Apache-2.0 applies to CoveStack-owned material, not upstream projects.
 
-```bash
-git clone https://github.com/Ciago-Technologies/covestack-cloud.git
-cd covestack-cloud
-git switch main
-git pull --ff-only origin main
-git switch -c feat/your-task
-```
+## 6. First task per owner
 
-Use main only after the agreed baseline PRs are merged. Otherwise branch from the exact agreed shared baseline; do not guess merge status from old docs.
+| Person | Immediate slice |
+| --- | --- |
+| A | Explain existing loop; B+C handshake and real signed no-work integration; retain no-execution guard |
+| B | Startup/foundation/migration prerequisite and real authenticated server slice |
+| C | Credential/assignment/custody/negative auth and acceptance from day one |
+| D | Existing endpoint/DTO/fixture inventory and future VM/claim compatibility review |
+| E | Agree module/user-client boundary with A; small explainable mock CLI learning slice |
 
-```bash
-git status --short
-git add path/to/your/changed/files
-git commit -m "Describe the accepted behavior"
-git push -u origin feat/your-task
-```
+Read exact details in [team roles](Team_Roles.md) and root team checkpoint. Resource execution, new schema/driver/module creation and host provisioning require separately reviewed tasks; this documentation update does not authorize them.
 
-Raise a reviewed PR into main. Stage intended files explicitly. Do not add ignored credentials or someone else's unfinished changes.
+## Historical traceability
 
-## 3. Shared rules
-
-| Rule                          | Reason                                                                              |
-| ----------------------------- | ----------------------------------------------------------------------------------- |
-| Keep server/agent identifiers | Compatibility and imports                                                           |
-| Common API/services           | CLI/provider/inventory authenticated API only; no Docker/k3d/DB                     |
-| Contract changes reviewed     | Go/Java/schema agreement                                                            |
-| No direct main push           | Review and required tests                                                           |
-| Local secrets per teammate    | No shared real secret bundles                                                       |
-| Honest service status         | Planned / In progress / Gates passed / Extended track only; mocks do not pass gates |
-| Actual evidence               | Date, commit, versions and result; C owns all acceptance tests                      |
-| CLI order                     | droplet → vpc → k8s → db → bucket → stack; previous failure test in CI first        |
-| Kubernetes                    | Required; max 2 clusters/host, 1 server + max 2 agents                              |
-| Credentials/polling           | service signing versus hash-only API tokens; agreed one process/host; separate credential/client per account; custody/assignment details B+C+A          |
-| Go learning                   | E CLI only; A types/explains agent Go; any Go change reviewed by A                  |
-
-## 4. Documentation sharing
-
-Share the reviewed whole V5 directory and exact repository branch/revision; README lists essential files by owner. V5 is tracked in checkpoint 40291e6; subsequent edits are local until deliberately committed/pushed. No ignore policy change is needed or made here. Do not tell teammates to clone an unpublished local revision.
-
-Older docs/team schedules are historical; V5 deadline is Monday, 25 January 2027. Contracts retain lifecycle 1.1.0 authority. Use source/template links, not separate stale ZIP source copies; each teammate creates private configuration. Never share real credentials, kubeconfigs, Terraform state or deployment secrets. The existing print HTML is stale.
-
-## 5. First team task
-
-| Owner | First agreed slice                                                                                                     |
-| ----- | ---------------------------------------------------------------------------------------------------------------------- |
-| A     | Review config/client/module boundary; signed poll main and real auth-smoke; agent account/assignment decision with B+C |
-| B     | Server main/configuration; schema review and staged Flyway proposal; all lease/fence/idempotency SQL                   |
-| C     | Concrete credential/auth lookup; acceptance tests from day 1; allocator/security review                                |
-| D     | Java API/DTO schema review and /v2 subset fixtures; no Go                                                              |
-| E     | W1–W4 Go handover; thin cobra CLI/API mocks and cross-builds; no agent work                                            |
-
-Confirm the shared baseline and reviewers, then deliver one real Droplet lifecycle through API/CLI before advancing. No UI work during CORE-5. Extend only under the roadmap entry rule; if A is one week behind, stop all extended work. Mentor ITISS coding confirmation remains pending.
-
-**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
-
-Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
-
-[Gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).
+The [previous body of this file](../docs/archive/V5-before-full-product-alignment-2026-11-04.md#v5-covestack-team-start-here) is preserved unchanged as historical reference, including earlier requirements/DDL/acceptance text. It is not current VM/RustFS setup guidance. Use this active body, the linked canonical domain specifications and [actual implementation evidence](CoveStack-Implementation-Status.md) for new work. No source, migrations, contracts, tests, configuration or runtime state is changed by this document.

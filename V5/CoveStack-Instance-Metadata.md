@@ -1,49 +1,41 @@
-# Architecture transition notice — 4 November 2026
+# CoveStack V5 — Instance Metadata and Workload Identity
 
-> **Superseded design reference.** Active guidance: [platform README](../docs/platform/README.md). Old container-Droplet architecture, two-driver ceiling, fixed sizing and delivery claims below are historical. The active platform docs define VM compute, a distinct App Container and evidence-based releases.
->
-> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
+| Document control | Value |
+| --- | --- |
+| Updated | 4 November 2026 |
+| Authority | Detailed current product specification; aligned to the [canonical catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) and [product SRS](../docs/product/CoveStack-Product-SRS.md) |
+| Evidence | Target design, not a completion certificate; source and actual test results determine implementation status |
+| Compatibility | V5 is a documentation label; current wire contract remains 1.1.0; future fields/kinds/versions require coordinated review |
 
-Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); product scope is independent of historical academic CORE-5.
+## 1. Two different metadata meanings
 
-<!-- Historical body preserved below; see supersession notice above. -->
+| Metadata | Scope and authority |
+| --- | --- |
+| Management resource description | Owned API/CLI/UI view: resource IDs, desired/observed generation, readiness/freshness and dependencies; core resource inspection |
+| Guest self-metadata endpoint | Future controlled workload-accessible service for its own identity/network; not current IMDS support |
 
-# CoveStack V5 — Instance Metadata and Identity Boundaries
+Do not confuse an API details screen with a guest route. Current source establishes neither a VM metadata driver nor a link-local endpoint. VM compute remains core; richer workload metadata delivery is a separate future capability.
 
-| Document control        | Value                                                                   |
-| ----------------------- | ----------------------------------------------------------------------- |
-| Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **14 October 2026**                                                     |
-| Submission deadline     | **Monday, 25 January 2027**                                             |
-| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
-| Status                  | Target design and implementation guidance; not a completion certificate |
+## 2. Target bounded payload
 
-## 1. Two meanings of metadata
+Read-only self identity, approved network/address/interface information and declared image/placement fields where needed. Never expose signing/admin/master keys, other accounts, database passwords, kubeconfig, root S3 credentials or arbitrary control-plane views. Exact schema/version/path/values require B+D+A/C agreement; no AWS compatibility or wire string is invented.
 
-**Extended track — not in the SRS or deliverables.** Design details and acceptance are relocated to the [extended roadmap](CoveStack-Extended-Roadmap.md#6-metadata). CORE-5 has priority; no capability is claimed here.
+## 3. Delivery options and routing
 
-## 2. Provider contract
+Evaluate guest agent, approved network proxy or a routed link-local service per runtime/profile. Merely binding an HTTP server to 169.254.169.254 does not install guest routes, identify callers or prevent spoofing. A VM can have its own NIC/kernel; App Container/k3d NAT/proxy paths have different identity visibility. Do not infer identity from source IP after shared NAT.
 
-**Extended track — not in the SRS or deliverables.** Design details and acceptance are relocated to the [extended roadmap](CoveStack-Extended-Roadmap.md#6-metadata). CORE-5 has priority; no capability is claimed here.
+## 4. Reliable workload identity
 
-## 3. Bounded first response
+Bind account/resource/host/interface/task to current durable assignment; protect against stale IP reuse, spoofed packet, reassigned resource and shared proxy identity. Review guest-issued short-lived tokens/binding if needed; no token protocol is selected here. Fail closed when caller identity cannot be established. Disable before teardown and invalidate previous-generation identity on reassignment.
 
-**Extended track — not in the SRS or deliverables.** Design details and acceptance are relocated to the [extended roadmap](CoveStack-Extended-Roadmap.md#6-metadata). CORE-5 has priority; no capability is claimed here.
+## 5. Ownership and implementation dependencies
 
-## 4. Delivery stages
+B Java metadata/owned records; C policy/acceptance; A approved VM/network delivery; D DTO/wire review. Depends on actual VM/container identity/network ownership and management isolation, not on a generic HTTP listener. Backend/provider metadata is not authority over account policy. Preserve account references and secret redaction through restore/migration.
 
-**Extended track — not in the SRS or deliverables.** Design details and acceptance are relocated to the [extended roadmap](CoveStack-Extended-Roadmap.md#6-metadata). CORE-5 has priority; no capability is claimed here.
+## 6. Acceptance and operations
 
-## 5. Caller identity
+E4: workload A cannot read B's metadata, including shared NAT/spoof/reused-IP cases; no cloud/agent/DB/S3 secret exposed. Test denied management routes, stale generation/reassignment, endpoint outage/cancellation and restoration with exact own identity. Keep request/audit limits without sensitive payloads. No current metadata service is Supported; future service requires domain gates/profile evidence.
 
-**Extended track — not in the SRS or deliverables.** Design details and acceptance are relocated to the [extended roadmap](CoveStack-Extended-Roadmap.md#6-metadata). CORE-5 has priority; no capability is claimed here.
+## Historical traceability
 
-## 6. Tests and operational policy
-
-**Extended track — not in the SRS or deliverables.** Design details and acceptance are relocated to the [extended roadmap](CoveStack-Extended-Roadmap.md#6-metadata). CORE-5 has priority; no capability is claimed here.
-
-**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
-
-Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
-
-[Gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).
+The [previous body of this file](../docs/archive/V5-before-full-product-alignment-2026-11-04.md#v5-covestack-instance-metadata) is preserved unchanged as historical reference, including earlier requirements/DDL/acceptance text. It is not current VM/RustFS setup guidance. Use this active body, the linked canonical domain specifications and [actual implementation evidence](CoveStack-Implementation-Status.md) for new work. No source, migrations, contracts, tests, configuration or runtime state is changed by this document.

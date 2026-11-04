@@ -1,108 +1,109 @@
-# Architecture transition notice — 4 November 2026
+# CoveStack V5 — Testing, Failure Evidence and Acceptance Matrix
 
-> **Superseded design reference.** Active guidance: [platform README](../docs/platform/README.md). Old container-Droplet architecture, two-driver ceiling, fixed sizing and delivery claims below are historical. The active platform docs define VM compute, a distinct App Container and evidence-based releases.
->
-> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
-
-Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); product scope is independent of historical academic CORE-5.
-
-<!-- Historical body preserved below; see supersession notice above. -->
-
-# CoveStack V5 — Test Matrix and Gate Evidence
-
-| Document control        | Value                                                                   |
-| ----------------------- | ----------------------------------------------------------------------- |
-| Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **15 October 2026**                                                     |
-| Submission deadline     | **Monday, 25 January 2027**                                             |
-| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
-| Status                  | Target design and implementation guidance; not a completion certificate |
+| Document control | Value |
+| --- | --- |
+| Updated | 4 November 2026 |
+| Authority | Detailed current product specification; aligned to the [canonical catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) and [product SRS](../docs/product/CoveStack-Product-SRS.md) |
+| Evidence | Target design, not a completion certificate; source and actual test results determine implementation status |
+| Compatibility | V5 is a documentation label; current wire contract remains 1.1.0; future fields/kinds/versions require coordinated review |
 
 ## 1. Evidence levels
 
-| Evidence              | Establishes                                          | Does not establish                    |
-| --------------------- | ---------------------------------------------------- | ------------------------------------- |
-| Unit/vector           | Local behavior and contract fixtures                 | Deployed system correctness           |
-| Fake transport/agent  | Client/service orchestration under controlled inputs | Java/Docker integration               |
-| Real integration      | Defined services work together                       | All production/security scenarios     |
-| Negative/security     | Tested attack/control cases                          | Absolute security guarantee           |
-| Clean install/restore | Defined reproducibility/recovery                     | Untested hardware/provider conditions |
+| Evidence | Demonstrates | Does not demonstrate |
+| --- | --- | --- |
+| Source inspection | Code/interface exists and apparent behavior | Running server, provisioning or isolation |
+| Unit/mock/vector | Local logic/fixtures under test | Real DB/runtime/network/credential behavior |
+| Build/static/contract | Compilation/analysis/generated/schema consistency | Resource readiness or restore |
+| Real integration | Authenticated server/DB/Valkey/adapter protocol behavior | Every backend/profile or full service support |
+| Runtime/failure acceptance | Actual guest/data/traffic/restore behavior under stated failures | Arbitrary production capacity/HA/security |
+| Qualified deployment profile | Exact supported matrix/operating evidence | Other hardware/runtime versions or single-host HA |
 
-Every result identifies commit, date, actual tool/runtime versions, test setup, expected behavior, actual behavior and limitations. Store sanitized output. Do not fabricate success to align with a milestone.
+C owns acceptance; A/B/D/E implement and supply real results. No application/infrastructure test ran for this documentation alignment.
 
-## 2. Baseline commands
+## 2. Existing baseline commands
+
+From kan-agent/ on an authorized dev setup:
+
+```bash
+go test -race ./...
+go vet ./...
+```
+
+From kan-server/:
+
+```bash
+mvn --batch-mode --no-transfer-progress verify
+```
+
+From repository root for contract changes:
 
 ```bash
 python3 contracts/sign_example.py
 python3 contracts/check_lifecycle.py
-(cd kan-agent && go test -race ./...)
-(cd kan-agent && go vet ./...)
-(cd kan-server && mvn --batch-mode --no-transfer-progress verify)
+python3 contracts/generate_lifecycle.py --check
 ```
 
-Run from the repository root. A dependency-download or missing entry-point problem is recorded honestly. A local older toolchain pass does not prove the pinned version.
+Current CI runs Go race/vet, Java verify and signing/lifecycle checks. Generator freshness/integration/profile jobs are future reviewed changes if not already enforced. Manifest toolchain pins, prerequisites and historical version mismatch must be checked; no auto-download/install or test run is implied here. [Existing-file change plan](../EXISTING-CODE-CHANGE-PLAN.md).
 
-## 3. CORE-5 acceptance
+## 3. Traceable failure matrix
 
-C owns ALL acceptance tests from day 1. The [canonical exact-assertion table](CoveStack-AntiWrapper-Acceptance.md#2-core-5-acceptance--srs-tests) is authoritative; do not maintain a contradictory second numbering scheme.
+| ID | Assertion family | Implementation/test ownership |
+| --- | --- | --- |
+| 1 | VM interrupted create | A+B; C tests |
+| 2 | Fencing | B+A; C tests |
+| 3 | Tenant denial | C+B+D/A |
+| 4 | Idempotency | B; C tests |
+| 5 | Stale generation | B+A; C tests |
+| 6 | Control-plane outage | A+B; C tests |
+| 7 | Kubernetes interrupted create | A+B; C tests |
+| 8 | Kubernetes secret scoping | C+B+D/A |
+| 9 | Kubernetes cleanup | A; C tests |
+| 10 | Kubernetes capacity/quota | B+A; C tests |
+| 11 | PostgreSQL restore | A+B; C tests |
+| 12 | RustFS tenant access | B Java; C tests; A service |
+| 13 | RustFS restart/reconcile | B Java+A process; C tests |
+| 14 | Network/IPAM isolation | C allocator+B SQL+A backend |
+| 15 | Environment partial retry | B+A+D/E; C tests |
+| E1 | Autoscaling | B coordinator+A runtime; C tests |
+| E2 | Load balancing | D/B APIs+A runtime; C tests |
+| E3 | Snapshot foundation | A+B; C tests |
+| E4 | Guest metadata | C policy+A delivery; B/D API |
+| E5 | Publication | A+B+D; C tests |
+| E6 | Domains | C+B/D; A route |
+| E7 | Observation freshness | B+A/D/E; C tests |
+| E8 | Ansible inventory | API consumer owner reviewed; C tests |
 
-| Service            | Tests | Required evidence                                                                        |
-| ------------------ | ----- | ---------------------------------------------------------------------------------------- |
-| Compute/Droplets   | 1–6   | Crash, fencing, tenant 404, atomic idempotency, stale generation, server outage          |
-| Kubernetes         | 7–10  | Crash-safe one cluster; scoped kubeconfig; owned cleanup; third-cluster quota rejection  |
-| Managed PostgreSQL | 11    | Known rows/checksum restored; private/scoped credentials; cross-account network denial   |
-| Object storage     | 12–13 | Cross-account S3 denial; Java reconstructs bucket/credential policy after MinIO restart  |
-| VPC/IPAM           | 14    | Ten IP allocations in one VPC; ten accounts creating non-overlapping VPCs; tenant denial |
 
-Authentication/replay, invalid inputs, actual readiness, retained data and migration/security regressions supplement these tests. Never cut tests 1–15.
+Exact assertions are centralized in [State Reconciliation Acceptance](CoveStack-AntiWrapper-Acceptance.md); do not maintain incompatible abbreviated definitions here. The historical 1–15/E1–E8 mapping remains for traceability; current VM/quota/RustFS definitions require fresh tests. Snapshot foundation/freshness core requirements are not demoted because their IDs start E.
 
-**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
+## 4. Additional product acceptance
 
-Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
+| Domain | Required negative/failure proof |
+| --- | --- |
+| VM images/guest | Exact guest kernel/readiness; tampered image/bootstrap rejected; interrupted resize/start/delete and foreign disk/NIC denied |
+| App Container | Explicit shared-kernel type, no privileged host/socket/device mounts, image update failure and retained data |
+| Network/firewall | Real allowed/forbidden traffic across VM/container/K8s/management, address spoof/reuse and parallel ranges/IPs |
+| Capacity | Physical/account reservations cannot overspend; stale host/disk pressure safely refuse; unknown task retains capacity |
+| Auth/secrets | Real assignment, revoked/expired/user-service/host confusion, replay outage, rotation/recovery and redaction |
+| Recovery | Known VM/file/SQL/object content and policy/keys restored on isolated target; corrupt/foreign backup denied |
+| Environments | Usable app data flow, partial failure/restart and safe compensation/shared dependency preservation |
+| Observability | Stale/unknown versus desired/converged state, out-of-order probe, sanitized audit/logs and access denial |
+| Operations | Independent clean install, mixed-version upgrade/rollback, secret/DB restore and exact artifact rights/provenance |
 
-### 3.1 HLD/LLD review coverage
+## 5. Test environment and CI policy
 
-C extends existing tests 1–15 using [the canonical variant matrix](CoveStack-AntiWrapper-Acceptance.md#32-hldlld-regression-variants--existing-test-numbers). Include current-claim wire validation/renewal, paused runtime worker/uncertain k3d child, post-convergence drift, fresh leased health completion, default-network-before-workload, shared MinIO bootstrap/object retention and deleting-cluster quota accounting. Do not infer runtime exclusion from a stale DB ack rejection or source-file presence.
+Real backend tests need a separately authorized disposable host/data profile, protected secrets and bounded cleanup; never run destructive restore/delete against production or unrelated workloads. Current sandbox lacks authorized runtime acceptance; use named mocks honestly for unit learning. Real Valkey tests are distinct from mocked setIfAbsent tests; clean migration tests cannot be inferred from V5/V6 SQL presence.
 
-An outage assertion means no new action is admitted after authorization is unavailable; an already submitted backend request may settle and must be inspected. Unknown outcomes fail closed, not automatic retry. Periodic repair leaves desired generation unchanged when intent did not change. Prototype the host/backend uncertain-operation boundary before claiming G2.
+CI records exact revision/host/artifact versions, setup, assertions, timeout, result, cleanup and limitations. Failure injection includes lost provider response, paused stale worker, parent/child death, backend/server outage and unknown outcome—not only kill-and-restart happy paths. Never suppress failure or swap a fake for the real test to claim a gate.
 
-## 4. Extended acceptance — relocated
+## 6. User experience and demo
 
-The former extended/proxy/UI/metadata/domain/metrics scenarios are preserved in the [roadmap](CoveStack-Extended-Roadmap.md). Canonical E1–E8 assertions are in the [acceptance appendix](CoveStack-AntiWrapper-Acceptance.md#appendix-a-extended-track-tests--not-srs-acceptance). They are not SRS requirements. Interface tests reuse account/lifecycle evidence; bonus demonstrations require Gates passed.
+Immediate team checkpoint proves real signed no-work/auth/cancel behavior, no resource execution. Future CLI/API prove idempotency, owner denial, truthful generation/freshness and actual ready resources. Show runtime restore/traffic data as exact-revision CI/recorded evidence if not live; have backup video/network-independent plan. Do not show old MinIO/container results as new RustFS/VM acceptance.
 
-## 5. Isolation checks
+## 7. Gate review and report template
 
-Test allowed same-VPC paths and forbidden account/control-plane paths by actual IP/port, gateway and published host endpoint. Inspect workload mounts/capabilities. Never equate a failed DNS lookup with blocked access. Use synthetic workloads and authorized lab targets.
+Record service/subset, status, G1–G4 evidence links, environment/profile, failures/unverified options, security/retention/restore limits and owner/reviewer. Board Done is a merged task, not a service gate. [Gates](CoveStack-Service-Gates.md), [readiness](../docs/platform/readiness.md), [operations](CoveStack-Operations-and-Recovery.md).
 
-## 6. Stack acceptance scenario — test 15
+## Historical traceability
 
-| Order                 | Exact target                                                 |
-| --------------------- | ------------------------------------------------------------ |
-| One CLI command       | Store one owned fixed-template stack                         |
-| Dependencies          | Private network; PostgreSQL + scoped MinIO; then app Droplet |
-| Inspect               | API-backed child IDs/generations and truthful progress       |
-| Partial failure/retry | Record failed step; resume without duplicate children        |
-| Delete with retention | Protect owned persistent data per reviewed policy            |
-
-No DAG engine, UI or public route is part of this integration acceptance. A stub does not establish readiness.
-
-## 7. Fair comparison and mentor evidence
-
-Use equal workload/hardware and comparable security assumptions. Measure account denial, atomic idempotency, restart convergence, quotas and known-data restore. Credit runtime tools for existing mechanisms; platform value must be shown by CORE-5 gate evidence, not by forms replacing YAML. The CORE-5 viva questions are in [Acceptance](CoveStack-AntiWrapper-Acceptance.md#5-core-5-viva-questions). No mentor acceptance is invented.
-
-## 8. Release checklist
-
-| Check               | Required evidence                                                                                         |
-| ------------------- | --------------------------------------------------------------------------------------------------------- |
-| Gate register       | G1–G4 per CORE-5 service; status honestly retained if missing                                             |
-| CI                  | Tests 1–15 and schema/auth/client regressions; C owns results                                             |
-| Installer/artifacts | Clean VM; pinned tested inputs/checksums; Ansible second run changed=0                                    |
-| CLI                 | API-only dependency check; three cross-builds; two actual OS runs; stable JSON                            |
-| Live demo           | Tests 1, 3, 4 and get view; remaining tests as CI/video                                                   |
-| Documentation       | No fictional main or unapproved wire/DDL presented as runnable                                            |
-| Recovery            | Control-plane backup and workload restore evidence; measured scenario                                     |
-| Network             | Exact [Known constraints](CoveStack-Complete-Working-Setup.md#10-known-constraints), hotspot backup video |
-
-Record untested/failed cases with owner; do not promote service status from mock results. No new CORE-5 features after 10 January 2027; deadline Monday, 25 January 2027.
-
-[Gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).
+The [previous body of this file](../docs/archive/V5-before-full-product-alignment-2026-11-04.md#v5-covestack-testing-and-acceptance) is preserved unchanged as historical reference, including earlier requirements/DDL/acceptance text. It is not current VM/RustFS setup guidance. Use this active body, the linked canonical domain specifications and [actual implementation evidence](CoveStack-Implementation-Status.md) for new work. No source, migrations, contracts, tests, configuration or runtime state is changed by this document.

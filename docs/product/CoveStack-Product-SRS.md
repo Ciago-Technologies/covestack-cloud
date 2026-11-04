@@ -1,6 +1,6 @@
 # CoveStack product SRS — infrastructure control-plane requirements
 
-Updated: 4 November 2026. Status: **Planned target specification**, not implementation or acceptance evidence. Product scope is independent of academic CORE-5; old V5 SRS remains historical reference only. This SRS adopts the core/future classifications in the [canonical service catalogue](CoveStack-Product-Architecture-and-Service-Catalogue.md), without creating new wire types, fields or states.
+Updated: 4 November 2026. Status: **Planned target specification**, not implementation or acceptance evidence. Product scope is independent of academic CORE-5; the [updated V5 SRS](../../V5/CoveStack-SRS-Scope.md) supplies an aligned detailed view, while its former body is preserved as historical reference. This SRS adopts the core/future classifications in the [canonical service catalogue](CoveStack-Product-Architecture-and-Service-Catalogue.md), without creating new wire types, fields or states.
 
 ## Scope and intended outcome
 

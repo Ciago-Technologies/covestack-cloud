@@ -45,7 +45,7 @@ Current contract 1.1.0 compute.instance examples describe the prior container ex
 
 A future versioned ADR must settle: distinct kind versus explicit backend/spec revision, capability negotiation, identity retention, old desired-state mapping (including archive), VM images/disks/NICs, action availability and migration of existing container records to the separate App Container model. No implicit conversion; running containers remain containers until an explicit validated migration. Existing numeric /v2 compatibility is a bounded adapter, not a right to reuse incompatible specs. Old agents reject or are withheld incompatible work; mixed-version upgrade/rollback must be tested.
 
-B owns schema/migrations; D owns wire/DTO compatibility; A owns driver/client; C reviews privilege/identity/tests. Coordinated source schemas, fixtures and generated outputs precede execution. V5 reference DDL must not be copied into a VM migration without review; this task changes none.
+B owns schema/migrations; D owns wire/DTO compatibility; A owns driver/client; C reviews privilege/identity/tests. Coordinated source schemas, fixtures and generated outputs precede execution. The current V5 schema is a VM-first design reference, not executable DDL. Old full DDL is preserved in the historical V5 snapshot and must not be copied into a VM migration without review; this task changes no migration.
 
 ## Backend evaluation exit
 

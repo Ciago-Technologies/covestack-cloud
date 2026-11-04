@@ -1,96 +1,85 @@
-# Architecture transition notice — 4 November 2026
+# CoveStack V5 — Product Requirements and Scope
 
-> **Superseded design reference.** Active guidance: [platform academic-transition](../docs/platform/academic-transition.md). The five academic categories and tests 1–15 remain obligations. VM compute is the new target; its SRS mapping and separate container scope require mentor/team review. No requirement was waived.
->
-> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
+| Document control | Value |
+| --- | --- |
+| Updated | 4 November 2026 |
+| Authority | Detailed current product specification; aligned to the [canonical catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) and [product SRS](../docs/product/CoveStack-Product-SRS.md) |
+| Evidence | Target design, not a completion certificate; source and actual test results determine implementation status |
+| Compatibility | V5 is a documentation label; current wire contract remains 1.1.0; future fields/kinds/versions require coordinated review |
 
-Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); product scope is independent of historical academic CORE-5.
+## 1. Status, authority and terminology
 
-Active requirements: [product SRS](../docs/product/CoveStack-Product-SRS.md). RustFS is the preferred candidate (Planned); [active HLD/LLD](../docs/platform/architecture.md) and [provider findings](../docs/platform/provider-evaluation.md#rustfs-compatibility-and-acceptance) supersede historical MinIO selection.
+This active V5 requirements view follows the [product SRS](../docs/product/CoveStack-Product-SRS.md) and canonical catalogue. Product scope is independent of historical academic obligations/dates. All capabilities below are target requirements; no service is made available by this document. V5 is not a wire version.
 
-<!-- Historical body preserved below; see supersession notice above. -->
+## 2. Core requirements
 
-# CoveStack V5 — CORE-5 SRS Scope for Integration
+| ID | Product capability | Required outcome |
+| --- | --- | --- |
+| 1 | Compute Instances (VMs) | Image, vCPU/RAM/disk/NIC, secure initialization; create/inspect/start/stop/restart/resize/snapshot/backup/restore/delete |
+| 2 | App Containers | OCI image, ports, env/secret refs, CPU/RAM, volumes/network, health/logs, start/stop/restart/update/delete |
+| 3 | Kubernetes Clusters | Create/delete/inspect/lifecycle, nodes/limits, reserved API endpoint, protected kubeconfig, health/network and standard-tool workload deployment |
+| 4 | VM Images and Templates | Approved OS images/custom-image intake, versioned VM templates, validated cloud-init or equivalent, provenance |
+| 5 | VPC / Private Networks | Owned network create/inspect/membership/attachment/dependency-safe delete |
+| 6 | Subnets | Operator-reviewed ranges, allocate subnet from permitted pool, reservations and no overlap |
+| 7 | IPAM | Allocate/reserve/inspect/release private addresses; interrupted-allocation recovery |
+| 8 | Network Interfaces | Owned interface create/inspect and validated attach/detach; address tracking |
+| 9 | Firewalls / Security Groups | Default deny, ingress/egress protocol/port/source/destination rules, associations and audit |
+| 10 | Block Storage / Volumes | Create/inspect/attach/detach, supported resize, ownership/usage and safe delete |
+| 11 | Object Storage | S3 bytes/buckets, scoped keys/policies, quota, persistent objects, backup/restore; capability-declared versioning/lifecycle |
+| 12 | Managed PostgreSQL | Private database/user/credential lifecycle, real readiness, persistent storage, start/stop/health/backup/restore/delete/rotate |
+| 13 | Application Environments | Owned resources and bounded dependencies, provision order/readiness/status/progress, safe retry/recovery/cleanup |
+| 14 | IAM and RBAC | Users, organization/account membership, roles/permissions, default-deny resource/project authorization |
+| 15 | API Keys and Service Accounts | Scoped programmatic identity, issuance/revocation/rotation/expiration policy and trusted agent assignment |
+| 16 | Secrets Management | Sensitive credential references, scoped retrieval/redaction/audit/rotation through evaluated mature backend |
+| 17 | Audit Logs and Events | API/admin/agent/resource/security/credential events, correlation, append-only app access |
+| 18 | Resource Quotas | CPU/RAM/disk/VM/container/cluster/storage/network per-account limits |
+| 19 | Monitoring and Resource Health | Host/VM/container/Kubernetes/agent/scheduler CPU/RAM/disk/health and observation freshness |
+| 20 | Basic Logging | Platform/agent/provisioning and authorized workload logs, sanitized errors and retention |
+| 21 | Snapshots and Backup/Restore Foundations | Owned VM/volume recovery points and metadata, bounded schedules/retention, verify/restore/history |
+| 22 | CLI and API | Unified scoped lifecycle API and thin CLI, JSON, idempotency, wait/cancel/progress and explicit errors |
 
-| Document control        | Value                                                                   |
-| ----------------------- | ----------------------------------------------------------------------- |
-| Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **20 October 2026**                                                     |
-| Submission deadline     | **Monday, 25 January 2027**                                             |
-| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
-| Status                  | Target design and implementation guidance; not a completion certificate |
 
-## 1. Status and purpose
+## 3. Cross-cutting requirements
 
-This scope file is to be merged into the future SRS; no existing SRS/requirement-ID scheme was found. Do not invent requirement IDs. All five services are **Planned**. V5 is documentation version; lifecycle contract remains 1.1.0.
+| Concern | Required behavior |
+| --- | --- |
+| Ownership | Account/project/member/action authorization before lookup/mutation; foreign resource 404 without existence leak |
+| Desired state | PostgreSQL authority, stable identities/generations/operations, transactional idempotency/reservations and safe reconciliation |
+| Runtime trust | True VM guest kernel; explicit shared-kernel container class; trusted agent only at privileged sockets |
+| Capacity | Fresh host capability/health, physical reserves plus account quotas, safe refusal, no assumed density/HA |
+| Secrets | Hash user tokens, protect signing/DB/S3 material and key recovery, narrow delivery and rotation/revocation; no logs/spec leaks |
+| Recovery | Known actual guest/data/SQL/object restoration, protected independent copies and retained-data policy |
+| Automation | API-only CLI/provider/inventory, idempotent mutations, JSON inspection, truthful finite waits |
+| Audit/telemetry | Sanitized scoped immutable events, actual health/freshness and meaningful incident diagnostics |
 
-**A local cloud control plane with an account-scoped, crash-safe resource model. Docker and k3d are replaceable execution backends.**
+## 4. Deliverable evidence by domain
 
-> A handler that directly executes runtime create commands without persisted desired state fails this SRS acceptance design. Resource state is authoritative in the DB, not execution objects or client configuration.
+| Domain | Acceptance reference | Actual evidence required |
+| --- | --- | --- |
+| VM / App Container | Tests 1–6 plus named VM/container readiness and privilege cases | Guest-kernel VM distinct from container; owned inspect/start/stop/recovery and no cross-account access |
+| Kubernetes | Tests 7–10 | Actual cluster/workload, scoped kubeconfig, measured quota/admission and owned cleanup |
+| PostgreSQL | Test 11 | Real SQL, private/scoped credentials, durable rows and verified restore |
+| RustFS | Tests 12–13 | Known object bytes, denied foreign key, restart persistence and Java bucket/policy recovery; independent verified restore |
+| Networks/volumes/security/capacity | Test 14 plus named traffic/disk/admission cases | No allocation races, real forbidden packets/attachments denied and no overspend |
+| Environments | Test 15 | Usable dependencies/app, partial retry, no duplicate child and shared-retained data preserved |
+| Platform interfaces/operations | Service-gate and named CLI/audit/custody/install checks | Actual authenticated API/JSON, freshness, clean install, upgrade/rollback and data/key recovery |
 
-## 2. Exactly five services
+IDs 1–15/E1–E8 are retained traceability labels, not an old service-count ceiling or proof previous container tests validate a VM. Product-domain additions remain necessary. [Acceptance definitions](CoveStack-AntiWrapper-Acceptance.md).
 
-| Service            | Scope                                                                              | Status  |
-| ------------------ | ---------------------------------------------------------------------------------- | ------- |
-| Compute/Droplets   | Container-backed, single host; never a VM                                          | Planned |
-| Kubernetes         | Required k3d; max 2 clusters/host; 1 server + max 2 agents; one pinned k3s version | Planned |
-| Managed PostgreSQL | Backup/restore, scoped credentials, private network                                | Planned |
-| Object storage     | S3-compatible MinIO, per-account credentials, scoped buckets                       | Planned |
-| VPC/IPAM           | One private network/account; simple allocator; no custom CIDR                      | Planned |
+## 5. Future scope and constraints
 
-## 3. Cross-cutting items — not additional services
+Future candidates/dependencies appear in [catalogue](CoveStack-Service-Catalog.md#3-future-candidates) and [extended dependencies](CoveStack-Extended-Roadmap.md). No arbitrary workflow runner, new Labs product, full cloud parity, unsupported node density or automatic public exposure is implied. Profiles/capability differences are documented and rejected explicitly when unsupported. [Known constraints](CoveStack-Complete-Working-Setup.md#10-known-constraints).
 
-| Item                  | Bound                                                           |
-| --------------------- | --------------------------------------------------------------- |
-| Security              | Authenticated API, account predicates, ciphertext/hash custody  |
-| Recovery              | DB desired state/generation; crash tests and measured restore   |
-| CLI first             | Go/cobra API client; no UI work during CORE-5                   |
-| Terraform optional    | Droplet and Kubernetes resources only                           |
-| One integration stack | PostgreSQL + MinIO + app Droplet; fixed sequence, no DAG engine |
-| Ansible Part 1        | Install playbook and ITISS evidence                             |
+## 6. Compatibility and implementation boundaries
 
-## 4. Five deliverables and one integration demo
+The actual contract is 1.1.0. VM/App Container types, capability/host assignment, full claims/renew/reports/network/capacity messages require coordinated B+D+A/C design, fixtures and generated outputs. API state strings are taken from the current authoritative catalogue; missing values are TBD with B/D, not invented here. Java owns DB transactions; Go agents and clients do not access the platform DB directly.
 
-| Deliverable        | G1 DB intent             | G2 crash/rebuild              | G3 isolation              | G4 failure evidence |
-| ------------------ | ------------------------ | ----------------------------- | ------------------------- | ------------------- |
-| Compute/Droplets   | Resource generation      | Inspect before create         | Other-account 404         | Tests 1–6           |
-| Kubernetes         | Cluster/port reservation | Recover half-create           | Kubeconfig 404            | Tests 7–10          |
-| Managed PostgreSQL | Owned resource/volume    | Reattach/restore              | API 404/private DB denial | Test 11             |
-| Object storage     | Bucket/credential rows   | Java reconciles after restart | API 404/S3 denial         | Tests 12–13         |
-| VPC/IPAM           | Network intent/IP leases | Rebuild helper configuration  | Network 404               | Test 14             |
+## 7. Promotion and security
 
-Stack demo: test **15** proves one-command provisioning, recorded partial failure and retry without duplicates. It is integration of the five-service deliverable, not a sixth service.
+G1: PostgreSQL desired state and generation are authoritative. G2: crash-safe inspection/reconciliation rebuilds state/config without duplicates. G3: account authorization denies foreign API resources (404 without existence leak) and actual traffic/storage boundaries are tested. G4: meaningful failure acceptance runs in CI on an authorized capable runner. **Acceptance Gates Passed** requires this evidence; **Supported** additionally needs a declared subset, qualified profile and maintenance policy.
 
-### 4.1 Required dependency and recovery interpretation
+The product remains Experimental; no qualified production profile. Apache-2.0 is adopted for CoveStack-owned material; dependency/image notices and copied-reference rights remain separate. [Threat/security](CoveStack-Security-and-ITISS.md), [gates](CoveStack-Service-Gates.md), [status](CoveStack-Implementation-Status.md).
 
-The fixed stack's MinIO component is a scoped bucket in one shared operator-owned process; it does not create another server. Ensure the default VPC before DB/app attachment. Periodic drift repair, leased health inspection, expired-claim rejection and runtime execution exclusion supplement existing tests 1–15. These are correctness details of the same five services, not new services or requirement IDs.
+## Historical traceability
 
-The stack/test 15 and Ansible Part 1 remain required. Cut optional Terraform and deferred work first; any reduction of required acceptance needs an explicit revised SRS, never an assumed confirmation. Existing wire contract 1.1.0 still needs coordinated message-schema work before fenced execution is possible.
-
-### 4.2 User experience evidence — Planned
-
-The same five deliverables must be usable through the authenticated API/CLI: a Droplet runs a reviewed app; an authorized Kubernetes export permits a bounded workload; PostgreSQL returns actual rows and restores known data; object storage preserves exact bytes under scoped credentials; VPC/IPAM provides tested intended connectivity and isolation. Test 15 connects the app to its database and bucket, rather than merely creating child records.
-
-Extend existing tests 1–15 with two-account same-name isolation and truthful generation/freshness/error inspection. A teammate must reproduce installation and the application/recovery walkthrough. See [experience assertions](CoveStack-AntiWrapper-Acceptance.md#33-user-experience-assertions--planned-existing-tests) and [fixed stack](CoveStack-Stack-Templates.md#21-usable-application-and-recovery-walkthrough--planned). No new services, test IDs or wire fields are introduced; exact API mappings and access/secret delivery require owner review.
-
-## 5. Gates and CLI boundary
-
-**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
-
-Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
-
-The CLI talks only to the authenticated API through pkg/kanclient. No Docker/k3d calls, direct DB, or local resource database. Config contains server URL/key ID/profile; secrets come from env/keychain. Every mutation uses an idempotency key. Create returns pending immediately; --wait polls convergence. Get shows desired/converged generation, lease and observed state; every list/get supports stable -o json.
-
-## 6. Assumptions and constraints
-
-Single 8 GB AlmaLinux host; two-cluster cap and node limits; a phone hotspot without institute LAN/router administration; one Go developer and one Go learner. Cluster memory estimate is unverified until the early combined-host spike; the two-cluster count is an upper limit, not guaranteed simultaneous capacity. Use CI/video and two-OS CLI evidence; no reliance on a live hotspot alone. See [Known constraints](CoveStack-Complete-Working-Setup.md#10-known-constraints) (section added in Batch 2).
-
-No cluster version, subnet pool, key custody, missing enum or quota-error wire string is invented; open decisions remain with the named owners.
-
-## 7. Out of scope for this SRS
-
-Further services are in the development roadmap (CoveStack-Extended-Roadmap.md) and are not requirements or deliverables of this SRS.
-
-## 8. Acceptance references
-
-[Tests 1–15](CoveStack-AntiWrapper-Acceptance.md#2-core-5-acceptance--srs-tests) · [Gate register](CoveStack-Service-Gates.md) · [Schema reference](CoveStack-Database-Schema.md) · [Go ownership](CoveStack-Go-Handover.md).
+The [previous body of this file](../docs/archive/V5-before-full-product-alignment-2026-11-04.md#v5-covestack-srs-scope) is preserved unchanged as historical reference, including earlier requirements/DDL/acceptance text. It is not current VM/RustFS setup guidance. Use this active body, the linked canonical domain specifications and [actual implementation evidence](CoveStack-Implementation-Status.md) for new work. No source, migrations, contracts, tests, configuration or runtime state is changed by this document.

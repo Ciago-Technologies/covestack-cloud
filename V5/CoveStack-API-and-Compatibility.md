@@ -1,109 +1,65 @@
-# Architecture transition notice — 4 November 2026
+# CoveStack V5 — API, Identity and Compatibility Boundaries
 
-> **Superseded design reference.** Active guidance: [platform README](../docs/platform/README.md). Old container-Droplet architecture, two-driver ceiling, fixed sizing and delivery claims below are historical. The active platform docs define VM compute, a distinct App Container and evidence-based releases.
->
-> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
+| Document control | Value |
+| --- | --- |
+| Updated | 4 November 2026 |
+| Authority | Detailed current product specification; aligned to the [canonical catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) and [product SRS](../docs/product/CoveStack-Product-SRS.md) |
+| Evidence | Target design, not a completion certificate; source and actual test results determine implementation status |
+| Compatibility | V5 is a documentation label; current wire contract remains 1.1.0; future fields/kinds/versions require coordinated review |
 
-Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); product scope is independent of historical academic CORE-5.
+## 1. Existing wire behavior
 
-<!-- Historical body preserved below; see supersession notice above. -->
+| Existing contract / code | Meaning | Limit |
+| --- | --- | --- |
+| contracts/internal-api.yaml, generated from base/catalogue | Wire version 1.1.0 and current exact kinds/states | Not VM-first type/claim/capacity support |
+| GET /internal/v1/agent/work | Read-only assigned agent/account discovery; successful [] means no work | Actual server/foundation/assignment path still missing or unverified |
+| Heartbeat schema | Existing agentVersion/dockerVersion/supportedKinds | Existing Go work client does not implement full host registration/capability exchange; Docker-only version field needs future reviewed evolution |
+| PUT observed / events / known IDs schemas | Observation/event/scoped inventory definitions | No current agent execution/report/cleanup implementation is established |
+| KAN1 signed internal requests | Shared canonical bytes, nonce/time validation | Authentication is not authorization, trusted host assignment or runtime fencing |
+| Public auth filter | User Bearer identity on /v2 and /kan/v1 | Concrete token store/membership and full scoped APIs remain pending |
 
-# CoveStack V5 — API Boundaries and Compatibility Matrix
+Current resource kinds include compute.instance, db.instance, k8s.cluster, compute.group, compute.snapshot, network.load-balancer and storage.bucket. Contract membership is not service support. Server-owned groups/buckets/operations/metadata are never ordinary agent work. Labels/caller IDs are not trusted ownership.
 
-| Document control        | Value                                                                   |
-| ----------------------- | ----------------------------------------------------------------------- |
-| Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **15 October 2026**                                                     |
-| Submission deadline     | **Monday, 25 January 2027**                                             |
-| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
-| Status                  | Target design and implementation guidance; not a completion certificate |
+## 2. Public product resource model
 
-## 1. One backend model
+VM Instance, App Container, project/environment, NIC/firewall/volume and provider task are product concepts requiring reviewed schemas; no new wire kind/name/version is selected here. Preserve current kind/state/header/module names until coordinated evolution. Do not reinterpret a legacy container image/spec as a VM guest image or silently convert running containers. Public “Droplet” compatibility mapping needs an explicit migration/adapter decision.
 
-All user-facing interfaces call core authorized services. Provider-style and management controllers adapt those services; they must not implement duplicate resource state or bypass account checks.
+Internal UUID, prefixed CLI public ID and numeric bounded /v2 provider ID are separate identities; B+D finalize mappings/uniqueness. Backend IDs are opaque owned references, not client-supplied authority. Kubeconfig, DB passwords and S3/signing secrets never appear in ordinary list/get/spec/observed/events.
 
-| API area              | Consumer                                 | Policy                                                           |
-| --------------------- | ---------------------------------------- | ---------------------------------------------------------------- |
-| Internal signed agent | Go worker                                | Service identity and private route                               |
-| Provider-style subset | Tested /v2 consumers                     | Bearer account scope and exact DTO mapping; no full parity claim |
-| CoveStack management  | CLI and optional provider                | CORE-5 resources and one stack integration; stable JSON          |
-| S3 endpoint           | Application/S3 client                    | Scoped storage credential and signed protocol                    |
-| Kubernetes API        | Authorized kubectl/workload operator     | Protected kubeconfig and route                                   |
-| Extended interfaces   | [Roadmap](CoveStack-Extended-Roadmap.md) | Prior interface design relocated; not SRS scope                  |
+## 3. Target request semantics
 
-## 2. Existing internal endpoint inventory
+Authenticate → authorize membership/account/project/action → validate type/capability/dependencies → physical/quota admission → atomically persist intent/operation/reservations/idempotent response/event. Create returns a durable pending operation; actual convergence may occur later. Same idempotency key/fingerprint returns one result; changed body returns reviewed mismatch behavior. No backend operation inside the resource transaction.
 
-| Method | Path                                         | Purpose                             |
-| ------ | -------------------------------------------- | ----------------------------------- |
-| POST   | `/internal/v1/agent/heartbeat`               | Presence and installed capabilities |
-| GET    | `/internal/v1/agent/work`                    | Scoped desired work                 |
-| PUT    | `/internal/v1/agent/resources/{id}/observed` | State/generation observation        |
-| GET    | `/internal/v1/agent/known-ids`               | Defined complete scoped inventory   |
-| POST   | `/internal/v1/agent/events`                  | Bounded report/event input          |
+List/get use stable JSON and owner predicates; get separates desired/converged revision, observed freshness, operation/attempt and sanitized failure. Foreign resources return 404 without existence leak. Secret/export endpoints are separately authorized/audited; never export kubeconfig through ordinary cluster list/get or observations.
 
-GET work/known-ids scopes are authenticated agent/account plus advertised supportedKinds, excluding server-owned groups/buckets. No caller-selected account parameter exists. Current service-key verification derives accountId/accessKeyId/kind; Agreed target: one agent process per physical host; separate service credential and authenticated polling context per assigned account. B owns server assignment validation; C credential provisioning/rotation/revocation; A isolated clients and shared bounded execution. Provisioning/storage details still need B+C+A review; no new wire fields. Ownership labels do not grant account scope. Known-ids cleanup requires a complete scoped inventory; a timeout/partial response authorizes no deletion.
+## 4. Agent assignment and future authority
 
-Actual request/response shapes remain in `contracts/internal-api.yaml`. V5 does not replace them or certify running controllers. New fields/routes require reviewed schemas, examples and tests.
+One process per host; separate immutable credential/client context per account under host-wide resource coordination. Server derives scope from stored credential/account/host assignment. Current principal record carries account/key/kind only; it does not implement trusted host binding. B+C+A/D must agree enrollment, provisioning, revocation, capability binding and dispatch. Do not add unsigned arbitrary agentId/account selectors as a workaround.
 
-### 2.1 Required protocol work before mutation — LLD contract gate
+| Future contract area | Required agreement before code |
+| --- | --- |
+| VM versus App Container | Distinct schema/type/backend capability and old-container migration; no implicit fallback |
+| Claim / renew | Authenticated idempotent current resource/generation/owner/epoch/expiry and host assignment |
+| Progress / convergence | Separate progress/health from successful acknowledgement; exact generation/owner/epoch; release lease together |
+| Capacity / capabilities | Fresh host evidence, backend compatibility, durable reservations and safe refusal |
+| Network/storage attachment | Ownership, locality, allocation generation and confirmed detach/cleanup |
+| Async provider task | Accepted-task identity, lost response, cancellation, exclusion and unknown-outcome resolution |
+| Upgrade / rollback | Compatible old/new clients/agents, schema/fixture negotiation and rejection of unknown work |
 
-Contract 1.1.0 remains unchanged. The shapes currently define generation and observedAt, but not a complete claim/renewal correlation or standalone VPC execution exchange. The target protocol must provide the following semantics; **all new route/header/field/error names and missing enums are TBD with B+D, reviewed by A+C**. No table entry below is an invented wire string.
+No v1.2.0 or future state string is presumed approved. Authoritative base/catalogue, fixtures, generated wire/language output, Java DTO/controller and Go client change together in an authorized task. [Existing-file plan](../EXISTING-CODE-CHANGE-PLAN.md).
 
-| Exchange | Required semantics / negative evidence |
-|---|---|
-| Claim acquisition/delivery | /work remains read-only candidate discovery, including auth-smoke; a separate signed idempotent mutation binds account/host/resource/generation/epoch/expiry; candidate data alone is not authority |
-| Renewal | Same authenticated assignment, owner/epoch/generation; unexpired by DB clock; loss/change/revocation rejected; no expired-claim revival |
-| Convergence report | Echo reviewed claim correlation; current generation/readiness; DB expiry/fence validation; atomic ack and lease release |
-| Progress/inspection report | Distinguish leased attempt progress, healthy inspection completion and actual convergence; health null-generation payload alone is not sufficient correlation |
-| Scheduled inspection | Fresh claim even after acked_generation equals generation; stale result cannot overwrite a new generation; no health acknowledgment |
-| Network control | Separate signed internal exchange for server-owned VPC intent/claim/renew/report; no fake VPC /work kind or bucket overload |
-| Generic runtime mapping | Reviewed operator-only image/volume/host-secret references for shared MinIO; no root/admin secret values in work |
+## 5. Server-owned service APIs
 
-Keep GET work/known-ids non-mutating. Candidate discovery does not reserve a lease or authorize execution. Claim/renew/report mutations need stable request-idempotency semantics; retry signs fresh bytes/nonce but reuses the same logical request key. Lost claim response must not bump epochs again or reserve additional work on replay. Exact encoding remains TBD with B+D/A/C.
+VPC/IPAM have no current wire kind; reviewed Java records/allocator own intent, agent capability applies reviewed host network changes only after a contract decision. RustFS service process/volumes are operator-managed; Java adapter reconciles account-owned buckets, scoped credentials and policy. Bucket reconciliation must not be invented as a generic agent resource. Workload PostgreSQL is distinct from control-plane PostgreSQL.
 
-Implement together: reviewed schemas/source generator inputs, positive/negative fixtures, generated outputs, Java DTO/controllers and Go client. Freeze the correlated design before using multiple workers or runtime mutations. Current signing scopes authenticate a request; they do not substitute for claim possession. Lifecycle 1.1.0 vocabulary stays authoritative; message-schema/version coordination does not follow from documentation version V5.
+## 6. Client, provider and UI rules
 
-B owns assignment, claim transactions, schedule and DB predicates. D owns DTO/schema alignment. A owns client correlation, renewals and runtime exclusion. C owns expiry/stale/cross-account and uncertain-side-effect tests. The HLD/LLD is in [Main design](DocsV5-DO_Team.md#31-lld--mutation-sequence-and-contract-gate) and [Schema concurrency](CoveStack-Database-Schema.md#7-concurrency-and-reference-queries).
+CLI/Terraform/OpenTofu provider/Ansible inventory/UI use only authenticated API; no direct DB or privileged runtime calls. CLI is Go/cobra, config-only, secret-safe, stable JSON, idempotent mutation and finite wait/cancel/error behavior. Terraform state may contain sensitive exports; minimize and protect it. Do not advertise full AWS/DO/provider parity. Runtime-driver backend APIs remain private implementation, not public control-plane schema.
 
-## 3. CORE-5 management models
+## 7. Error, retry and evidence
 
-| Model              | Required semantics                                                                                     |
-| ------------------ | ------------------------------------------------------------------------------------------------------ |
-| Resource/operation | Account scope, generation, lease/epoch; operation states queued, running, completed, failed, cancelled |
-| VPC/IPAM           | Server-owned intent; one private network/account; unknown states TBD with B; attachment schema B+A     |
-| Stack/template     | One immutable template version and fixed sequence; child IDs; no DAG engine                            |
-| IDs                | Internal uuid; CLI prefixed public_id; /v2 numeric provider_id; B+D finalize                           |
-| Automation JSON    | Stable list/get output for every service; no credential/kubeconfig content                             |
+Errors are never translated into []. Fresh signature/nonce per retry; TLS outside loopback and no credential-bearing redirects. Auth rejection stops that account context. Current loop retries selected HTTP statuses and timeout-class transport errors; connection-refusal/general outage policy needs review, not a claim of universal retry. Unknown mutation outcome requires idempotency/task inspection, not blind retry. Preserve useful sanitized correlation, never raw secret responses. Tests must include real assignment, auth/replay/outage and cross-account behavior, not only fixtures.
 
-CLI, Terraform provider and future inventory use only authenticated API, never Docker/k3d or direct DB. Every mutating CLI command carries an idempotency key; pending is user-facing behavior, not a newly invented operation state. Create returns immediately; --wait polls. Endpoint additions/fields/error strings need B+D review and coordinated schemas/fixtures/generated outputs; absent values are TBD with B.
+## Historical traceability
 
-## 4. Compatibility register
-
-| Field              | Record per tested feature              |
-| ------------------ | -------------------------------------- |
-| Endpoint/method    | Exact supported operation              |
-| Request fields     | Required/optional/unsupported          |
-| Response and error | Actual status/body and pagination      |
-| Client/tool        | Version tested and endpoint override   |
-| Async behavior     | Polling/timeout/action result          |
-| Limitation         | Container/cluster/provider differences |
-
-DigitalOcean-style IDs/actions need explicit mappings rather than leaking internal identifiers by accident. A custom Terraform provider does not automatically make the standard DigitalOcean provider compatible. A real S3 endpoint is distinct from a management bucket record. Website reachability is distinct from Kubernetes admin connectivity.
-
-## 5. Cross-interface conflicts
-
-Store a durable operation once, then let CLI wait or inspect it. Protect concurrent writes with optimistic/version checks and idempotency. Define optional provider ownership of desired fields. Broader UI/IaC conflict rules are preserved in the roadmap, not an early UI task.
-
-## 6. Secrets and error policy
-
-Ordinary resource responses contain safe metadata. Passwords, tokens and kubeconfigs use separately authorized retrieval with restricted logging. Errors name the failed operation without returning secret configuration or upstream response dumps. Other-account GET/DELETE/kubeconfig requests return 404 with no existence leak; tests verify side effects as well as status.
-
-## 7. Acceptance
-
-C owns tests 1–15 and every acceptance fixture from day 1. A reviews Go/client and wire integration; B schema/core; D Java /v2 DTOs/fixtures; E thin CLI and later provider. D writes no Go. Test real clients, negative cases and the mandatory bounded Kubernetes subset; do not return success-shaped stubs.
-
-**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
-
-Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
-
-[Gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).
+The [previous body of this file](../docs/archive/V5-before-full-product-alignment-2026-11-04.md#v5-covestack-api-and-compatibility) is preserved unchanged as historical reference, including earlier requirements/DDL/acceptance text. It is not current VM/RustFS setup guidance. Use this active body, the linked canonical domain specifications and [actual implementation evidence](CoveStack-Implementation-Status.md) for new work. No source, migrations, contracts, tests, configuration or runtime state is changed by this document.

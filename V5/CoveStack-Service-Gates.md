@@ -1,82 +1,99 @@
-# Architecture transition notice — 4 November 2026
+# CoveStack V5 — Service Gates and Product Promotion
 
-> **Superseded design reference.** Active guidance: [platform readiness](../docs/platform/readiness.md). Retain G1–G4 and original test obligations. New maturity/evidence categories are separate; no source, mock or documentation edit promotes a service.
->
-> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
+| Document control | Value |
+| --- | --- |
+| Updated | 4 November 2026 |
+| Authority | Detailed current product specification; aligned to the [canonical catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) and [product SRS](../docs/product/CoveStack-Product-SRS.md) |
+| Evidence | Target design, not a completion certificate; source and actual test results determine implementation status |
+| Compatibility | V5 is a documentation label; current wire contract remains 1.1.0; future fields/kinds/versions require coordinated review |
 
-Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); product scope is independent of historical academic CORE-5.
+## 1. Promotion rule and statuses
 
-<!-- Historical body preserved below; see supersession notice above. -->
+G1: PostgreSQL desired state and generation are authoritative. G2: crash-safe inspection/reconciliation rebuilds state/config without duplicates. G3: account authorization denies foreign API resources (404 without existence leak) and actual traffic/storage boundaries are tested. G4: meaningful failure acceptance runs in CI on an authorized capable runner. **Acceptance Gates Passed** requires this evidence; **Supported** additionally needs a declared subset, qualified profile and maintenance policy.
 
-# CoveStack V5 — Service Gates and Promotion Evidence
+Status vocabulary: Proposed, Planned, In Progress, Partially Implemented, Implemented, Runtime Verified, Acceptance Gates Passed, Supported, Deferred, Blocked. Source-confirmed libraries can be Implemented while service integration is Planned/Blocked. The catalogue's Partially Implemented interface/IAM entries describe component evidence, not full service support. No row below has passed runtime gates by documentation.
 
-| Document control        | Value                                                                   |
-| ----------------------- | ----------------------------------------------------------------------- |
-| Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **15 October 2026**                                                     |
-| Submission deadline     | **Monday, 25 January 2027**                                             |
-| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
-| Status                  | Target design and implementation guidance; not a completion certificate |
+## 2. Core product gate register
 
-## 1. Scope and promotion rule
+| ID / capability | G1 authoritative records | G2 rebuild / recovery | G3 ownership / isolation | G4 required assertion | Owner / reviewers | Current category |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 Compute Instances (VMs) | Owned resource/VM/image/task generation and reservation | Inspect VM/task; reattach only owned disk/NIC; resume one guest | Foreign ID/disk/NIC/export denied | 1–6 + guest/readiness/privilege | A+B; C; D API | Planned |
+| 2 App Containers | Distinct App Container type/spec and volume/network binding | Inspect owned container/task, image/health and retained data | Foreign network/volume denied; no privileged sockets | 1–6 container variants + privilege/update | A+B; C | Planned |
+| 3 Kubernetes Clusters | Cluster desired revision/task/API port/capacity | Find partial owned cluster, settle task and verify actual API/workload | Foreign kubeconfig 404; no ordinary-view secret | 7–10 | A+B; C; D | Planned |
+| 4 VM Images and Templates | Approved immutable image/version/provenance and initialization policy | Inspect exact digest and owned image/task cache; reject tampering | Foreign/private image/bootstrap access denied | Named image/provenance/boot failure | A+B; C | Planned |
+| 5 VPC / Private Networks | Owned network/pool/generation and references | Rebuild owned network mapping/lease policy, preserve unrelated routes | Foreign network inspect/attach and packets denied | 14 + traffic/restart | C+B+A | Planned |
+| 6 Subnets | Owned range/pool containment/nonoverlap reservation | Inspect actual subnet/backend mapping before apply/release | Foreign range attach/lookup denied | 14 parallel ranges | C+B+A | Planned |
+| 7 IPAM | Unique live address/resource/interface leases | Rebuild intended allocations and inspect actual attachments | Foreign lease/resource denied; spoofing tested | 14 parallel IP/reuse | C+B+A | Planned |
+| 8 Network Interfaces | Owned NIC/resource/host/network/current revision | Inspect attachment/task; resume one mapping and preserve reservations | Foreign attach/detach denied | Named interrupted NIC/traffic test | A+B; C | Planned |
+| 9 Firewalls / Security Groups | Owned policy/rules/association/generation | Rebuild actual default-deny enforcement from DB intent | Forbidden ingress/egress/management packets fail | Named packet/restart/apply-failure | A+C+B | Planned |
+| 10 Block Storage / Volumes | Owned disk/attachment/capacity/retention and provider ref | Inspect disk/task and reattach safely; no double attach | Foreign disk/backup/restore denied | Named volume persistence/restore/failure | A+B; C | Planned |
+| 11 Object Storage | Account bucket/policy/key intent and generation | Java recreates intended config on RustFS; persistent bytes recovered independently | A key cannot access B bucket/admin | 12–13 + isolated byte restore | B Java; A operator; C | Planned |
+| 12 Managed PostgreSQL | Owned DB/volume/private secret/backup references | Inspect workload/volume and restore known rows under current policy | Foreign SQL reachability/login denied | 11 | A+B; C | Planned |
+| 13 Application Environments | Owned definition/version/child/dependency/reservations | Rebuild child progress; resume stable IDs after partial failure | Foreign/shared-resource deletion denied | 15 | B+A; C; D/E API | Planned |
+| 14 IAM and RBAC | Accounts/projects/memberships/roles/revocation authority | Rebuild permissions/derived caches from authoritative records | Foreign/project/role downgrade denied | 3 + named membership race | C+B; D | Partially Implemented |
+| 15 API Keys and Service Accounts | Hash tokens/protected signing material/assignment and revocation | Recover protected identity/custody without fallback key | User/service confusion, wrong-host/key denied | Named real auth/replay/rotate/outage | C+B; A | Partially Implemented |
+| 16 Secrets Management | Protected secret references/policy/key version/rotation | Restore authorized keys/secret metadata through reviewed custody | Foreign retrieval/log disclosure denied | Named rotate/revoke/key recovery | C+B; A | Planned |
+| 17 Audit Logs and Events | Append-only correlated audit/events with tenant policy | Rebuild views from authoritative events; no fabricated trusted account | Foreign read; app UPDATE/DELETE blocked | Named audit/unauth event test | C+B; A/D inputs | Planned |
+| 18 Resource Quotas | Quotas plus locked host/resource reservations | Rebuild accounting from authoritative allocations + scoped inventory | Cross-account bypass or over-allocation denied | 10 + named parallel admission | B+A; C | Planned |
+| 19 Monitoring and Resource Health | Timestamped ordered observation/probe policy | Rebuild actual freshness, never desired state as health | Foreign metrics/probe data denied | E7 + named stale/ordering | A+B; C; D/E | Planned |
+| 20 Basic Logging | Scoped correlated sanitized logs/retention policy | Rebuild diagnostic views; errors never erase intent | Foreign logs and secrets denied | Named redaction/log outage | A+B; C | Planned |
+| 21 Snapshots and Backup/Restore Foundations | Owned recovery point/artifact/checksum/key/retention | Restore known VM/SQL/object bytes, not just metadata | Foreign backup/restore target denied | E3 + 11 + named S3/control DB restore | A+B; C | Planned |
+| 22 CLI and API | API-owned state/operations; no client resource DB | Client reconnect/read through actual API; finite wait/error/idempotency | User credentials and scoped views/export | 3–4 + named JSON/wait/cancel | E CLI; B/D API; A review; C | Partially Implemented |
 
-**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
 
-Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
+## 3. Future candidate gate register
 
-Never write that all services are complete. Extended services are not SRS requirements or deliverables; a Gates passed extended feature may be shown only as a bonus. Preserve the distinction between status vocabulary and runtime contract states.
+Each future item needs G1 durable owned intent/reservations, G2 safe provider/config/task reconstruction, G3 actual domain access denial, G4 meaningful CI failure test. The table adds domain-specific target; no unassigned test number is invented.
 
-## 2. CORE-5 — SRS gate register
+| Candidate | Rebuild / failure focus | Tenant boundary / test focus | Status |
+| --- | --- | --- | --- |
+| 23 Load Balancers | Owned targets/network/firewall and ingress/ports | Defer until target health is trustworthy; remove dead member and rebuild config; no management route exposure | Deferred |
+| 24 Private DNS | Network identity/IPAM, resolver control, IAM | Defer managed DNS lifecycle; prove scoped resolve/update/delete and deny cross-account disclosure | Deferred |
+| 25 DNS Management | Private/public DNS provider credentials, domain policy, audit | Defer external provider dependency; proof ownership and safe reassignment with no old-tenant serving | Deferred |
+| 26 NAT / Egress Gateway | Routing/firewall, capacity and host network privilege | Defer beyond private-network subset; actual authorized egress and denied path tests, no invented internet reachability | Deferred |
+| 27 VPN Gateway | IAM/secrets, routing, firewall and supported VPN backend | Defer remote-access attack surface; lost/revoked key denied and routes removed | Deferred |
+| 28 Application Gateway / Ingress | Verified hostname, owned app endpoint, firewall, certificate provider | Defer public edge; unregistered host denied, deleted app route removed and control ports private | Deferred |
+| 29 Public IP / Port Exposure | Operator-authorized routable address, NAT/firewall and admission | Defer topology-specific publication; fake IP never routes; verify remote path and collision-free cleanup | Deferred |
+| 30 File Storage | Secure per-account storage/export identity, network policy and supported backend | Defer shared-filesystem attack surface; foreign mount denied and retained data survives restart | Deferred |
+| 31 Advanced Snapshot Policies | Foundation snapshots, backend hooks, capacity/retention | Defer policy complexity until restore proven; enforce ownership and retention under failure | Deferred |
+| 32 Advanced Backup Policies | Verified foundation backup, protected keys/targets and scheduler | Defer beyond bounded foundation; test missed runs, corrupt copy, authorized retention and known-data recovery | Deferred |
+| 33 Managed Valkey | Approved runtime/network/secrets and persistence profile | Separate from platform nonce store; defer demand; validate scoped auth and declared expiry/restart behavior | Deferred |
+| 34 Managed MySQL | DB provider, image/license, secrets/storage/network | Defer engine breadth; real SQL/data/restore and foreign access tests | Deferred |
+| 35 Managed MariaDB | Reviewed engine artifact and DB provider conformance | Defer engine breadth; no automatic MySQL equivalence; actual SQL/persistence/restore | Deferred |
+| 36 MongoDB-compatible Service | User demand, exact engine license/support and provider review | Defer demand/rights/compatibility uncertainty; test chosen client/auth/data/recovery subset | Deferred |
+| 37 Private Container Registry | Harbor or lighter OCI registry evaluation, blob storage, IAM/TLS | Defer registry operation burden; authenticated push/pull by immutable digest and foreign denial | Deferred |
+| 38 Artifact Registry | Owned blob storage/integrity/provider and IAM | Defer package-protocol breadth; exact artifact bytes/digest and retained-version access | Deferred |
+| 39 Advanced Application Deployment | Environment state, immutable app versions and health | Defer beyond basic app image update; failed rollout restores prior declared healthy app without data loss | Deferred |
+| 40 Infrastructure Templates | Environment resource/dependency schemas and ownership | Defer beyond one fixed initial definition; preview matches actual bounded mutations; no arbitrary DAG executor | Deferred |
+| 41 Deployment Automation | Existing CI/CD/tool identity, app API and artifact trust | Defer pipeline scope; do not build full CI/CD; test authorized integration and failure propagation | Deferred |
+| 42 TLS / Certificate Management | Mature certificate backend, DNS/ownership/secrets, trusted network | Defer external issuance complexity; validate actual TLS, expiry/renewal and foreign key denial | Deferred |
+| 43 Advanced Key Management | Core secret references, custody/restore and KMS integration | Defer custom cryptography; revoked/rotated key and recovery policy tested | Deferred |
+| 44 Security Posture Checks | Reliable inventory, versioned rules and IAM/audit | Defer unvalidated compliance claims; findings evidence-based, exceptions explicit | Deferred |
+| 45 Image Vulnerability Scanning | Image digest/provenance, scanner/version/feed and policy | Defer user-facing scanning service; baseline release scanning remains required; findings not proof absence | Deferred |
+| 46 Supply-Chain Security Integrations | Core trusted artifact verification, approved signing/attestation backends | Defer integrations, not baseline release trust; reject tampered artifact and preserve provenance | Deferred |
+| 47 Kubernetes Node Pools | Tested cluster lifecycle, capacity and node ownership | Defer topology expansion until node ownership, measured capacity and lifecycle conformance are established; historical academic node limits are not product limits | Deferred |
+| 48 Autoscaling Groups | Reliable compute/health/admission, cooldown and ownership model | Defer automated amplification; min/max/failure/outage tests without quota bypass | Deferred |
+| 49 Multi-host Scheduling | Single-host admission plus network/storage locality, assignments and partition-safe task authority | Defer distributed failure domains; no implicit HA; reject stale hosts and prevent split ownership | Deferred |
+| 50 Advanced Load Balancing | Basic LB, measured health/capacity and gateway policy | Defer breadth; failover proven under partial failure with no cross-account target binding | Deferred |
+| 51 GPU Instances | VM device/backend support, hardware profile and driver/license security | Defer scarce privileged hardware; no unsafe broad passthrough; isolation/reset/capacity tests | Deferred |
+| 52 Cross-host Resource Migration | Multi-host placement, backend migration, storage/network consistency and claims | Defer data-loss risk; interrupted move one authority, verified data and rollback/resume | Deferred |
+| 53 Disaster Recovery | Verified backups/keys/off-host targets, recovery mapping, consistency and operational ownership | Defer orchestrated multi-host/site guarantee; foundation restore remains core; rehearse stated recovery objectives | Deferred |
 
-Every table/column below is proposed reference design, B finalizes. No live schema is asserted.
 
-| Service            | G1 DB intent                                   | G2 rebuild from DB                                                        | G3 tenant test                 | G4 failure test     | Owner                           | Status  |
-| ------------------ | ---------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------ | ------------------- | ------------------------------- | ------- |
-| Droplets           | resources row and generation                   | Inspect proposed labels before create                                     | B gets 404                     | 1; related 2–6      | A/B; C tests                    | Planned |
-| Kubernetes         | Resource/cluster row; reserved API port        | Find half-created deterministic cluster; finish or recreate same identity | B kubeconfig request gets 404  | 7, 9, 10; related 8 | A/B/D; C tests                  | Planned |
-| Managed PostgreSQL | db_instances, owned volume and resource intent | Reattach volume; restore verified backup                                  | API 404 plus forbidden DB path | 11                  | A/B; C tests                    | Planned |
-| Object storage     | Bucket and scoped credential rows              | Java recreates buckets/policy; MinIO process uses container driver        | API 404 plus denied S3 key     | 12, 13              | B/C; A runtime                  | Planned |
-| VPC/IPAM           | vpcs generation/intent; IP allocation rows     | Rebuild bridge/leases; network execution helper                           | A cannot see B network: 404    | 14                  | C allocator; B SQL; A execution | Planned |
+Metadata, React UI and Ansible inventory remain separate future/interface integration discussions; they do not demote core monitoring or snapshot foundations. E1–E8 labels are preserved in [acceptance](CoveStack-AntiWrapper-Acceptance.md), but scope follows the current catalogue rather than the letter E.
 
-VPC has no kind in contract 1.1.0. It is a server-owned design, not new agent work. Its state vocabulary and compute attachment message remain **TBD with B**; decision owners B+A. Bucket reconciliation stays server-side under `storage.bucket`.
+## 4. Interface / automation gates
 
-### 2.1 HLD/LLD evidence prerequisites
+CLI/provider/UI/inventory do not each own a second G1 database. Prove API-only ownership, idempotent lifecycle, stable JSON, secret-safe output, finite wait/cancel/errors, no direct backend/DB and real user permission. Installer proves artifact/profile/secret safety, clean install, idempotent repeat and recoverable upgrade. A forms screen or terraform apply screenshot is not a service gate.
 
-All five statuses remain Planned. [Acceptance variants](CoveStack-AntiWrapper-Acceptance.md#32-hldlld-regression-variants--existing-test-numbers) extend existing tests: 1/5 periodic drift/health, 2/7 runtime takeover, 6 no new outage mutations, 9/10 retained deletion quota/ports, 12/13 shared MinIO persistence, 14 standalone network execution and attachment ordering, 15 scoped bucket child and shared-process protection.
+## 5. Review and honest relabelling
 
-Claim epoch fences DB writes; it does not fence Docker/k3d directly. A service needs reviewed claim/renew/report schemas, host exclusion/uncertain-operation handling, and actual failure results. A network API row or a bucket policy row alone cannot pass runtime recovery. Rebuilding bucket metadata is not restoring object data. Gate workbook slogans/old historical comparisons do not override these precise assertions or establish implementation.
+Before any readiness/release/profile review, record exact revision, environment/versions, test assertions/results, negative cases, reviewer and limitations. Missing runtime evidence keeps the accurate current category and a blocker, not Supported. Regression reopens the gate and prevents unsupported claims. Historical build/unit evidence remains dated; no fixed academic freeze date applies. Never write that all services are complete.
 
-## 3. Extended track — not in SRS
+## 6. Evidence links
 
-| Service                    | G1 DB intent                                                                                 | G2 rebuild from DB                                                    | G3 tenant test        | G4/CI test                         | Owner               | Status         |
-| -------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------- | ---------------------------------- | ------------------- | -------------- |
-| Auto scaling groups        | asg_groups, asg_instances; state/gen fields TBD with B where missing                         | Desired membership, reservations and scaling policy                   | Other-account API 404 | E1                                 | B; A after CORE-5   | Extended track |
-| Load balancing             | load_balancers, lb_backends, health_check_configs; state/gen fields TBD with B where missing | Backend membership and validated proxy configuration                  | Other-account API 404 | E2                                 | D/B; A after CORE-5 | Extended track |
-| Application publication    | publications; state/gen fields TBD with B where missing                                      | Owned hostname-to-upstream routes                                     | Other-account API 404 | E5                                 | B/C; A after CORE-5 | Extended track |
-| Metadata                   | metadata_identities; state/gen fields TBD with B where missing                               | Self-identity bindings and permitted fields                           | Other-account API 404 | E4                                 | C/B; A after CORE-5 | Extended track |
-| Monitoring                 | metric_samples, alert_rules, alerts; state/gen fields TBD with B where missing               | Observed freshness and alert configuration; measurements are evidence | Other-account API 404 | E7                                 | C/B; A after CORE-5 | Extended track |
-| Snapshots                  | snapshots; state/gen fields TBD with B where missing                                         | Owned immutable image references and retention                        | Other-account API 404 | E3                                 | D/B; A after CORE-5 | Extended track |
-| Domains                    | domains, domain_verifications; state/gen fields TBD with B where missing                     | Verified claims and current account bindings                          | Other-account API 404 | E6                                 | C/B                 | Extended track |
-| React UI                   | No new tables; state/gen fields TBD with B where missing                                     | Account-scoped list responses through API                             | Other-account API 404 | Interface gate; relevant tests 3/8 | E                   | Extended track |
-| Ansible inventory (Part 2) | No new tables; state/gen fields TBD with B where missing                                     | Owned inventory JSON through CLI/API                                  | Other-account API 404 | E8                                 | E; A review         | Extended track |
+[Acceptance assertions](CoveStack-AntiWrapper-Acceptance.md), [test process](CoveStack-Testing-and-Acceptance.md), [implementation status](CoveStack-Implementation-Status.md), [schema](CoveStack-Database-Schema.md), [readiness profiles](../docs/platform/readiness.md).
 
-React and inventory are interfaces, not persisted services: their underlying CORE-5 resources must meet G1–G4; the interface itself has the access/lifecycle checks below. Monitoring samples are measured evidence, never authoritative desired state. Publication/metadata/domain enums are TBD with B. See [roadmap](CoveStack-Extended-Roadmap.md).
+## Historical traceability
 
-## 4. Interface and cross-cutting gates
-
-| Item                         | Access boundary                                        | Evidence                                                             |
-| ---------------------------- | ------------------------------------------------------ | -------------------------------------------------------------------- |
-| CLI                          | Authenticated API only; no Docker/k3d/DB               | Mutation idempotency, lifecycle/--wait, stable JSON, dependency scan |
-| Terraform (optional)         | API only; Droplet/Kubernetes resources                 | Create/read/update/delete/import; no direct runtime access           |
-| Ansible Part 1               | Operator installer; no platform DB as client inventory | Vault/no_log, checksum, lint; second run changed=0                   |
-| React (extended)             | API only; list page first                              | Same account-scoped state and JSON; no secret/config authority       |
-| Ansible inventory (extended) | CLI JSON/authenticated API only                        | E8; no Docker/k3d import/call                                        |
-| One stack demo               | Account-owned records; fixed sequence, no DAG engine   | Test 15; cross-cutting integration, not sixth service                |
-
-## 5. Freeze relabel procedure
-
-Before 11 January, C attaches CI results to each gate; B/A/D/E review their boundaries. Promote only when G1–G4 are evidenced. Otherwise retain Planned/In progress and state the missing gate. No new CORE-5 features after 10 January; no release claim is based on a form, fixture or reference DDL. Do not cut tests 1–15 to meet the deadline.
-
-## 6. Links
-
-[Acceptance](CoveStack-AntiWrapper-Acceptance.md), [schema](CoveStack-Database-Schema.md), [SRS scope](CoveStack-SRS-Scope.md), [Go handover](CoveStack-Go-Handover.md), [main design](DocsV5-DO_Team.md).
+The [previous body of this file](../docs/archive/V5-before-full-product-alignment-2026-11-04.md#v5-covestack-service-gates) is preserved unchanged as historical reference, including earlier requirements/DDL/acceptance text. It is not current VM/RustFS setup guidance. Use this active body, the linked canonical domain specifications and [actual implementation evidence](CoveStack-Implementation-Status.md) for new work. No source, migrations, contracts, tests, configuration or runtime state is changed by this document.

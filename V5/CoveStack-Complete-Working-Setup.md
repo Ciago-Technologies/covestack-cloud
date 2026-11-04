@@ -1,274 +1,118 @@
-# Architecture transition notice — 4 November 2026
-
-> **Superseded design reference.** Active guidance: [platform installation-and-operations](../docs/platform/installation-and-operations.md). No supported VM/product installer exists. 8 GB is a lab constraint, not production sizing; preflight/capacity evidence is required. Existing sandbox runtime restrictions remain.
->
-> The original V5 body is retained below without changing its requirements, DDL, test numbers or historical evidence. It must not be read as the current VM architecture or supported setup. [Academic transition](../docs/platform/academic-transition.md) records unresolved SRS/deadline decisions; [contract 1.1.0](../contracts/README.md) remains unchanged. No VM backend or production profile is implemented by this notice.
-
-Current product scope: [canonical architecture and service catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md); product scope is independent of historical academic CORE-5.
-
-<!-- Historical body preserved below; see supersession notice above. -->
-
 # CoveStack V5 — Setup, Deployment and Verification
 
-| Document control        | Value                                                                   |
-| ----------------------- | ----------------------------------------------------------------------- |
-| Product / documentation | **CoveStack / V5**                                                      |
-| Updated                 | **27 October 2026**                                                     |
-| Submission deadline     | **Monday, 25 January 2027**                                             |
-| Compatibility names     | Server: `kan-server`; agent: `kan-agent`                                |
-| Status                  | Target design and implementation guidance; not a completion certificate |
+| Document control | Value |
+| --- | --- |
+| Updated | 4 November 2026 |
+| Authority | Detailed current product specification; aligned to the [canonical catalogue](../docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) and [product SRS](../docs/product/CoveStack-Product-SRS.md) |
+| Evidence | Target design, not a completion certificate; source and actual test results determine implementation status |
+| Compatibility | V5 is a documentation label; current wire contract remains 1.1.0; future fields/kinds/versions require coordinated review |
 
-## 1. Scope of this setup
+## 1. Scope and current evidence
 
-**This guide describes target deployment and required evidence.** These instructions separate usable baseline checks from the target installation. Do not run a fictional CLI/main entry point and treat failure as an environment problem.
+The retained filename is not a claim the full product works. Existing source has Go config/signing/client/no-execution polling, Java auth/replay/contract libraries and partial extended migrations. No runnable full server/foundational schema, VM/container/k3d driver, RustFS integration, public CLI or supported deployment profile is established. Read [status](CoveStack-Implementation-Status.md) before attempting installation.
 
-| Stage               | What can be verified                                                           |
-| ------------------- | ------------------------------------------------------------------------------ |
-| Current baseline    | Go tests/vet, signing vectors, lifecycle generation, Java library tests        |
-| Infrastructure      | Compose configuration and private Postgres/Valkey/Mailpit readiness            |
-| Backend gate        | Application entry point, migrations, concrete auth and API routing             |
-| Agent gate          | Configuration, signed client, polling and real resource driver                 |
-| CORE-5 target       | Droplets, required Kubernetes, Managed PostgreSQL, Object storage and VPC/IPAM |
-| Extended deployment | Separate [roadmap](CoveStack-Extended-Roadmap.md); no CORE-5 UI work           |
+## 2. Environment inventory and prerequisites
 
-## 2. Environment inventory
+| Area | Existing input / target | Evidence required |
+| --- | --- | --- |
+| Source tools | Current go.mod/CI toolchain pin 1.27.2; pom/CI Java 25, Maven; Python contract tools | Check exact checkout/version; historical local tool output is not a pin change |
+| Dependency services | Compose defines platform PostgreSQL, authenticated Valkey and Mailpit | Not Java server, agent assignment, tenant PostgreSQL, RustFS or VM execution |
+| VM host | Approved Linux/kernel/Incus/QEMU/KVM/storage/network/image | Hardware/nested virtualization, privileges, guest boot, measurements and hardening |
+| App Container/Kubernetes | Reviewed Docker/OCI and tested k3d+k3s pair | Actual runtime/ports/policy/capacity; no package/tag chosen by a diagram |
+| Object storage | RustFS preferred Planned provider | Approved immutable artifact, operator volumes/private administration, Java API and real byte recovery |
+| Secrets | Protected key/DB/replay/admin delivery and rotation | No committed default keys, real .env/secrets/kubeconfigs or secret command args |
 
-Record the exact tested versions before release. Existing pins are repository observations, not blanket recommendations for future installs.
+No install, dependency service start, application or infrastructure test was run for this documentation task. Current sandbox restrictions remain; get a separately authorized capable environment before provisioning.
 
-| Tool           | Current repository expectation                      | Verify                                                     |
-| -------------- | --------------------------------------------------- | ---------------------------------------------------------- |
-| Go             | Language directive 1.22; preferred toolchain 1.27.2 | Actual executable and CI selection                         |
-| Java           | 25 in `kan-server/pom.xml`                          | Both runtime and compiler                                  |
-| Spring Boot    | Parent 3.5.16 in inspected POM                      | Dependency availability and real build                     |
-| PostgreSQL     | Compose requests a reviewed 17 image                | Exact image/digest and mount layout                        |
-| Valkey         | Compose requests a reviewed 8 image                 | Authentication and replay persistence                      |
-| Docker/Compose | Needed for current execution/infra                  | Engine, compose plugin and firewall backend                |
-| k3d/k3s        | Required CORE-5 integration                         | One tested pair; pin after host spike; max 2 clusters/host |
+## 3. Clone and branch
 
-Use the [tool matrix](tools.md). Review support/security updates before choosing release versions; do not change pins only because a course uses another release.
+Use [Starter.md](../Starter.md) for exact clone/baseline/feature-branch/PR procedure. Confirm Anuj's reviewed baseline before branching; never assume all prerequisite PRs are merged. Preserve local/user changes; no reset/clean/force push or secret staging. The canonical AI handoff is [checkpoint.md](../checkpoint.md), not a duplicate personal status file.
 
-## 3. Clone and work on a feature branch
+## 4. Existing baseline checks
+
+From kan-agent/ on an authorized dev environment:
 
 ```bash
-git clone https://github.com/Ciago-Technologies/covestack-cloud.git
-cd covestack-cloud
-git status -sb
-git remote -v
+go test -race ./...
+go vet ./...
 ```
 
-Use the agreed reviewed baseline branch. If baseline PRs are merged:
+From kan-server/:
 
 ```bash
-git switch main
-git pull --ff-only origin main
-git switch -c feat/your-task
+mvn --batch-mode --no-transfer-progress verify
 ```
 
-Do not share deployment secrets. Read V5 roles and status before accepting implementation tasks.
-
-## 4. Baseline checks
-
-From the repository root:
+From repository root for contract work:
 
 ```bash
 python3 contracts/sign_example.py
 python3 contracts/check_lifecycle.py
-(cd kan-agent && go test -race ./...)
-(cd kan-agent && go vet ./...)
-(cd kan-server && mvn --batch-mode --no-transfer-progress verify)
+python3 contracts/generate_lifecycle.py --check
 ```
 
-| Result                           | Interpretation                                              |
-| -------------------------------- | ----------------------------------------------------------- |
-| Vector/schema pass               | Contract evidence only                                      |
-| Go unit/race pass                | Exercised implementation paths, not all production behavior |
-| Maven verify pass                | Library/build result; application boot needs an entry point |
-| Network/cache/dependency failure | Incomplete verification, not success                        |
-| Local toolchain fallback         | Label actual tested version; not pinned-version evidence    |
+Report actual result/version/dependency blocker. No Maven wrapper or runnable Spring application main is assumed. Build success is not startup/migration/VM proof. CLI packaging/dependency checks apply only once its module exists: linux/amd64, darwin/arm64, windows/amd64; dependency graph must not include runtime drivers or direct DB. Do not run a fictional cmd/covestack module command today.
 
-The inspected Boot plugin has `skip=true` while the server lacks the application main. B must enable packaging after that entry point and configuration exist, then verify the packaged app actually boots.
+## 5. Private infrastructure and custody
 
-### 4.1 Planned CLI dependency and packaging gates
+Read existing Compose/example config and approved secret delivery outside version control. Exact image tag/digest must be tested and recorded; never substitute latest to imply support. Platform DB/Valkey bindings remain loopback/private. No `down -v` or volume deletion to fix configuration; preserve data and diagnose owner/state. Mailpit is development capture only, not production mail.
 
-Run after the reviewed Go module layout and cmd/covestack exist, from the owning module root. These are verification targets, not commands for a fictional current main:
+RustFS is not in current Compose. A future operator deployment needs a persistent data volume with reviewed permissions, private management/TLS/console access and protected administrator identity. Java tenant bucket/key/policy reconcile is separate from the process lifecycle; tenant keys never receive root/admin access. [Provider gaps and tests](../docs/platform/provider-evaluation.md#rustfs-compatibility-and-acceptance).
 
-```bash
-go list -deps ./cmd/covestack | grep -i -e docker -e k3d
-GOOS=linux GOARCH=amd64 go build -o /tmp/covestack-linux-amd64 ./cmd/covestack
-GOOS=darwin GOARCH=arm64 go build -o /tmp/covestack-darwin-arm64 ./cmd/covestack
-GOOS=windows GOARCH=amd64 go build -o /tmp/covestack-windows-amd64.exe ./cmd/covestack
-```
+## 6. Backend host evaluation gates
 
-Dependency grep must print nothing; CI must separately check go list succeeded, since grep's no-match exit alone cannot prove a build. CLI imports no Docker/k3d, calls only authenticated API, and uses no local DB. Cross-builds require actual CLI runs on two OSes; they do not prove runtime portability.
+| Spike | Check before publishing install commands |
+| --- | --- |
+| Incus VM | Supported host/architecture/kernel, KVM access/nesting, image/firmware provenance, CPU/RAM/disk overhead, disk/NIC/firewall ownership, guest readiness, restart and uncertain async task recovery |
+| App Container | Trusted shared-kernel policy, safe capabilities/mounts/devices, network/volume persistence and health |
+| Kubernetes | Exact tested Docker+k3d+k3s pair, CLI flags, cgroup/security/firewall behavior, ports, real workload and capacity under combined load |
+| RustFS | Exact admin/data API compatibility, scoped policy/key lifecycle, volumes/restart, actual object bytes and independent restoration |
 
-## 5. Private infrastructure configuration
+No RAM/density guarantee or version pin is inferred. Fail if host lacks approved capability; never silently fall back from VM to container or an unqualified emulator. Root socket authority remains privileged even with service hardening.
 
-Create `deploy/.env` from the tracked template **only if absent**. Choose reviewed exact image references rather than leaving blanks or using `latest`. Preserve an existing configured file.
+## 7. Current agent integration
 
-| Local file                         | Purpose                                             |
-| ---------------------------------- | --------------------------------------------------- |
-| `deploy/.env`                      | Postgres, Valkey and Mailpit image references       |
-| `deploy/secrets/postgres_password` | Database password secret                            |
-| `deploy/secrets/valkey.conf`       | Authenticated Valkey configuration from template    |
-| `deploy/secrets/agent.env`         | Agent server origin and service credential settings |
+Existing main loads environment config, creates signed client and runs cancellable single-account read-only polling. Current names: KAN_SERVER_URL, KAN_ACCESS_KEY, KAN_SECRET_KEY, optional KAN_RULES_PATH. Loader does not source .env; default rules path assumes kan-agent working directory. Remote origin requires HTTPS; no credentials/path/query in origin.
 
-Generate secrets using a cryptographic source and store locally; do not paste them into repository docs. Restrict the secret directory to the owner and files to required readers. The agent signing secret and infrastructure passwords are different credentials.
+B+C must provide the real server endpoint, protected test service key and trusted account/host assignment; a contract's localhost example is not a verified listener. Current GET /internal/v1/agent/work returning [] is no work. Returned work deliberately stops with no claim/ack/execute/delete. General transport-outage retry policy is not proven by timeout-only tests. [Team checkpoint](../TEAM-FIRST-CHECKPOINT.md).
 
-```bash
-docker compose --env-file deploy/.env -f deploy/docker-compose.yml config --quiet
-docker compose --env-file deploy/.env -f deploy/docker-compose.yml up -d
-docker compose --env-file deploy/.env -f deploy/docker-compose.yml ps
-```
+## 8. Future supported installation sequence — Planned
 
-| Existing host listener | Intended access                         |
-| ---------------------- | --------------------------------------- |
-| `127.0.0.1:5432`       | Control-plane PostgreSQL                |
-| `127.0.0.1:6390`       | Valkey host access; container port 6379 |
-| `127.0.0.1:1025`       | Mailpit SMTP capture                    |
-| `127.0.0.1:8025`       | Private Mailpit UI                      |
+| Step | Operator/server/agent requirement | Acceptance |
+| --- | --- | --- |
+| Preflight | Detect approved OS/backend/virtualization/disk/routes/capacity | Explicit refusal of unsupported host; no silent fallback |
+| Bootstrap | Protected operator identity, key custody, DB roles/replay store and initial assignments | No anonymous/default secret bootstrap |
+| Schema/server | Real app entry point/config and reviewed forward-only migration foundation | Empty DB/upgrade/startup and real auth, not fictional main |
+| Backends | Agent-only privileged sockets, owned storage/network policy and measured reserves | Guest/tenant cannot reach host/admin routes |
+| RustFS | Operator service/volumes/private admin and reviewed Java adapter | Known bytes, scoped denial, restart/restore |
+| Agent | Trusted signed account contexts and approved future capabilities/claims | Actual auth/no-work first, then bounded runtime failure evidence |
+| Data/environment | Owned ready child services with secret/retention policy | Actual SQL/S3/app workflow and safe retry/cleanup |
+| Operator handover | Verified artifacts, runbooks/health/audit/key recovery | Second operator repeatable clean install and recovery/upgrade proof |
 
-Compose starts these dependencies, not Java or the full Go agent. Existing PostgreSQL volumes retain initialized credentials. Rotate intentionally; never delete volumes merely to make a new environment variable take effect.
+### 8.1 Ansible installer and service hardening
 
-## 6. Backend integration gate
+Planned operator roles cover runtime/dependencies/server/agent; configure reviewed secrets via Vault/no_log or approved custody, validate signatures/checksums, lint, and prove second-run idempotence. No playbook/systemd file is created here. NoNewPrivileges/ProtectSystem suggestions need actual compatibility testing with required runtime/socket/volume access; they do not remove agent privilege. Future inventory reads authenticated API/CLI JSON, never backend/DB.
 
-| Step                                        | Owner/evidence                                |
-| ------------------------------------------- | --------------------------------------------- |
-| Add application main and real configuration | B: package and boot                           |
-| Apply fresh migrations                      | B: clean-database evidence                    |
-| Implement active credential/token lookup    | C: real store and revocation                  |
-| Provision account-bound service key         | C/B: restricted issuance and custody review   |
-| Register scoped APIs                        | B/C/D: Java HTTP tests; E consumes API        |
-| Configure replay store                      | C/A: authenticated store and outage rejection |
+## 9. Clean-machine and demo evidence
 
-Start the server using the entry point/artifact B has actually added. Until then, no production startup command is asserted. Keep internal agent traffic on a private host route and preserve signed authority/path/query bytes.
-
-## 7. Agent configuration and smoke
-
-The local config loader reads process environment, not `.env` automatically. `KAN_RULES_PATH` defaults to `../contracts/sigv1-rules.json` when executed from `kan-agent`.
-
-```bash
-set -a
-source deploy/secrets/agent.env
-set +a
-(cd kan-agent && go run ./cmd/auth-smoke)
-unset KAN_ACCESS_KEY KAN_SECRET_KEY KAN_SERVER_URL KAN_RULES_PATH
-```
-
-Source only your trusted file. Real server-side credentials are required. Expected smoke statuses are valid 200, replay 401, invalid MAC 401, preserved valid request 200 and nonce tampering 401. A mocked handler test is not this deployment test.
-
-The planned production agent must load settings once, reuse a finite-timeout/no-redirect client, handle shutdown, heartbeat/poll, inspect ownership and reconcile installed supported kinds. Publish an actual main command only with reviewed build/runtime evidence. Agreed target: one agent process per physical host; separate service credential and authenticated polling context per assigned account. B owns server assignment validation; C credential provisioning/rotation/revocation; A isolated clients and shared bounded execution. Provisioning/storage details still need B+C+A review; no new wire fields. Do not add caller-selected account wire fields.
-
-### 7.1 Single-account starting configuration — Planned
-
-Use the [first milestone decision](CoveStack-Anuj-Next-Steps.md#23-first-milestone-decision--single-account-communication-planned) as the communication checklist. Same-host development origin is http://localhost:4700 from the current contract, not evidence that a server is running; localhost means the agent's own host/network namespace. Remote server access requires verified HTTPS. Do not bypass the existing origin validation for a LAN address.
-
-C provisions one dedicated service credential; B validates its stored account/agent assignment; A loads the existing KAN_* environment variables. Issue by protected channel, restrict local secret-file readers, never commit or log secrets, and use separate verifier key custody. The loader does not auto-discover secret files. Credential issuance/rotation is server administration, not agent self-enrollment or a shared development default.
-
-The initial client uses a 10-second request timeout, 5-second normal polling base with bounded jitter and temporary-failure backoff from 1 second to a 30-second cap. These are selected starting defaults requiring test evidence, not new environment variables or wire fields. Valid 429 Retry-After handling stays cancellable; 401/403 stops the account loop. Each retry is freshly signed. No-work is 200 []; malformed responses are errors. Start with empty capabilities and no execution; agree truthful required heartbeat version values before sending heartbeat. No production-agent command is asserted until A adds and verifies the entry point.
-
-B+C+A record actual server readiness, issuance/assignment and live smoke results before calling this milestone verified. Remaining claim/renew/report schema work blocks runtime execution, not reading existing signing code or developing isolated transport tests.
-
-## 8. Target environment installation sequence
-
-| Order    | Configuration                                                       | Verify before next step                                     |
-| -------- | ------------------------------------------------------------------- | ----------------------------------------------------------- |
-| 1        | Single AlmaLinux lab VM; private control-plane PostgreSQL 17/Valkey | Resource budget and protected listeners                     |
-| 2        | Java auth/core, signed Go agent, thin CLI                           | Real auth; tests 1–6 through API                            |
-| 3        | Server-owned VPC/IPAM and container-driver network helper           | Test 14; network attachment schema decision B+A             |
-| Before 4 | Early one-day K8s host spike; repeat integration check in November                                  | cgroup v2, SELinux, firewalld, RAM; one tested k3d+k3s pair |
-| 4        | Required k3d driver, reserved API port, scoped kubeconfig           | Tests 7–10; hard cap 2 clusters                             |
-| 5        | PostgreSQL and MinIO on generic container driver                    | Tests 11–13; server-side bucket/credential rebuild          |
-| 6        | One fixed-sequence Postgres + MinIO + app Droplet stack             | Test 15; partial failure/retry; no DAG engine               |
-| 7        | Ansible Part 1 installer and optional thin Terraform                | Repeat install; API-only provider for Droplet/K8s           |
-
-### 8.1 K8s host spike prerequisite
-
-One day at first host preparation, before committing driver capacity and before installation step 4; revalidate in November: test AlmaLinux cgroup v2, SELinux and firewalld; record the combined Java/DB/cache/MinIO/application RAM/CPU/disk plus one and two clusters and cleanup results. The **0.5–1 GB per cluster is an unverified estimate, confirm in K8s host spike**. Hard cap: 2 clusters/host; each 1 server + max 2 agents. Record one tested/pinned k3d+k3s pair, API-port range and every CLI flag against that version. Fixtures are not release pins.
-
-The k3d driver shells out to the CLI, not the library. After a crash, Ensure finds a half-created cluster using the proposed reserved-label contract, then finishes it or deletes/recreates under the same deterministic name. Third cluster request needs an explicit documented quota error; its wire value remains TBD with B. Kubeconfig export is separately authorized and absent from list/get/observations.
-
-### 8.1.1 Startup, claim protocol and shared storage prerequisites
-
-Do not launch multiple agent processes for different accounts. A holds an OS host exclusion lock, uses per-resource serialization and recovers outstanding children/backend requests before mutations. Losing a DB lease or timing out does not prove a Docker/k3d request stopped; uncertain outcomes block conflicting work until proven settled. No local lock file is desired-state authority. The reviewed claim/renew/report protocol must exist before mutation; current 1.1.0 does not encode the full fence exchange.
-
-Default-VPC intent and the separate signed network-control exchange must converge before Droplet/DB attachment. Provision one operator-owned shared MinIO process/volume from durable platform-owned intent; install protected host secret references out of band. Java needs reviewed private administration connectivity; tenant apps get explicit scoped S3 access, not root keys or console access. The stack creates a tenant bucket in shared MinIO and never owns that process. No bootstrap command/path is asserted until actually added and tested.
-
-Periodic inspection is DB scheduled after convergence and uses fresh claims; health completion does not advance acked_generation. Test drift removal, expired renewal, stale inspection and host takeover, not only initial create/ack. Preserve reservations while cluster/network cleanup is pending.
-
-### 8.2 Ansible install playbook — Part 1
-
-| Target layout/control                                                  | Acceptance                                                                        |
-| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| ansible/site.yml; roles/docker, roles/infra, roles/server, roles/agent | Reviewed host install, not tenant inventory                                       |
-| systemd NoNewPrivileges and ProtectSystem=strict                       | Explicit writable paths; test daemon behavior without weakening settings silently |
-| ansible-vault and no_log for sensitive tasks                           | Custody/access B+C review; no plaintext secret logs                               |
-| Checksum-verified binaries                                             | Record source/version/checksum and fail on mismatch                               |
-| ansible-lint                                                           | Pass on actual reviewed playbook                                                  |
-| Repeatability                                                          | Second run changed=0; record both results                                         |
-
-No playbook or systemd file is created in this docs batch. Inventory Part 2 and its SSH/Python/API-key-injection prerequisites are relocated to the [extended roadmap](CoveStack-Extended-Roadmap.md#11-ansible-inventory-part-2). The operator installer is separate from tenant workload configuration.
-
-### 8.3 Planned folder layout — no code moves
-
-```text
-covestack-cloud/
-  contracts/
-  pkg/kanclient/                  Go signer + HTTP API client (planned)
-  cmd/covestack/                  Go cobra CLI (E; planned)
-  kan-agent/                      Go (A): container, k3d, reconcile
-  kan-server/                     Java (B, C, D)
-  terraform-provider-covestack/   Go (E; after CLI)
-  ansible/                        Part 1 site.yml/roles; inventory later
-  deploy/
-  docs/
-```
-
-Signer relocation and module layout are Planned workflow decisions, not actions in this batch. Network execution is a helper within the generic container driver; only two workload drivers exist in the target architecture. PostgreSQL/MinIO processes use image/env/volume/labels/health configuration on that driver; Java owns bucket/credential reconciliation.
-
-Do not attach user databases to the control-plane network. Historical proxy-topology warnings remain in the extended roadmap: a proxy container's localhost is not the host. Tool choices are TBD decision records.
-
-## 9. Clean-machine release acceptance
-
-A teammate performs a clean-VM installation without ad hoc auth bypasses and records source revision, actual tools, tests and limits. Preserve data on routine shutdown; **down -v and blanket pruning are not repair instructions**. Existing PostgreSQL volumes retain initialized credentials; an env change is not a credential rotation.
-
-### 9.1 Five-minute CORE-5 evidence script — CLI only
-
-All commands below are target behavior, not asserted current executables. Live highlights: **tests 1, 3, 4 and get view**. Show the remaining evidence as CI output or recorded video.
-
-| Mode/test                  | Exact evidence                                                                                                                                |
-| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Live 4                     | create --wait; repeat the same idempotency key → same ID; parallel same-key test in CI                                                        |
-| Live 1                     | kill -9 kan-agent after container create before ack; restart; docker ps --filter label=kan.resource shows exactly one owned instance          |
-| Live 3                     | Bob get Alice public ID → 404; no existence leak                                                                                              |
-| Live get                   | Desired versus converged generation, lease and observed state                                                                                 |
-| CI/video 2, 5, 6           | Expired-owner ack rejected by epoch; stale generation ignored; server down makes agent create/delete nothing                                  |
-| CI/video dependency outage | Stop control-plane PostgreSQL → covestack droplet list fails clearly; stop agent → create remains pending and --wait times out clearly        |
-| CI/video 7–10              | Cluster mid-create crash → one cluster; Bob kubeconfig → 404; list/get omit kubeconfig; delete cleans labeled objects; third cluster rejected |
-| CI/video 11                | PostgreSQL backup, delete known rows, restore → rows and checksum return; B cannot reach A DB                                                 |
-| CI/video 12–13             | A key denied on B bucket; restart MinIO, Java server recreates buckets/credentials from DB                                                    |
-| CI/video 14                | Ten parallel IP allocations in one VPC → no duplicate; ten accounts create VPCs → no overlapping CIDR; tenant denial                          |
-| CI/video 15                | One stack command; partial failure recorded; retry resumes without duplicates                                                                 |
-| Installer/package          | Second Ansible run changed=0; cross-build three targets; CLI demonstrated on two actual OSes                                                  |
-
-kan.* inspection labels are a proposed reserved-label contract, not established compatibility; approve them before using these assertions. CLI never calls Docker/k3d; the docker ps inspection is operator test evidence. Record a backup video; do not rely on the phone hotspot alone.
-
-**Service Gate Rule:** A service is called **Supported** only after all four gates pass and its status is **Gates passed**: **G1** a DB row holds desired state and generation; **G2** reconciliation survives a crash without duplicates and rebuilds state/configuration from DB rows; **G3** another account receives **404**; **G4** one service failure test runs in CI. The DB is the source of truth, never a container, cluster, bucket, proxy or configuration file.
-
-Status vocabulary: **Planned | In progress | Gates passed | Extended track**. CORE-5 defaults to **Planned**; the extended track defaults to **Extended track**. Do not promote a status from documentation or a mock result.
-
-[Service gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Extended roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).
+Record exact artifacts/profile, sanitized setup/commands, fresh test results and limitations. Immediate live demo can prove real signed no-work/auth/cancel when server exists. Later show real VM interrupted create, tenant denial/idempotency/generation/freshness and SQL/object/network/restore evidence from CI/video if needed. Test actual CLI runs on supported OS targets rather than infer from cross-compile. Have backup video and local evidence; do not depend on phone hotspot/router control.
 
 ## 10. Known constraints
 
-| Constraint          | Value                                 | Effect on scope                                                  | Status  |
-| ------------------- | ------------------------------------- | ---------------------------------------------------------------- | ------- |
-| Host RAM            | 8 GB, single AlmaLinux VM             | Host spike measures actual workload budget                       | Planned |
-| Kubernetes host cap | Max 2 clusters per host               | Transaction lock and derived count; explicit rejection for third | Planned |
-| Nodes per cluster   | 1 server + max 2 agents               | One bounded tested shape/version                                 | Planned |
-| Host/network model  | Single host; no multi-host networking | Multi-host is Optional future work                               | Planned |
-| Droplets            | Containers, not VMs                   | No VM/kernel isolation claim                                     | Planned |
-| Institute network   | Phone hotspot; no LAN/WiFi            | No router-level DNS/DHCP; backup demo video required             | Planned |
-| Go capacity         | One Go developer plus one Go learner  | A agent ownership; E thin CLI; review bottleneck controlled      | Planned |
-| Priority            | Extended track never delays CORE-5    | Stop/cut extended work first                                     | Planned |
+| Constraint | Current fact / target | Scope effect | Status |
+| --- | --- | --- | --- |
+| Hardware | Old 8 GB AlmaLinux VM is historical dev/lab context | No production minimum or VM/cluster density; benchmark profiles | Qualification Planned |
+| VM capability | Host/KVM/Incus execution not verified here | Dedicated authorized spike before VM commands/support | Blocked on environment/evidence |
+| Cluster/node limits | No current supported density/profile | Reject by measured physical/account reservation; old two-cluster/node caps not product ceilings | Planned |
+| Failure domain | Single-host target is not HA; multi-host future | Host failure interrupts services; independent backup and safe recovery required | Planned |
+| Network access | Historical phone-hotspot/institute-router restrictions | No assumed router DNS/DHCP or inbound internet route; backup recording | Environment-specific |
+| Agent state | Signed polling/no-execution exists; server/credential/assignment foundation incomplete | Real integration before claims/drivers; no fake success | Source-confirmed / integration pending |
+| Team capacity | A runtime Go plus E thin CLI learner; B/C/D Java/security/API | Protect current reviews/tests; no implied full product deadline | Retained ownership |
+| Object backend | RustFS preferred Planned integration, exact artifact/admin/backup unverified | No supported S3/profile claim; alternatives via adapter | Planned |
+| License | Root Apache-2.0 adopted; third-party distribution/provenance still reviewed | License is not runtime support or blanket artifact clearance | Adopted / review pending |
 
-[Service gates](CoveStack-Service-Gates.md) · [Acceptance](CoveStack-AntiWrapper-Acceptance.md) · [Schema](CoveStack-Database-Schema.md) · [Go handover](CoveStack-Go-Handover.md) · [Extended roadmap](CoveStack-Extended-Roadmap.md) · [SRS scope](CoveStack-SRS-Scope.md).
+Follow [operations](CoveStack-Operations-and-Recovery.md), [capacity](../docs/platform/capacity.md) and [readiness](../docs/platform/readiness.md). No mentor confirmation, new deployment permission or deadline is invented.
+
+## Historical traceability
+
+The [previous body of this file](../docs/archive/V5-before-full-product-alignment-2026-11-04.md#v5-covestack-complete-working-setup) is preserved unchanged as historical reference, including earlier requirements/DDL/acceptance text. It is not current VM/RustFS setup guidance. Use this active body, the linked canonical domain specifications and [actual implementation evidence](CoveStack-Implementation-Status.md) for new work. No source, migrations, contracts, tests, configuration or runtime state is changed by this document.
