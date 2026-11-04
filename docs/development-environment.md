@@ -1,3 +1,9 @@
+# Historical environment evidence — scope clarification
+
+> Original version/check results below remain unchanged and dated; they are not current supported host profiles or VM runtime acceptance. Existing sandbox restrictions remain in force. VM/KVM/Incus capability was not evaluated by those records. See [implementation evidence](platform/implementation-status.md) and [capacity qualification](platform/capacity.md).
+
+<!-- Historical body preserved below; see supersession notice above. -->
+
 # CoveStack Development Environment
 
 Updated: **4 November 2026**

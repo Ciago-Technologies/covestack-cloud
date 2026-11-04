@@ -1,52 +1,50 @@
-# CoveStack Cloud
+# CoveStack
 
-| Item | Details                                                                                                                                                                                                                                                                                                    |
-| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | Local DigitalOcean emulator under construction. Currently this repository contains shared contracts and Go/Java authentication libraries, not a runnable server/agent.                                                                                                                                     |
-| 2    | Product name: **CoveStack Cloud**; repository slug: `covestack-cloud`. Existing kan-server/kan-agent folders, KAN_* configuration and signing identifiers remain compatible. The local checkout and origin URL now use `covestack-cloud`. See [team start guide](V5/CoveStack-Team-START-HERE.md). |
-| 3    | Baseline 349a2f4 is published on fix/security-baseline. Agent configuration loader/tests exist; the signed HTTP client and polling executable remain pending; credential/token persistence, app/controllers and full agent remain pending. Review the baseline PR before claiming runtime readiness.   |
+**A local-first infrastructure control plane for account-owned environments on machines you control.**
 
-## Current documentation
+CoveStack aims to combine real infrastructure provisioning, capacity-aware scheduling, crash-safe reconciliation, built-in security and verified recovery through one API and CLI. **CoveStack-owned code and documentation are licensed under Apache License 2.0 (SPDX: `Apache-2.0`); see [LICENSE](LICENSE).**
 
-Use [V5](V5/README.md) for the current CORE-5 scope, team roles and schedule to **Monday, 25 January 2027**. Historical team guides and the older integration handoff are preserved as ZIPs in [docs/archive](docs/archive/README.md); their commands, role assignments and December schedule are not current instructions. Documentation describes targets, not service acceptance evidence.
+Primary compute is a **VM Instance with its own guest kernel**. **App Containers** are distinct shared-kernel resources for trusted workloads. Incus/QEMU/KVM is the preferred VM backend to evaluate; no VM driver exists yet.
 
-## Verify the current baseline
+## Status: Experimental
 
-| Item | Details                                                                                          |
-| ---- | ------------------------------------------------------------------------------------------------ |
-| 1    | Use Java 25, Maven 3.9+, Go 1.27.2 (pinned by toolchain and CI), Python 3. From repository root: |
+| Present in source | Still pending |
+| --- | --- |
+| Go configuration, HMAC signing and bounded signed HTTP client | Full credential provisioning and trusted account/host assignment |
+| Cancellable single-account signed polling with deliberate no-execution behavior | Claims, runtime drivers and crash-safe resource execution |
+| Java authentication/replay components and lifecycle validators | Runnable scoped resource APIs and foundational migration chain |
+| Unit-test sources and dated reports | Real isolation, verified recovery and a supported deployment profile |
 
-```bash
-python3 contracts/sign_example.py
-python3 contracts/check_lifecycle.py
-(cd kan-agent && go test -race ./... && go vet ./...)
-(cd kan-server && mvn --batch-mode verify)
-```
+The agent stops safely when work arrives. It does not claim, execute, acknowledge or delete that work. Source and mock tests do not prove live-server or infrastructure readiness. See the [implementation ledger](docs/platform/implementation-status.md).
 
-## Local infrastructure
+## Product scope
 
-| Item | Details                                                                                                                                                                                                                                                                                                                                 |
-| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | Create `deploy/.env` from `.env.example`; select exact tested image references. Create `deploy/secrets/postgres_password` containing a random password and copy `deploy/valkey.conf.example` to `deploy/secrets/valkey.conf`, replacing its password. Protect local secrets with mode 600. These files are gitignored. Start from root: |
+The [canonical architecture and service catalogue](docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md) defines proposed core and future infrastructure capabilities independently of historical academic CORE-5. Core includes compute, networking, storage, PostgreSQL, environments and security/operations foundations. Future candidates remain dependency-bound targets, not available services or a release promise.
 
-```bash
-docker compose --env-file deploy/.env -f deploy/docker-compose.yml config --quiet
-docker compose --env-file deploy/.env -f deploy/docker-compose.yml up -d
-```
+Potential users are small teams, DevOps engineers, organizations and self-hosters. Demand and comparative advantage require interviews and pilots. The hypothesis is a coherent account/environment lifecycle and recovery experience—not simply more services. Read the [competitive analysis](docs/platform/competitive-analysis.md).
 
-| Item | Details                                                                                                                                                                                                                                                                                                                                                                                                   |
-| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | Compose provides Postgres, authenticated persistent Valkey and Mailpit. MinIO is not included in this Compose configuration. Existing Postgres volumes retain their original password; changing the secret file does not rotate an initialized database's credentials. Do not delete data volumes to rotate credentials. Coordinate database password rotation with the Java owner and update connection settings together. |
+## Architecture
 
-## Integration
+Java/Spring Boot control plane → authoritative PostgreSQL → authenticated outbound Go agent → future VM, container, Kubernetes and networking/storage providers. Valkey is the replay store; Mailpit is development email capture. Users never receive privileged sockets or direct platform database access.
 
-| Item | Details                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | Read `contracts/CANONICAL-REQUEST.md` and [V5 agent work](V5/CoveStack-Anuj-Next-Steps.md) and [security integration](V5/CoveStack-Security-and-ITISS.md). Go's `sigv1.NewSignedRequest` signs exact body bytes, raw path/query and fresh nonces. Use HTTPS outside localhost and a client with redirects disabled. Person C implements `KeyService.findActiveCredential`, with service keys scoped to an account, and the Bearer token lookup implementation. Public filters are registered but require these implementations and account-scoped controllers. Agent auth configuration uses Valkey; there is no production fallback to the in-memory store. |
-| 2    | Person B still needs application main/configuration, migrations and account-scoped controllers. Boot repackage is disabled while this is a library; enable it when the application entry point lands. Anuj still needs the agent executable, polling and Docker operations. VM/Docker deployment and real Valkey integration are separate acceptance checks; unit tests do not establish those are working.                                                                                                                                                                  |
+**RustFS is the preferred object-storage candidate; integration is Planned.** The operator manages the storage service and persistent volumes; Java reconciles account-owned buckets, policies and scoped credentials. The provider adapter retains SeaweedFS and other alternatives. [RustFS compatibility gaps and required tests](docs/platform/provider-evaluation.md#rustfs-compatibility-and-acceptance).
 
-## Complete lifecycle contract
+The current wire contract remains 1.1.0. VM/type, trusted assignment, claim and capacity evolution requires coordinated schema/fixture review. Floci is an optional external testing integration. Historical 8 GB sizing is not a production recommendation; single-host deployment is not HA.
 
-| Item | Details                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | Version1.1.0 is defined in [lifecycle-rules.json](contracts/lifecycle-rules.json). [State reference](contracts/FROZEN-STATES.md) covers all seven resource kinds and server operations/notifications/metadata policies. Five agent kinds are capability- filtered; compute.group and storage.bucket are server-only. New observed reports require kind, and heartbeat requires supportedKinds. Planned drivers are not operational by declaration. Go/Java lifecycle helpers and shared vectors exist; B/Anuj must call them from the future scoped services/client dispatch. Regenerate with `python3 contracts/generate_lifecycle.py`; CI runs generation/schema fixture checks. |
+## Documentation
+
+- [Product SRS](docs/product/CoveStack-Product-SRS.md) and [service catalogue](docs/product/CoveStack-Product-Architecture-and-Service-Catalogue.md)
+- [Architecture and HLD/LLD](docs/platform/architecture.md), [VM/container model](docs/platform/resource-model.md) and [environments](docs/platform/environments.md)
+- [Security](docs/platform/security.md), [capacity](docs/platform/capacity.md) and [acceptance/readiness](docs/platform/readiness.md)
+- [Installation and operations](docs/platform/installation-and-operations.md), [API/CLI](docs/platform/api-and-cli.md) and [documentation index](docs/platform/README.md)
+- [Future dependencies](docs/platform/future-services.md) and [historical academic reference](docs/platform/academic-transition.md)
+
+No full-product quick-start is offered yet: existing Compose starts dependencies, not the complete platform or VM service.
+
+## Contributing and licensing
+
+Read the [contribution guide](docs/platform/contributing.md), [open decisions](docs/platform/decisions.md) and [checkpoint](checkpoint.md). Java remains the control plane; Go components grow selectively without a wholesale rewrite.
+
+**License: Apache License 2.0 — SPDX `Apache-2.0`.** The maintainer approved adoption; the complete text is in [LICENSE](LICENSE). Existing third-party material, dependencies and external projects retain their own licenses and notices. See the [licensing decision](docs/platform/licensing-decision.md) and [attribution review](docs/platform/license-and-attribution.md) for outstanding distribution checks. License adoption does not establish production support.
+
+Historical V5 guides and evidence retain their original statements under supersession notices. They do not constrain product scope or establish current functionality.

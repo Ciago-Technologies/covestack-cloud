@@ -1,3 +1,7 @@
+# Historical archive — VM transition notice
+
+> Use [active platform docs](../platform/README.md) and [academic transition](../platform/academic-transition.md), not archived commands/dates. ZIP/PDF/SVG/HTML artifacts and pre-redesign entry-point snapshots are retained as historical source, not supported deployment instructions. Snapshot bodies preserve original relative link spelling; those links may require the original root layout. [Audit](../documentation-audit.md) inventories the exceptions. No artifact was deleted or regenerated.
+
 # Historical CoveStack documentation
 
 **Historical reference only. V5 supersedes the team guides and integration handoff. Do not follow their old setup commands, scope, role assignments or December deadline.**
